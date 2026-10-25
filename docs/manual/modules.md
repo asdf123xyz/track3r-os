@@ -149,7 +149,7 @@ Not yet checked on the unit.
 
 Back up the card first. See [Installing track3r-os](install.md).
 
-1. Copy the `.tmod` file to the card. An app goes in the `modules/apps` folder. An instrument module goes in `modules/instruments`. An effect module goes in `modules/effects`. <!-- QA-MOD-079 -->
+1. Get the `.tmod` file. The apps of a release come in `track3r-os-<version>-apps.zip`, in the release `apps-v<version>` on the Releases page: unpack it into the root of the card and the files land in `modules/apps`. Otherwise copy the `.tmod` file to the card. An app goes in the `modules/apps` folder. An instrument module goes in `modules/instruments`. An effect module goes in `modules/effects`. <!-- QA-MOD-079 -->
 2. Put the card in the unit.
 3. For an app, press `F2` (**RESCAN**) on the Modules screen. <!-- QA-MOD-001 -->
 

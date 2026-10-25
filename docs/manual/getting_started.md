@@ -44,7 +44,7 @@ A starter zip is not part of this release. If you have one, you unpack it into t
 | In the zip | What it holds |
 |---|---|
 | `Firmware/` | the update file and its checksum |
-| `modules/apps/` | apps for the TOOLS screen. The TB-303, chip and FM instruments are inside the firmware. |
+| `modules/apps/` | apps for the TOOLS screen. The TB-303, chip and FM instruments are inside the firmware. The apps alone come in `track3r-os-<version>-apps.zip`, in the release `apps-v<version>`. |
 | `Samples/` | a drum kit and other one-shots |
 | `WTABLE/` | wavetables |
 | `Songs/` | tracker songs for the importers |
@@ -59,7 +59,7 @@ A starter zip is not part of this release. If you have one, you unpack it into t
 
 Follow [Installing track3r-os](install.md). It has the update steps, the checks and what to do when the unit does not start. This chapter does not repeat them.
 
-1. Download the release from the project's Releases page on GitHub. It has two files: `track3r-os-<version>.ptf` and `SHA256SUMS`. The starter zip described above is not part of the release.
+1. Download the release from the project's Releases page on GitHub. It has two files: `track3r-os-<version>.ptf` and `SHA256SUMS`. The starter zip described above is not part of the release. The apps are a separate download: the release `apps-v<version>` on the Releases page holds `track3r-os-<version>-apps.zip`. Unpack it into the root of the card.
 2. Check the download with `sha256sum -c SHA256SUMS`.
 3. Back up the card, then follow the steps in [Installing track3r-os](install.md).
 
