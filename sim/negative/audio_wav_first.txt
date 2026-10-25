@@ -1,0 +1,3 @@
+# OS-E2E-9: wav before the engine is on is refused when the script is read.
+document
+wav x y.wav

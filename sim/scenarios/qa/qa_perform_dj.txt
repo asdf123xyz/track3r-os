@@ -1,0 +1,195 @@
+# OS-DJ A1 (docs/specs/OS-DJ.md): the DJ page of Perform, docs/qa/catalogue/perform.md rows QA-PRF-100.. . One `snap qa_prf_NNN` per row with a visible result; the goldens are keyed qa_perform_dj/qa_prf_NNN.
+# The simulator has no performance engine and no audio here: the page, its keys and its pad lights are drawn from the view state; what the engine hears is tests/dj_test.cpp and audio_perform_test.cpp.
+
+# QA-PRF-100: the Performance button again turns to the DJ page: twelve tracks THRU, the fader centred (SMOOTH), the key row CURVE and RESET.
+tap performance
+tap performance
+snap qa_prf_100
+
+# QA-PRF-101: the encoder is the crossfader, one turn the whole travel: 6 detents to the left, a quarter of the travel towards A.
+encoder -6
+snap qa_prf_101
+
+# QA-PRF-102: a tap on the pads' row 4 jumps the fader: the last pad is all B.
+pad 47
+snap qa_prf_102
+
+# QA-PRF-103: F3 CURVE switches SMOOTH to CUT (the strip's chip and the key's mark say so).
+tap f3
+snap qa_prf_103
+
+# QA-PRF-104: Shift + row 1 sets the groups: track 1 and 2 to A, track 5 and 6 to B, the groups named on the screen.
+press shift
+pad 0
+pad 1
+pad 4
+pad 4
+pad 5
+pad 5
+release shift
+wait 3000
+snap qa_prf_104
+
+# QA-PRF-105: F8 RESET centres the fader; the groups stay.
+tap f8
+wait 3000
+snap qa_prf_105
+
+# QA-PRF-106: leaving the page (the button again) is the slots; the DJ page is at rest when it comes back: centred, SMOOTH, the groups kept.
+tap performance
+snap qa_prf_106
+
+# OS-DJ A2: the filter. Back on the DJ page (at rest after the step above).
+tap performance
+
+# QA-PRF-109: F4 held + the encoder is the filter, 10 a detent: three detents to the right, HP 30, FILTER and its key marked.
+press f4
+encoder 3
+snap qa_prf_109
+
+# QA-PRF-110: the release of F4 springs the filter back to 0 (OFF); the fader did not move.
+release f4
+wait 3000
+snap qa_prf_110
+
+# QA-PRF-111: LATCH (F6) keeps the filter at the release: LATCH marked, LP 50 stays after F4 is let go.
+tap f6
+press f4
+encoder -5
+release f4
+wait 3000
+snap qa_prf_111
+
+# QA-PRF-112: RESET (F8) clears the filter and keeps LATCH; unlatching (F6) is the other way back to 0.
+tap f8
+wait 3000
+snap qa_prf_112
+tap f6
+
+# QA-PRF-113: the FILT pad (row 3, pad 4) held gives the encoder to the filter: LP 60 while it is down, the pad lit brighter.
+pad 27 down
+encoder -6
+snap qa_prf_113
+pad 27 up
+
+# QA-PRF-114: leaving the page ends the filter: with LATCH on and LP 40 held, another screen and back finds the DJ page at rest (OFF, no LATCH).
+tap f6
+press f4
+encoder -4
+release f4
+tap pattern
+wait 3000
+tap performance
+wait 3000
+snap qa_prf_114
+
+# QA-PRF-115 (OS-DJ A3): the KILL pads (row 3, pads 1-3) kill a band of the master while they are down: LOW and HI killed, MID live; the KILL row names them, the two pads are lit brighter.
+pad 24 down
+pad 26 down
+wait 200
+snap qa_prf_115
+pad 24 up
+pad 26 up
+
+# QA-PRF-116: with LATCH on a tap on KILL MID stays after the pad is let go (the row reads LATCHED); a second tap ends it.
+tap f6
+pad 25 down
+pad 25 up
+wait 200
+snap qa_prf_116
+pad 25 down
+pad 25 up
+tap f6
+
+# QA-PRF-117: leaving the page ends the kills: KILL MID held, then another screen and back finds the KILL row dim.
+pad 25 down
+tap pattern
+pad 25 up
+wait 3000
+tap performance
+wait 3000
+snap qa_prf_117
+
+# OS-DJ A4: the pattern row, the banks, the tempo nudge and the fine tempo. The simulator has no sequencer here: it is stopped, so a tap selects the pattern in view (the queue, its blink and the nudge are tests/dj_test.cpp and the unit).
+
+document
+
+# QA-PRF-118: the pattern row: NOW and NEXT, the bank, the twelve patterns of the bank under the pads' first row (the ones the project holds bright), BANK - / BANK + on F1 and F2, the tempo in the strip.
+snap qa_prf_118
+
+# QA-PRF-119: a tap on pad 2 of row 1 while stopped selects pattern 2 (the PATS tap): NOW PAT 2, the pad lit as the one in view.
+pad 1
+snap qa_prf_119
+
+# QA-PRF-120: F2 BANK + shows patterns 13-24 (none of the demo's: the numbers dim, the pads dark); F1 comes back.
+tap f2
+snap qa_prf_120
+tap f1
+
+# QA-PRF-121: an arrow held while stopped nudges nothing and the strip says so.
+press left
+snap qa_prf_121
+release left
+
+# QA-PRF-122: Shift + right twice is +0.2 BPM in the strip's tempo, kept in the project (one undo unit a press).
+press shift
+tap right
+tap right
+release shift
+wait 3000
+snap qa_prf_122
+
+# OS-DJ B1: row 2 per group, REP, ECHO and CUT. The simulator has no sequencer and no engine here: the page shows what is in force (a line under the gains, the pads lit); the stutter, the delay send and the cut are tests/dj_test.cpp and the unit.
+# Row 2 is pads 12..23: group A (tracks 1 and 2) on the left, REP 1/4, 1/8, 1/16, 1/32, ECHO, CUT; group B (tracks 5 and 6) on the right, CUT, ECHO, REP 1/32, 1/16, 1/8, 1/4.
+
+# QA-PRF-123: REP 1/16 of group A held (pad 14) and REP 1/4 of group B (pad 23): the line under the gains names each group's REP, the two pads are lit while they are down.
+pad 14 down
+pad 23 down
+snap qa_prf_123
+pad 14 up
+pad 23 up
+
+# QA-PRF-124: ECHO of group B (pad 19) and CUT of group A (pad 17) held together: the line reads A CUT and B ECHO, the pads lit.
+pad 19 down
+pad 17 down
+snap qa_prf_124
+pad 19 up
+pad 17 up
+
+# QA-PRF-125: LATCH (F6) keeps a tap: REP 1/8 of A (pad 13) and ECHO of B (pad 19) stay after the pads are let go, the pads stay lit; a second tap on ECHO ends it.
+tap f6
+pad 13
+pad 19
+snap qa_prf_125
+pad 19
+
+# QA-PRF-126: RESET (F8) ends the latched REP: the line is gone and the pads are dim again; LATCH stays on.
+tap f8
+snap qa_prf_126
+tap f6
+
+# QA-PRF-127: leaving the page ends a held pad: CUT of B held, another screen and back finds the line gone and the pads dim.
+pad 18 down
+tap pattern
+pad 18 up
+wait 3000
+tap performance
+wait 3000
+snap qa_prf_127
+
+# OS-DJ B2: the TRANS pads (row 3, pads 29-31). The simulator has no sequencer here: the transport is stopped, so a TRANS pad says it needs play and starts nothing; the timer, the sweep, the wait for a loop and the echo are tests/dj_test.cpp (over a real sequencer) and the unit.
+# QA-PRF-129: stopped, TRANS HP (pad 29) starts nothing (the strip says TRANS NEEDS PLAY, a toast the picture does not hold): the page is as it was, the NEXT line has no TRANS text.
+pad 28
+snap qa_prf_129
+
+# OS-DJ C1: F5 SCR. The simulator has no card here, so no arena tail and no encoder counter: the tap says NO ENGINE FOR THE SCRATCH (a toast the picture does not hold) and the key stays unmarked. Taking the ring, the
+# platter and TAPE STOP are tests/dj_test.cpp and tests/audio_scratch_test.cpp.
+# QA-PRF-133
+tap f5
+snap qa_prf_133
+
+# QA-PRF-141 (OS-DJ A1, OS-SHIFTROW): Shift held on the DJ page: the key row reads - on all eight keys.
+press shift
+assert state screen=PERFORM
+snap qa_prf_141
+release shift

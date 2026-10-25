@@ -1,0 +1,498 @@
+{
+ "name": "qa_keyrowdlg",
+ "title": "OS-KEYROWDLG, the F-key row under a dialog or a question: rows QA-FIL-099..101, QA-CFG-034, QA-GLB-118, QA-GLB-119, QA-PAT-276 of docs/qa/catalogue. Reads the `keys=` of the state line and keeps soft shots of the row for a person to look at; answers no question, accepts no dialog, applies no setting, writes nothing.",
+ "steps": [
+  {
+   "say": "OS-KEYROWDLG (docs/specs/OS-KEYROWDLG.md): the F-key row says what the keys do while a dialog or a question is up. Rows QA-FIL-099..101, QA-CFG-034, QA-GLB-118, QA-GLB-119, QA-PAT-276, QA-INS-214 and QA-WAV-009 of docs/qa/catalogue. The `state` line carries ` keys=` while a prompt is live (F3:ALL,F1:KEEP_INS: the live keys of the row in view, a space as _), so each step reads the keys as the app says them; the soft shots of the row are for you to look at (a soft pixel compare cannot prove a label). It writes nothing: no question is answered, no dialog accepted, no setting applied. The boot disk (QA-GLB-120) and INPUT TEST (QA-GLB-121) are by hand: the boot chords."
+  },
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.2,
+   "note": "(Shift released, in case a former run left it down)"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "~^(NAVIGATOR|TEXT_ENTRY)$"
+   },
+   "note": "(a leftover Navigator or keyboard is closed: F7 is CLOSE / CANCEL)"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "~^(LEARN|PATTERN_CHOOSER|LENGTH_CHOOSER|JUMP_CHOOSER|MODULE_PICKER|STEP_POPUP|FILL|PLAY_MODE|TOOLS)$"
+   },
+   "note": "(a leftover overlay is put away: F8 is Back)"
+  },
+  {
+   "keys": [
+    "file"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "screen": "FILE"
+   },
+   "within": 4
+  },
+  {
+   "keys": [
+    "f6"
+   ],
+   "gap": 0.4,
+   "if_state": {
+    "page": "~^[12]$"
+   }
+  },
+  {
+   "wait": 2.5,
+   "note": "(a notification of the last scenario runs out, so the question is the line on the strip)"
+  },
+  {
+   "say": "QA-FIL-099: F3 NEW asks which new project. Nothing is answered."
+  },
+  {
+   "keys": [
+    "f3"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "screen": "FILE",
+    "keys": "~F3:ALL",
+    "msg": "~^(NEW_PROJECT|UNSAVED_CHANGES):_F3_ALL,_F1_KEEP_INSTRUMENTS$"
+   },
+   "within": 3,
+   "note": "QA-FIL-099: the strip names F3 ALL and F1 KEEP INSTRUMENTS, the row marks both"
+  },
+  {
+   "state": {
+    "keys": "~F1:KEEP_INS"
+   },
+   "within": 2
+  },
+  {
+   "shot": "qa_fil_099",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-FIL-099: F1 reads KEEP INS and F3 ALL, both inverted; F2, F4-F7 keep their labels"
+  },
+  {
+   "keys": [
+    "f2"
+   ],
+   "gap": 0.5,
+   "note": "QA-FIL-101: another key takes the question back (RESCAN)"
+  },
+  {
+   "state": {
+    "screen": "FILE"
+   },
+   "ne": {
+    "keys": "~F3:ALL"
+   },
+   "within": 3,
+   "note": "QA-FIL-101: the plain row is back in the same pass"
+  },
+  {
+   "shot": "qa_fil_101",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-FIL-101: OPEN RESCAN NEW .., none inverted"
+  },
+  {
+   "say": "QA-GLB-118: the keyboard. F5 SAVE AS opens it with the next free name; it is cancelled with F7, never accepted."
+  },
+  {
+   "keys": [
+    "f5"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "overlay": "TEXT_ENTRY",
+    "keys": "~F8:SAVE"
+   },
+   "within": 3,
+   "note": "QA-GLB-118: TYPE CAPS AUTO CANCEL SAVE on F1 F2 F6 F7 F8"
+  },
+  {
+   "state": {
+    "keys": "~^F1:TYPE,F2:CAPS,F6:AUTO,F7:CANCEL,F8:SAVE$"
+   },
+   "within": 2
+  },
+  {
+   "shot": "qa_glb_118_keyboard",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-GLB-118: the keyboard owns the row, F3-F5 blank"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.4,
+   "note": "CANCEL"
+  },
+  {
+   "state": {
+    "overlay": "NONE"
+   },
+   "within": 3
+  },
+  {
+   "say": "QA-GLB-118: Learn (Vol + FX1 together): the row is its own, BACK at least."
+  },
+  {
+   "keys": [
+    "+vol",
+    "+fx",
+    "-fx",
+    "-vol"
+   ],
+   "burst": true
+  },
+  {
+   "state": {
+    "overlay": "LEARN",
+    "keys": "~F8:BACK"
+   },
+   "within": 3,
+   "note": "QA-GLB-118: Learn owns the row"
+  },
+  {
+   "shot": "qa_glb_118_learn",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-GLB-118: BACK on F8; UNBIND MODE with a target, DELETE CLR ALL with bindings"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.4
+  },
+  {
+   "state": {
+    "overlay": "NONE"
+   },
+   "within": 3
+  },
+  {
+   "say": "QA-GLB-119: the Navigator (Shift + Pattern): F1 GO, F7 CLOSE, F8 GO; with Shift held F1..F6 read '-'."
+  },
+  {
+   "keys": [
+    "+shift",
+    "pattern",
+    "-shift"
+   ],
+   "gap": 0.4
+  },
+  {
+   "state": {
+    "overlay": "NAVIGATOR",
+    "keys": "~F7:CLOSE"
+   },
+   "within": 3
+  },
+  {
+   "shot": "qa_glb_119_navigator",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-GLB-119: GO . . . . . CLOSE GO"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.4,
+   "note": "CLOSE"
+  },
+  {
+   "state": {
+    "overlay": "NONE"
+   },
+   "within": 3
+  },
+  {
+   "say": "QA-PAT-276: the Pattern screen's choosers (F1, F2, F3) and the Fill dialog (F4). F8 closes each."
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.4
+  },
+  {
+   "keys": [
+    "+f1"
+   ],
+   "gap": 0.5,
+   "note": "hold F1: the PATTERN chooser is the hold of F1 only (OS-PATSWITCH: a tap opens nothing)"
+  },
+  {
+   "state": {
+    "overlay": "PATTERN_CHOOSER",
+    "keys": "~^F1:PATTERN,F2:LENGTH,F3:JUMP,F8:BACK$"
+   },
+   "within": 3,
+   "note": "QA-PAT-276: PATTERN LENGTH JUMP BACK, PATTERN inverted"
+  },
+  {
+   "shot": "qa_pat_276_pattern",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-PAT-276: the open chooser is the inverted one"
+  },
+  {
+   "keys": [
+    "-f1"
+   ],
+   "gap": 0.5,
+   "note": "the release closes it"
+  },
+  {
+   "state": {
+    "overlay": "NONE"
+   },
+   "within": 3
+  },
+  {
+   "keys": [
+    "f2"
+   ],
+   "gap": 0.5,
+   "note": "F2 (a tap) opens the LENGTH chooser"
+  },
+  {
+   "state": {
+    "overlay": "LENGTH_CHOOSER",
+    "keys": "~^F2:LENGTH,F3:JUMP,F8:BACK$"
+   },
+   "within": 3,
+   "note": "QA-PAT-276: F1 is blank here (a tap of it does nothing); F2 inverted"
+  },
+  {
+   "shot": "qa_pat_276_length",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-PAT-276: LENGTH inverted, F1 blank"
+  },
+  {
+   "keys": [
+    "f3"
+   ],
+   "gap": 0.5,
+   "note": "F3 switches to the JUMP chooser"
+  },
+  {
+   "state": {
+    "overlay": "JUMP_CHOOSER"
+   },
+   "within": 3
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "overlay": "NONE"
+   },
+   "within": 3
+  },
+  {
+   "keys": [
+    "rec"
+   ],
+   "gap": 0.6,
+   "if_state": {
+    "mode": "3"
+   },
+   "note": "F4 FILL needs Edit (QA-PAT-093): Rec turns Edit on when the unit starts in Browse"
+  },
+  {
+   "keys": [
+    "f4"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "overlay": "FILL",
+    "keys": "~^F1:FILL,F8:BACK$"
+   },
+   "within": 3,
+   "note": "QA-GLB-118: Fill owns the row (F1 FILL, F8 BACK)"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.4
+  },
+  {
+   "state": {
+    "overlay": "NONE"
+   },
+   "within": 3
+  },
+  {
+   "say": "QA-PAT-276: the step popup of a held Instr: F8 CANCEL alone."
+  },
+  {
+   "keys": [
+    "+instr"
+   ],
+   "gap": 0.6
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP",
+    "keys": "~^F8:CANCEL$"
+   },
+   "within": 3
+  },
+  {
+   "keys": [
+    "-instr"
+   ],
+   "gap": 0.4
+  },
+  {
+   "state": {
+    "overlay": "NONE"
+   },
+   "within": 3
+  },
+  {
+   "say": "QA-CFG-034: Config > USB. A turn and the first F7 arm the apply; the second F7 would re-enumerate the USB port, so it is NOT pressed: a move of the cursor takes the question back."
+  },
+  {
+   "keys": [
+    "config",
+    "f5"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "screen": "CONFIG"
+   },
+   "within": 3
+  },
+  {
+   "enc": -1,
+   "repeat": 1,
+   "gap": 0.4,
+   "note": "USB AUDIO is On, the top of its range, so a turn left makes the pending change"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "screen": "CONFIG",
+    "keys": "~F7:APPLY\\?"
+   },
+   "within": 3,
+   "note": "QA-CFG-034: F7 reads APPLY?, inverted"
+  },
+  {
+   "shot": "qa_cfg_034_apply",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-CFG-034: the first press of APPLY: F7 APPLY?"
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.4,
+   "note": "a move takes the first press back; nothing was applied"
+  },
+  {
+   "state": {
+    "screen": "CONFIG"
+   },
+   "ne": {
+    "keys": "~F7:APPLY"
+   },
+   "within": 3,
+   "note": "QA-CFG-034: the plain row is back"
+  },
+  {
+   "keys": [
+    "up"
+   ],
+   "gap": 0.4,
+   "note": "back to the USB AUDIO row"
+  },
+  {
+   "enc": 1,
+   "repeat": 1,
+   "gap": 0.4,
+   "note": "USB AUDIO back to On; nothing was applied"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.4,
+   "note": "(another page: nothing pending, nothing armed)"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.4
+  },
+  {
+   "say": "Done. The boot disk (QA-GLB-120: eight RESTART, AGAIN? inverted while a computer writes, blank while it finishes) and INPUT TEST (QA-GLB-121: F2 F3 CLEAR, F4 F5 EXIT) are by hand: look at the two boot chords' screens."
+  }
+ ],
+ "finally": [
+  {
+   "keys": [
+    "-f1"
+   ],
+   "gap": 0.2
+  },
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.2
+  },
+  {
+   "keys": [
+    "-instr"
+   ],
+   "gap": 0.2
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.3
+  }
+ ]
+}

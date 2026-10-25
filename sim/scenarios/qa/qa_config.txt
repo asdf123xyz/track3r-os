@@ -1,0 +1,279 @@
+# OS-FINALQA (docs/specs/OS-FINALQA.md): the Config screen's QA rows, docs/qa/catalogue/config.md. One `snap qa_cfg_NNN` per row with a visible result; the goldens are keyed config/qa_cfg_NNN.
+# OS-USBAUDIO: Config > USB (F5). USB AUDIO and USB RETURN are press to apply: the encoder (or Delete) only changes a pending value (starred), F7 says what will happen and arms, the second F7 writes
+# the settings; RETURN LEVEL is live. The message says a reconnection only when the apply re-enumerates the USB port: a USB AUDIO change always, a USB RETURN change only while AUDIO is presented.
+
+# QA-CFG-001: the USB page (F5): USB AUDIO On, USB RETURN On, RETURN LEVEL 100, nothing pending.
+tap config
+tap f5
+snap qa_cfg_001
+
+# QA-CFG-002: USB AUDIO to Off by a turn: the row is Off and starred, the info line says it is not applied yet. Nothing is written.
+encoder -1
+snap qa_cfg_002
+
+# QA-CFG-003: the first F7: "USB WILL RECONNECT: PRESS AGAIN" (the mode changes), the info line asks for F7 again. Still nothing written.
+tap f7
+snap qa_cfg_003
+
+# QA-CFG-004: the second F7 writes it: Off with no star, "USB RECONNECTING". (A notification shows for 2 s and the next one waits behind it: the scenario waits the first out, as params.txt does.)
+wait 2500
+tap f7
+snap qa_cfg_004
+wait 2500
+
+# QA-CFG-005: STANDARD now. USB RETURN to Off on the next row: starred, pending.
+tap down
+encoder -1
+snap qa_cfg_005
+
+# QA-CFG-006: the first F7 for a lone USB RETURN change in STANDARD: no reconnect warning ("PRESS AGAIN TO APPLY"), STANDARD's descriptors do not depend on the return.
+tap f7
+snap qa_cfg_006
+wait 2500
+
+# QA-CFG-007: the second F7: "APPLIED", USB RETURN Off, no star, no "USB RECONNECTING".
+tap f7
+snap qa_cfg_007
+wait 2500
+
+# QA-CFG-008: RETURN LEVEL is live: -10 detents is 90 at once, no star, no APPLY.
+tap down
+encoder -10
+snap qa_cfg_008
+
+# QA-CFG-009: Delete on a press-to-apply row is the default as a pending value: USB AUDIO is Off, so On waits (starred).
+tap up 2
+tap delete
+snap qa_cfg_009
+
+# QA-CFG-010: leaving the page (F1) and coming back (F5) throws the pending value away: Off, no star.
+tap f1
+tap f5
+snap qa_cfg_010
+
+# QA-CFG-011: USB AUDIO back On: a turn, then F7 twice: On with no star, "USB RECONNECTING".
+encoder 1
+tap f7
+wait 2500
+tap f7
+snap qa_cfg_011
+wait 2500
+
+# QA-CFG-012: AUDIO is presented again, so a lone USB RETURN change (Off to On) does re-enumerate: the first F7 warns "USB WILL RECONNECT: PRESS AGAIN".
+tap down
+encoder 1
+tap f7
+snap qa_cfg_012
+wait 2500
+
+# QA-CFG-013: the second F7: USB RETURN On, "USB RECONNECTING".
+tap f7
+snap qa_cfg_013
+
+# QA-CFG-015 (OS-UIFIX): the MIDI page (F1) with Shift held: the key row shows the Shift layer, - - - - - - DEFAULTS - (F7 is OS-SHIFTROW's page reset).
+wait 2500
+tap f1
+press shift
+snap qa_cfg_015
+release shift
+
+# OS-METRO (docs/specs/OS-METRO.md): Config > PATTERN (F6) holds the metronome: METRO (Off, Cue, Main; Cue plays on MAIN while OUT MODE is Stereo, so the row reads Cue (-> Main) there), METRO VOL (moved from the MIDI
+# page, where the row was dead) and COUNT-IN (Off, 1 bar, 2 bars), after REC POLY and REC QUANTIZE.
+
+# QA-CFG-016: the PATTERN page: REC POLY Off, REC QUANTIZE Nearest step, REC MICRO Off, REC VELOCITY Off, METRO Cue (-> Main), METRO VOL 50 %, COUNT-IN Off, PAD OFFSET 12 (OS-PADOFFSET).
+tap f6
+snap qa_cfg_016
+
+# QA-CFG-017: METRO to Main: the row reads Main (no arrow: the click is on MAIN whatever OUT MODE is).
+tap down 4
+encoder 1
+snap qa_cfg_017
+
+# QA-CFG-018: METRO Off.
+encoder -2
+snap qa_cfg_018
+
+# QA-CFG-019: METRO back to Cue, METRO VOL to 80 %.
+encoder 1
+tap down
+encoder 30
+snap qa_cfg_019
+
+# QA-CFG-020: COUNT-IN to 2 bars.
+tap down
+encoder 2
+snap qa_cfg_020
+
+# QA-CFG-021: the MIDI page has lost its METRO VOL row (nine rows since E-CFG-03: CLOCK IN to OUT CHANNEL, with TRANSPORT IN and OUT after CLOCK MODE).
+tap f1
+snap qa_cfg_021
+
+# OS-RECMICRO (docs/specs/OS-RECMICRO.md): two more rows on the PATTERN page, after REC QUANTIZE: REC MICRO (Off, On) and REC VELOCITY (Off, External). The page had seven rows (eight since OS-PADOFFSET).
+
+# QA-CFG-026: REC MICRO On: the row reads On and the hint says what it writes.
+tap f6
+tap down 2
+encoder 1
+snap qa_cfg_026
+
+# QA-CFG-027: REC VELOCITY External.
+tap down
+encoder 1
+snap qa_cfg_027
+
+# QA-CFG-028: Delete puts REC VELOCITY back to Off (the row reads Off, REC MICRO stays On).
+tap delete
+snap qa_cfg_028
+
+# OS-PADOFFSET: PAD OFFSET is the eighth row of the PATTERN page (0..12, the default 12): where each row of the NOTES pads starts on the row below it.
+
+# QA-CFG-035: PAD OFFSET to 5: the row reads 5 and the hint says what the number is.
+tap down 4
+encoder -7
+snap qa_cfg_035
+
+# QA-CFG-036: Delete puts PAD OFFSET back to 12.
+tap delete
+snap qa_cfg_036
+
+# E-PAT-35: PAT SWITCH is the ninth and last row of the PATTERN page (Step by default, Pattern end): its card says what each value does.
+# QA-CFG-229: PAT SWITCH to Pattern end by a turn: the row reads Pattern end at once; Delete puts Step back.
+tap down
+encoder 1
+snap qa_cfg_229
+tap delete
+tap up
+
+# QA-CFG-031 (OS-SHIFTROW): DEFAULTS asks first. The MIDI page, CLOCK MODE turned to Master, Shift + F7: the strip says SHIFT+F7 AGAIN: RESET PAGE and the value is still Master.
+tap pattern
+tap config
+tap f2
+tap f1
+tap down 2
+encoder +1
+press shift
+tap f7
+release shift
+snap qa_cfg_031
+
+# QA-CFG-034 (OS-KEYROWDLG): while DEFAULTS waits for its second press the Shift row marks the key: Shift + F7 reads RESET?, inverted, the other Shift labels stay; the plain row (not held) is APPLY's, unmarked.
+press shift
+snap qa_cfg_034
+release shift
+
+# QA-CFG-032 (OS-SHIFTROW): the second Shift + F7 within two seconds puts every row of the page back (CLOCK MODE reads its default).
+press shift
+tap f7
+release shift
+snap qa_cfg_032
+
+# QA-CFG-033 (OS-SHIFTROW): Left / Right turn the page: Left from MIDI wraps to PATTERN, Right goes back.
+tap left
+snap qa_cfg_033
+tap right
+
+# OS-USBDISK U2b (docs/specs/OS-USBDISK.md 9): the USB page's CARD AS DISK and READ ONLY rows. The simulator has no USB and this scenario no card: `disk` is the platform's word to the row (idle, working, out, audio).
+# (the strip of the rows before has to run out first)
+wait 6000
+
+# QA-CFG-200: the page after RETURN LEVEL: CARD AS DISK (F7: SHARE) and READ ONLY (On), the right-hand card says what the row does.
+tap f1
+tap f5
+tap down
+tap down
+tap down
+snap qa_cfg_200
+
+# QA-CFG-201: F7 with no card: NO CARD on the first press, nothing asked, nothing requested.
+tap f7
+snap qa_cfg_201
+
+wait 6000
+
+# QA-CFG-203: the card is out (the strip is the platform's persistent one): the row reads OUT: F7 EJECTS and the first F7 warns that the computer may still be writing.
+disk out
+tap f7
+disk out
+snap qa_cfg_203
+
+# QA-CFG-210: READ ONLY while the card is out: the encoder is refused (EJECT THE CARD TO CHANGE IT, ahead of the persistent strip, which the platform rewrites each second: the second `disk out` stands for that), the row keeps the disk the computer has (here On: shared read only).
+tap down
+encoder -1
+disk out
+snap qa_cfg_210
+tap up
+
+wait 6000
+
+# QA-CFG-204: the File screen while the card is out: CARD ON COMPUTER, and where to eject it.
+tap file
+snap qa_cfg_204
+
+# QA-CFG-211: a refused action on the File screen while the card is out shows ahead of the persistent strip (the simulator has no Host owner, so SAVE says its no-card-layer words; the 4.3 words are host-tested with a counting BlockDevice, disk_refusal_test).
+disk out
+tap f4
+snap qa_cfg_211
+disk idle
+
+# OS-FINALQA (FQA-2a): the DISPLAY (F2) and SD (F3) pages, and F8, which has no function on Config.
+wait 6000
+tap config
+tap f2
+
+# QA-CFG-213: the DISPLAY page (F2): DISPLAY High, PAD LIGHTS High, NUMBERING From 1, MIDDLE C C-5, THEME Amiga (the defaults).
+snap qa_cfg_213
+
+# QA-CFG-214: DISPLAY to Low, the row reads Low at once (the backlight follows on the next pass of the platform); back to High.
+encoder -2
+snap qa_cfg_214
+encoder 2
+
+# QA-CFG-215: THEME to Black: the screen is drawn in the black theme at once; back to Amiga.
+tap down 4
+encoder 1
+snap qa_cfg_215
+encoder -1
+
+# QA-CFG-216: NUMBERING From 0 and MIDDLE C C-4: the Pattern screen's row tiles count from 0 and the note names read an octave lower.
+tap up 2
+encoder -1
+tap down
+encoder -1
+tap pattern
+snap qa_cfg_216
+tap config
+tap f2
+tap down 2
+encoder 1
+tap down
+encoder 1
+
+# QA-CFG-217: the SD page (F3): no rows; the card's lines (CARD, MOUNTED, FILE SYSTEM, CAPACITY, CLUSTER) and the info line read "read only".
+tap f3
+snap qa_cfg_217
+
+# QA-CFG-218: F8 on Config does nothing, plain or with Shift: the page stays, nothing is noticed, the key reads "--".
+tap f8
+press shift
+tap f8
+release shift
+snap qa_cfg_218
+
+# E-CFG-03 (row 13): TRANSPORT IN and TRANSPORT OUT, the MIDI page's rows 4 and 5 (after CLOCK MODE). On is the default and today's behaviour.
+# QA-CFG-220: the MIDI page (F1) has nine rows now; the cursor on TRANSPORT IN (On), the card on the right says what Off does.
+tap f1
+tap down 3
+snap qa_cfg_220
+
+# QA-CFG-221: TRANSPORT IN to Off by a turn: the row reads Off at once (a device setting, no APPLY, no star).
+encoder -1
+snap qa_cfg_221
+
+# QA-CFG-222: TRANSPORT OUT to Off on the next row: both rows read Off; the rows below them are the ports and the channels.
+tap down
+encoder -1
+snap qa_cfg_222
+
+# QA-CFG-223: Delete puts the default (On) back on the row under the cursor, TRANSPORT OUT; TRANSPORT IN stays Off.
+tap delete
+snap qa_cfg_223

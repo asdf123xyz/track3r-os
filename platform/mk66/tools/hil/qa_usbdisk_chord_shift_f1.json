@@ -1,0 +1,9 @@
+{
+ "name": "qa_usbdisk_chord_shift_f1",
+ "title": "OS-USBDISK U1d, QA-GLB-016: power on holding Shift + F1 only: no disk mode",
+ "steps": [
+  {"say": "OS-USBDISK U1d, row QA-GLB-016, case shift_f1: hold Shift + F1 only while powering the unit on, then start this run. Nothing is injected, nothing is written"},
+  {"cmd": "log 400", "expect": ["boot: chord keys held"], "expect_not": ["USB DISK mode"], "within": 5, "poll": 1.0, "note": "the chord was read and is not the disk chord"},
+  {"cmd": "sd", "expect": ["owner:\\s+tracker"], "show": true, "note": "a normal boot: the Tracker owns the card (a card in the slot is mounted)"}
+ ]
+}

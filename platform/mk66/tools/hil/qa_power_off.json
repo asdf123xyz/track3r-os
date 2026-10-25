@@ -1,0 +1,16 @@
+{
+ "name": "qa_power_off",
+ "title": "OS-POWER P2: the real off (VLPR, a polled wake): `power off` with no button held; the unit stays dark, a press boots it. The draw and the press are by hand",
+ "steps": [
+  {"say": "OS-POWER P2, rows QA-GLB-117 and QA-GLB-103. Run qa_power (`power off dry` ends in a restart) FIRST. The unit is idle, NO BUTTON held. Have an inline USB power meter ready (M3) and, for the wake rows, a gate-checked build under test as a .ptf in Firmware/ (then run the wake again with no card). The register facts of the VLPR entry are confirmed on NXP's documents (spec 4.7) but this is their first run on a unit: if the unit restarts instead of staying dark, `power` after the boot names the step (`power: last off RESTARTED at step: ...`): send that line"},
+  {"keys": ["f7"], "gap": 0.3, "if_state": {"overlay": "NAVIGATOR"}, "note": "(a leftover Navigator is closed: F7 is CLOSE, F8 would GO since OS-NAV2)"},
+  {"keys": ["f8"], "gap": 0.3, "if_state": {"overlay": "~^(LEARN|PATTERN_CHOOSER|LENGTH_CHOOSER|JUMP_CHOOSER|MODULE_PICKER|STEP_POPUP)$"}, "note": "(a leftover overlay is put away: F8 is Back)"},
+  {"keys": ["f7"], "gap": 0.3, "if_state": {"overlay": "TEXT_ENTRY"}, "note": "(the on-screen keyboard is cancelled with F7, never accepted)"},
+  {"keys": ["pattern"], "gap": 0.4},
+  {"state": {"screen": "PATTERN"}, "within": 3},
+  {"run": "_stop"},
+  {"cmd": "power", "expect": ["power: hold Armed", "power: shutdown idle"], "within": 10, "poll": 1.0, "show": true, "note": "Power is released and the hold is armed: the off is allowed (it answers ERR power: Power is down otherwise)"},
+  {"cmd": "power off", "expect": ["power: off: the stages 0 to F, USB off, the lights out, then the VLPR off after Power is released"], "timeout": 10, "show": true, "note": "QA-GLB-117: the stages run (about 0.4 s), USB goes (this console ends), the screen fades, the pads go out; the unit then goes dark and silent and stays so. A build without the VLPR off says `then a restart` here"},
+  {"say": "NOW, BY HAND (QA-GLB-117, M3): the unit is dark and silent and stays so; read the USB meter for a minute and write the figure down. A restart within a second means a clock or mode step failed (see the first SAY). Then PRESS Power for 1 s and RELEASE it (QA-GLB-103; the unit boots at the release while kWakeAfterRelease is true, the default): the unit boots (logo, project); `diag power` then says `power: last off ended by a press (the wake)`. Repeat with Power held for 10 s, and with a .ptf in Firmware/ and with no card: write down whether the bootloader reacts to a held button (it is up at the reset while kWakeAfterRelease is true). A brush of less than 30 ms must not boot the unit. PTA24 stays HIGH in the off (kOffCutsSdram is false in power_off.h): the draw is the figure with the SDRAM powered; a build with it true is the M3 comparison and must wake too. Then run qa_power_last: it reads the record of the shutdown and of the off"}
+ ]
+}

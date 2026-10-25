@@ -1,0 +1,55 @@
+# OS-LIVEREC, OS-RECMODE2: a live recording pass on the Pattern screen (the maintainer's design; new Community OS behaviour). The demo document; the sequencer's position is the
+# scenario's `playhead <step> [<ustep>]` (what the engine publishes). In LIVE notes go to the PLAYHEAD's step on the CURSOR's track, the selected instrument; REC QUANTIZE
+# is Nearest step by default (a note played after half a step lands on the next one). STEP (Rec) writes at the cursor.
+
+document
+snap stopped
+tap rec
+snap step_stopped
+tap rec
+
+# Playing, Shift + Rec is LIVE (OS-RECMODE2; a plain Rec is STEP): the cursor rides the playhead and the view keeps the playing row centred (OS-CENTER). Right / Left change the recording track
+playhead 3
+press shift
+tap rec
+release shift
+snap follow_3
+tap right
+snap follow_track_2
+
+# A pad hit in step 3: the note is written at the cursor, which is the playhead's step; the release in the same step puts the OFF in the next one.
+pad 14
+snap note_recorded
+
+# Late in step 9 (30 of its 48 microsteps played): Nearest step puts the note on step 10, over what the demo had there.
+playhead 9 30
+pad 17
+snap nearest_next_step
+
+# Shift + Rec in LIVE is STEP (OS-LIVEEXIT): the take ends (one undo unit), the cursor and the view stay, the user moves on their own; the note goes to the cursor, not to the playhead.
+press shift
+tap rec
+release shift
+playhead 14
+snap step_playhead_14
+tap down 2
+tap left
+playhead 15
+snap step_cursor_moved
+pad 19
+snap step_note_at_cursor
+
+# Shift + Rec is LIVE again, a new take: the cursor is on the playhead at once. Rec in LIVE is WATCH (OS-LIVEEXIT), which follows too but records nothing.
+press shift
+tap rec
+release shift
+snap live_again
+tap rec
+snap watch_again
+playhead stop
+snap stopped_again
+
+# The step entry is one undo unit, and the whole take, every note and OFF from the first hit to the Rec, is ONE undo unit: two Undos take the pass back.
+action edit.undo
+action edit.undo
+snap undone

@@ -1,0 +1,2 @@
+# A scenario called "gallery": refused, its goldens keys would collide with the gallery's.
+snap whatever

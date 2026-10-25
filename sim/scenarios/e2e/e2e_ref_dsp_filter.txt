@@ -1,0 +1,53 @@
+# OS-E2E-9: the instrument filter against a textbook reference (tools/dsp_ref.py with scipy, tests/e2e_dsp_ref.py filter, ctest e2e_ref_dsp_filter). The deep user's way, as e2e_audio_params: the
+# Instrument page (PARAMS), the FILTER page (F3), the encoder, a pad. Instrument 2 of `document sound` is white noise (0.5 of full scale, looped), so the take of a filtered note divided by the
+# take of the open one, spectrum against spectrum, IS the filter's magnitude response. Five takes of 300 ms (the pad is down for 250): the noise open; the low-pass at cutoff 0.45 and at 0.65;
+# the same with the resonance up to 3.0 (Q 3.7: a peak at the cutoff); the high-pass at 0.65 with the resonance back at 0. The cutoff c is a fraction of the stored range: the engine's table
+# makes it int(c x 477) steps of 20 Hz x 2^(step / 50), so 0.45 is 388.6 Hz and 0.65 is 1.47 kHz (audio/svf.h). The test holds each take to the analogue second-order state variable filter at that
+# cutoff and Q within its tolerances (written in the test: 0.75 dB up to 6.4 kHz, 3 dB above, where a Chamberlin filter's half-step mean is a little lower than the prototype).
+document sound
+audio on
+wait 30
+tap params
+tap f7
+assert state screen=INSTRUMENT
+
+render open 300
+pad 12 hold 250
+wait 49
+
+# FILTER page, FILTER on, the cursor on CUTOFF (FILTER, TYPE, CUTOFF, RESONANCE): 1.0 down to 0.45, then up to 0.65.
+tap f3
+encoder 1
+assert model inst.2.filter=1
+tap down 2
+encoder -55
+assert model inst.2.cutoff=0.45
+render lp45 300
+pad 12 hold 250
+wait 49
+encoder 20
+assert model inst.2.cutoff=0.65
+render lp65 300
+pad 12 hold 250
+wait 49
+
+# The resonance row: 70 steps of 0.043 is 3.01, Q = 3.7.
+tap down
+encoder 70
+assert model inst.2.resonance=3.01
+render lp65q 300
+pad 12 hold 250
+wait 49
+
+# Back to no resonance, and the TYPE row up one: 1 is the high-pass.
+encoder -70
+assert model inst.2.resonance=0
+tap up 2
+encoder 1
+assert model inst.2.filter_type=1
+render hp65 300
+pad 12 hold 250
+wait 49
+assert audio open sound
+assert audio lp45 sound
+assert audio hp65 sound

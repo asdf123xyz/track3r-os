@@ -1,0 +1,38 @@
+# OS-MANUAL2 C3: the walk-through of the Song chapter's "Try it" (docs/manual/song.md): copy a slot, share a pattern, make it your own, look at the arrangement, undo.
+# Each `snap walk_<n>` is the picture of step n, `song_walk_<n>.png` in docs/manual/img/ (manifest: docs/manual/images.txt). A changed step is a changed picture: edit both together.
+# `document` opens the demo project (one slot, pattern 1).
+
+# Step 1. Press `Song`. The ORDER page lists the slots; the cursor is on the first.
+document
+wait 30
+tap song
+wait 20
+assert state screen=SONG
+snap walk_1
+
+# Step 2. Press `Shift` + `Insert` (DUP PAT): a new slot after the cursor, holding a copy of the pattern under a new number. The info line says SHIFT+INS DUP.
+press shift
+tap insert
+release shift
+wait 20
+snap walk_2
+
+# Step 3. Press `F3` (ADD SLOT): one more slot that holds the same pattern number as the cursor's. Two slots share it: the * mark and "pattern nn in 2 slots".
+tap f3
+wait 20
+snap walk_3
+
+# Step 4. Press `F5` (UNIQUE): the cursor's slot gets a copy of its own. The strip says SLOT nn: PATTERN nn (A COPY OF nn).
+tap f5
+wait 20
+snap walk_4
+
+# Step 5. Press `Song` again: the ARRANGEMENT page lists the same slots with START, BARS and a LENGTH bar.
+tap song
+wait 20
+snap walk_5
+
+# Step 6. Press `F8` (UNDO): the slot points at the shared pattern again.
+tap f8
+wait 20
+snap walk_6

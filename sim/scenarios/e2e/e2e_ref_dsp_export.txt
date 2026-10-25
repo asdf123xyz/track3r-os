@@ -1,0 +1,43 @@
+# OS-E2E-9: the 44.1 kHz export against a band-limited reference resampler (tools/dsp_ref.py export_reference: scipy.signal.resample_poly 2499 / 2500 with a Kaiser window, tests/e2e_dsp_ref.py export,
+# ctest e2e_ref_dsp_export). A deep user's session: put a card in, File > IMPORT a song, play it, then File > EXPORT it as a WAV. The card e2e_ref_export is GENERATED (tools/e2e_ref_cards.py: an S3M of
+# five pure sines, C-5 689 Hz, C-6 1,378, C-7 2,756, C-8 5,512 and A-8 9,267 Hz, two rows (240 ms) each, volume 64). The engine runs at 44,117.647 Hz and the file says 44,100: the export's
+# RateConverter (a cubic interpolator) brings the blocks to the file's rate so that its duration, tempo and pitch are the live ones. `live` is the master of the Play as the engine renders it; `export` is
+# the file the export wrote, read back from the card (`wav`). The test resamples `live` with the reference and compares the tones of the two: the frequency to 0.05 cent, the gain to 0.02 dB (2.7 kHz and
+# below), 0.1 dB (5.5 kHz) and 0.4 dB (9.3 kHz: the cubic interpolator's droop), the delay to 0.01 sample, and the difference to at least 55, 36 and 20 dB under the tone at the same frequencies.
+document
+wait 20
+card e2e_ref_export
+audio on
+wait 20
+tap file
+wait 50
+tap f6
+wait 100
+assert state screen=FILE sel=tones.s3m
+tap f1
+wait 800
+assert state msg=~IMPORTED_TONES.S3M
+assert model order.len=1
+
+# Play from the first row: five notes of 240 ms.
+render live 1250
+tap play
+assert state playing=1
+wait 1250
+tap play
+wait 300
+assert audio live in=20-200 pitch=689.0+-12c
+
+# File > EXPORT (F6 back to PROJECTS, F7 the EXPORT page), SONG is the first row, F1 starts it: the song is rendered twice, once to measure it and once to write it. The strip says where it went.
+tap f6
+wait 50
+tap f7
+wait 50
+tap f1
+wait 50
+assert state overlay=EXPORT_PROGRESS
+wait 600
+assert state msg=SAVED_EXPORT/UNTITLED/UNTITLED_SONG0001.WAV
+assert file EXPORT/UNTITLED/UNTITLED_SONG0001.WAV exists
+wav export EXPORT/UNTITLED/UNTITLED_SONG0001.WAV
+assert audio export in=20-200 pitch=689.0+-12c

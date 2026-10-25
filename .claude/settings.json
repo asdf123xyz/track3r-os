@@ -1,0 +1,139 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cmake *)",
+      "Bash(ctest *)",
+      "Bash(nice -n 10 cmake *)",
+      "Bash(nice -n 10 ctest *)",
+      "Bash(tools/ci.sh *)",
+      "Bash(nice -n 10 tools/ci.sh *)",
+      "Bash(O3OS_CI_SCOPE=changed tools/ci.sh *)",
+      "Bash(O3OS_CI_SCOPE=changed nice -n 10 tools/ci.sh *)",
+      "Bash(tools/remote_ci.sh)",
+      "Bash(tools/remote_ci.sh *)",
+      "Bash(python3 -I tools/*)",
+      "Bash(python3 -I platform/mk66/tools/check_image.py *)",
+      "Bash(python3 -I platform/mk66/tools/o3hil.py list*)",
+      "Bash(python3 -I platform/mk66/tools/o3hil.py validate*)",
+      "Bash(python3 -I platform/mk66/tools/o3hil.py --self-test*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)",
+      "Bash(git branch*)",
+      "Bash(git switch *)",
+      "Bash(git checkout -b *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git tag*)",
+      "Bash(git worktree *)",
+      "Bash(git push origin feat/*)",
+      "Bash(git push origin fix/*)",
+      "Bash(git push origin chore/*)",
+      "Bash(git push origin docs/*)",
+      "Bash(git push -u origin feat/*)",
+      "Bash(git push -u origin fix/*)",
+      "Bash(git push -u origin chore/*)",
+      "Bash(git push -u origin docs/*)",
+      "Bash(sha256sum *)",
+      "Bash(git push origin dev)",
+      "Bash(git push origin dev:main)"
+    ],
+    "deny": [
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git push * --force*)",
+      "Bash(git push * -f *)",
+      "Bash(git push --delete*)",
+      "Bash(git reset --hard*)"
+    ],
+    "ask": []
+  },
+  "worktree": {
+    "symlinkDirectories": [
+      ".toolchains"
+    ],
+    "baseRef": "head"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -I \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/guard_flash.py",
+            "timeout": 15
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -I \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/code_nav_guard.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -I \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/syntax_check.py",
+            "timeout": 120,
+            "statusMessage": "Syntax-checking edited source file"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -I \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/code_nav_guard.py --post",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -I \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/session_brief.py",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -I \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/verify_gate.py",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -I \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/verify_gate.py",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

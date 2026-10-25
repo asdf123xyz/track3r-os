@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="440" height="403" viewBox="0 0 312 286" role="img" aria-labelledby="t d">
+<title id="t">Panel: Vol and Fx are marked. Press both together to open Learn.</title>
+<desc id="d">Press Vol and Fx together to open Learn.</desc>
+<style>
+.body { fill: #3c3c3c; }
+.screen { fill: #141414; stroke: #262626; stroke-width: 2; }
+.soft { fill: #8a8a8a; }
+.pad { fill: #6a6a6a; }
+.key { fill: #7a7a7a; }
+.btn { fill: #5e5e5e; }
+.t { font-family: sans-serif; font-size: 12px; fill: #f4f4f4; text-anchor: middle; }
+.tk { font-family: sans-serif; font-size: 10px; fill: #f4f4f4; text-anchor: middle; }
+.dk { fill: #141414; }
+.cap { font-family: sans-serif; font-size: 13px; fill: #b0b0b0; }
+.scr { font-family: sans-serif; font-size: 16px; fill: #6f6f6f; text-anchor: middle; }
+.p{fill:#ffb000}
+.h{stroke:#ffb000;stroke-width:7}
+.lb{font-family:sans-serif;font-size:20px;font-weight:bold;fill:#ffb000;text-anchor:middle}
+.lk{font-family:sans-serif;font-size:14px;font-weight:bold;fill:#141414;text-anchor:middle}
+.bn{font-family:sans-serif;font-size:16px;font-weight:bold;fill:#f4f4f4;text-anchor:middle}
+.cp{font-family:sans-serif;font-size:30px;fill:#f4f4f4;text-anchor:middle}
+.lg{font-family:sans-serif;font-size:20px;fill:#f4f4f4}
+</style>
+<rect class="body" width="312" height="286" rx="14"/>
+<svg x="0" y="0" width="312" height="232" viewBox="980 140 312 232">
+<rect class="btn" x="980" y="140" width="72" height="72" rx="6"/>
+<text class="tk" x="1016" y="170">Sample</text>
+<text class="tk" x="1016" y="184">Playback</text>
+<rect class="btn" x="1060" y="140" width="72" height="72" rx="6"/>
+<text class="tk" x="1096" y="170">Sample</text>
+<text class="tk" x="1096" y="184">Editor</text>
+<rect class="btn" x="1140" y="140" width="72" height="72" rx="6"/>
+<text class="tk" x="1176" y="170">Sample</text>
+<text class="tk" x="1176" y="184">Recorder</text>
+<rect class="btn" x="1220" y="140" width="72" height="72" rx="6"/>
+<text class="t" x="1256" y="180">Song</text>
+<rect x="980" y="220" width="72" height="72" rx="6" fill="#f0c020"/>
+<text class="t dk" style="fill:#141414" x="1016" y="260">Instr</text>
+<rect class="p" x="1060" y="220" width="72" height="72" rx="6" fill="#7e4fc4"/>
+<text class="t" x="1096" y="260" style="fill:#141414">Vol</text>
+<rect class="p" x="1140" y="220" width="72" height="72" rx="6" fill="#2fc3dd"/>
+<text class="t" x="1176" y="260" style="fill:#141414">Fx</text>
+<rect class="btn" x="1220" y="220" width="72" height="72" rx="6"/>
+<text class="t" x="1256" y="260">Pattern</text>
+</svg>
+<rect x="16" y="244" width="30" height="30" rx="5" fill="#ffb000"/>
+<text class="lg" x="60" y="266">press together</text>
+</svg>

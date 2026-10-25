@@ -1,0 +1,373 @@
+{
+ "name": "pfx_midi",
+ "title": "OS-PFXTAB: a MIDI track with Chord 20 and Arp 6 sends the notes of this OS's tables (captured on the MIDI out and compared with the tables of docs/specs/OS-PFX.md). The scenario writes the pattern itself, with keys and the encoder (the loaded project in RAM only, nothing is saved), on track 2 of the pattern in view",
+ "needs": [
+  "midi"
+ ],
+ "steps": [
+  {
+   "run": "_load_tv16"
+  },
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.2,
+   "note": "(Shift released, in case a former run left it down)"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "NAVIGATOR"
+   },
+   "note": "(a leftover Navigator is closed: F7 is CLOSE, F8 would GO since OS-NAV2)"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "~^(LEARN|PATTERN_CHOOSER|LENGTH_CHOOSER|JUMP_CHOOSER|MODULE_PICKER|STEP_POPUP|FILL)$"
+   },
+   "note": "(a leftover overlay is put away: F8 is Back)"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "TEXT_ENTRY"
+   },
+   "note": "(the on-screen keyboard is cancelled with F7, never accepted)"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.4
+  },
+  {
+   "state": {
+    "screen": "PATTERN"
+   },
+   "within": 3
+  },
+  {
+   "run": "_stop"
+  },
+  {
+   "say": "OS-PFXTAB (docs/specs/OS-PFX.md; the expected notes are its tables): the Chord and Arp values play the notes of this OS's tables. The scenario CAPTURES what the unit's MIDI out sends, over a raw MIDI node of the USB MIDI port (--midi-device /dev/snd/midiC<card>D<dev>, see midi_clock_tool.py list) and compares the note-ons with the tables. The scenario WRITES the one pattern it needs (the loaded project, in RAM; nothing is saved): on track 2, row 1, a note with instrument 49 (MIDI channel 1), FX1 = Chord 20 (37A: Min7, root + 3, 7, 10 semitones; picker place 36, value by pad 32) and FX2 = Arp 6 (up, a note every step: 48 microsteps; picker place 37, value by pad 9), through the held Vol and Fx popups, as a person would; there is no OFF on row 7 (the arp goes on to the end of the capture, which is all the check needs). Variants to repeat by hand (the same capture, the expectation in brackets): Chord 0 with Arp 6 is the chromatic arpeggio [0 1 2 ... 11 0 1]; Chord 9 (5C) with Arp 6 arps 0 5 0 5 and the chord alone sends 0 5 12 together; Chord 12 (7E) with Arp 6 arps 0 7 0 7, the chord alone 0 7 14; Arp 17 (down) with Chord 20 [10 7 3 0 10 7]; Arp 5 (96 microsteps: a note every two steps) with Chord 20 [0 3 7 10] over 8 steps"
+  },
+  {
+   "say": "WRITE THE PATTERN: Edit mode, track 2 row 1 (home, then the NOTE column), a note, instrument 49 by one detent down from instrument 1, the Chord on FX1 and the Arp on FX2 through the held-button popups."
+  },
+  {
+   "keys": [
+    "params"
+   ],
+   "gap": 0.5
+  },
+  {
+   "keys": [
+    "+shift"
+   ],
+   "gap": 0.3
+  },
+  {
+   "pad": 0,
+   "note": "Shift + pad selects instrument 1 (a bare pad on Params plays it: OS-INSTUI S2), so that one detent down is 49"
+  },
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.3
+  },
+  {
+   "state": {
+    "instrument": "1"
+   },
+   "within": 2
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "screen": "PATTERN"
+   },
+   "within": 3
+  },
+  {
+   "keys": [
+    "rec"
+   ],
+   "gap": 0.4,
+   "if_state": {
+    "mode": "3"
+   },
+   "note": "(Rec toggles Browse <-> Edit: only when it is in Browse)"
+  },
+  {
+   "state": {
+    "mode": "0"
+   },
+   "within": 2,
+   "note": "Edit"
+  },
+  {
+   "keys": [
+    "+shift",
+    "insert",
+    "-shift"
+   ],
+   "gap": 0.3,
+   "note": "HOME: the first row"
+  },
+  {
+   "state": {
+    "row": "0"
+   },
+   "within": 2
+  },
+  {
+   "keys": [
+    "left"
+   ],
+   "gap": 0.1,
+   "repeat": 130,
+   "note": "(to the first column of the first track)"
+  },
+  {
+   "keys": [
+    "right"
+   ],
+   "gap": 0.15,
+   "repeat": 5,
+   "note": "(five columns on: track 2)"
+  },
+  {
+   "state": {
+    "track": "1",
+    "col": "NOTE",
+    "row": "0"
+   },
+   "within": 3,
+   "note": "track 2 of t-v16's pattern 5 is empty (only T01 sounds): nothing of the song is overwritten"
+  },
+  {
+   "pad": 17,
+   "note": "a note on row 1 (the cursor moves on by JUMP)"
+  },
+  {
+   "keys": [
+    "+shift",
+    "insert",
+    "-shift"
+   ],
+   "gap": 0.3,
+   "note": "HOME again"
+  },
+  {
+   "state": {
+    "row": "0"
+   },
+   "within": 2
+  },
+  {
+   "keys": [
+    "instr"
+   ],
+   "gap": 0.4
+  },
+  {
+   "state": {
+    "col": "INSTR"
+   },
+   "within": 2
+  },
+  {
+   "enc": -1,
+   "note": "one detent down from instrument 1: instrument 49, MIDI channel 1 (OS-INSTRMIDI)"
+  },
+  {
+   "state": {
+    "instrument": "49"
+   },
+   "within": 2
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9,
+   "note": "held Vol: the FX1 popup (the FX list)"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "enc": 36,
+   "note": "picker place 36: Chord (fx_table.h kPickerOrder)"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4,
+   "note": "the release enters the choice in FX1"
+  },
+  {
+   "state": {
+    "overlay": "~^(NONE|NOTIFY)$",
+    "col": "FX1"
+   },
+   "within": 3
+  },
+  {
+   "pad": 32,
+   "note": "in the FX1 column a pad enters the value: pad 32 of 0..47 over 0..29 is 20 (hex 14: the grid shows E14)"
+  },
+  {
+   "keys": [
+    "+shift",
+    "insert",
+    "-shift"
+   ],
+   "gap": 0.3,
+   "note": "HOME again (a pad moves the cursor on)"
+  },
+  {
+   "state": {
+    "row": "0"
+   },
+   "within": 2
+  },
+  {
+   "keys": [
+    "+fx"
+   ],
+   "gap": 0.9,
+   "note": "held Fx: the FX2 popup"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "enc": 37,
+   "note": "picker place 37: Arp"
+  },
+  {
+   "keys": [
+    "-fx"
+   ],
+   "gap": 0.4
+  },
+  {
+   "state": {
+    "overlay": "~^(NONE|NOTIFY)$",
+    "col": "FX2"
+   },
+   "within": 3
+  },
+  {
+   "pad": 9,
+   "note": "in the FX2 column pad 9 of 0..47 over 0..33 is 6 (the grid shows L06)"
+  },
+  {
+   "shot": "pfx_midi_written",
+   "non_blank": true,
+   "soft": true,
+   "note": "the cell reads: a note, 49, E14 (Chord 20) and L06 (Arp 6)"
+  },
+  {
+   "keys": [
+    "rec"
+   ],
+   "gap": 0.4,
+   "if_state": {
+    "mode": "0"
+   },
+   "note": "back to Browse: the capture must not record anything"
+  },
+  {
+   "state": {
+    "mode": "3"
+   },
+   "within": 2
+  },
+  {
+   "midi": {
+    "start": true
+   },
+   "note": "(listening on the MIDI out)"
+  },
+  {
+   "keys": [
+    "play"
+   ],
+   "gap": 0.0
+  },
+  {
+   "state": {
+    "playing": "1"
+   },
+   "within": 2
+  },
+  {
+   "wait": 1.6,
+   "note": "(six steps of the arp are 0.75 s at 120 BPM, the capture holds the first two passes of the pattern's first bar)"
+  },
+  {
+   "run": "_stop"
+  },
+  {
+   "midi": {
+    "on": [
+     0,
+     3,
+     7,
+     10,
+     0,
+     3
+    ],
+    "relative": true,
+    "settle": 0.3
+   },
+   "note": "Chord 20 + Arp 6 up: the tones of 37A in order, a step apart, then round again (the tables of docs/specs/OS-PFX.md: value 20 = 0 3 7 10; Arp 6 = up, 48 microsteps)"
+  }
+ ],
+ "finally": [
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.2
+  },
+  {
+   "keys": [
+    "-vol",
+    "-fx",
+    "-instr"
+   ],
+   "gap": 0.1
+  },
+  {
+   "run": "_stop"
+  }
+ ]
+}

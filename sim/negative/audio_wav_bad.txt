@@ -1,0 +1,5 @@
+# OS-E2E-9: wav of a file that is not a WAV (the fixture project): exit 2.
+document
+card e2e_card
+audio on
+wav x "Projects/Small Song/project.o3pj"

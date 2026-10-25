@@ -1,0 +1,33 @@
+# OS-E2E-9: the Paula sound against libopenmpt's Amiga resampler emulation (tests/e2e_openmpt_ref.py paula, ctest e2e_ref_openmpt_paula). The session of e2e_ref_mod with a bright sample: File > IMPORT,
+# F1 on the module, Play (the import binds the sample to the Amiga engine its Paula rate names, OS-BUG-MODENGINE: no engine step). The card e2e_ref_paula is GENERATED (tools/e2e_ref_cards.py: a 64-frame saw, every harmonic
+# 1 / k, played at three periods, 428 (129.5 Hz), 214 (259 Hz) and 160 (346 Hz), four rows (480 ms) each). The render `song` is NOT compared sample by sample: libopenmpt's Paula emulation
+# and this one (a minBLEP model after pt2-clone) agree on the SOUND, not on the samples, so the test compares what a listener hears of an Amiga: the energy in octave bands and the aliasing profile
+# (the energy that is not a harmonic of the note: Paula's sample and hold has an image spectrum far above the output's Nyquist, and what folds back is the aliasing), each within the tolerance the
+# test states: 1.5 dB per octave band, 3 dB on the total aliasing, which must be under -40 dB of the note. The render is also checked here for the sound of a clean take: a pitch within 3 cents of each note (a saw has an edge a period, so the click counter is not asked).
+document
+wait 20
+card e2e_ref_paula
+audio on
+wait 20
+
+tap file
+wait 50
+tap f6
+wait 100
+assert state screen=FILE sel=paula.mod
+tap f1
+wait 800
+assert state msg=~IMPORTED_PAULA.MOD
+assert model pat.1.0.0.note=61
+assert model pat.1.0.4.note=73
+
+# Play from the first row: three notes of 480 ms, 1,440 ms. The steady part of each is measured (from 60 ms into a note to 440 ms).
+render song 1500
+tap play
+assert state playing=1
+wait 1500
+assert audio song pitch=129.48+-3c in=70-450
+assert audio song pitch=258.97+-3c in=550-930
+assert audio song pitch=346.4+-3c in=1030-1410
+assert audio song sound
+tap play

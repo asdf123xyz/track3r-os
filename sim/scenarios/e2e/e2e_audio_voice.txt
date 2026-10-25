@@ -1,0 +1,60 @@
+# OS-E2E-2: the VOICE and SENDS pages act on the sound: the volume law, the pan law and the bit depth, each read in the sound and not only in the model. Instrument 1 of `document sound` is the sine (441.18 Hz at the
+# root pad, 0.5 of full scale), neutral until a knob turns: volume 50 (0 dB under the 1.2+ law), pan centre, 16 bit. A window is 300 ms of which the pad is down for 201. The levels are measured from 40 ms:
+# the engine drains the ParamChange ring in the graph's pass, after the block's voices, so a note pressed in the block (or the one before) that an edit lands in starts on the old value and ramps to the new
+# over 64 samples (about 3 ms); every pad here comes a tick after its knob.
+document sound
+audio on
+wait 30
+tap params
+tap f2
+assert state screen=INSTRUMENT
+render base 350
+pad 12 hold 250
+wait 99
+
+# VOLUME (VOICE page, first row): 40 is ten steps of 0.48 dB under 50, a quarter of 4.8 dB. The pan law keeps the two channels equal at the centre (no centre attenuation: pan 50 is unity on both).
+encoder -10
+assert model inst.1.volume=40
+render quiet 300
+pad 12 hold 200
+wait 99
+assert audio base in=40-200 pan=C+-0.1 peak=-6.02+-0.1 pitch=441.18+-2c clicks=0
+assert audio quiet in=40-200 peak=@base-4.8+-0.2 rms=@base-4.8+-0.2 pan=C+-0.1 pitch=441.18+-2c clicks=0
+encoder 10
+assert model inst.1.volume=50
+
+# PANNING (second row): hard left (0), hard right (100). The far channel is exactly silent (the pan law attenuates the opposite channel to zero at the end) and the near one is unchanged, so the RMS over the
+# two channels is 3.01 dB under the centre's.
+tap down
+encoder -50
+assert model inst.1.panning=0
+render left 300
+pad 12 hold 200
+wait 99
+encoder 100
+assert model inst.1.panning=100
+render right 300
+pad 12 hold 200
+wait 99
+assert audio left in=40-200 pan=L rms=@base-3.01+-0.1 peak=@base+-0.1 pitch=441.18+-2c
+assert audio right in=40-200 pan=R rms=@base-3.01+-0.1 peak=@base+-0.1 pitch=441.18+-2c
+# A quarter of the way: pan 25 is the right channel at half (pan / 50) and the left at unity: 6.02 dB between them, the left the louder.
+encoder -75
+assert model inst.1.panning=25
+render quarter 300
+pad 12 hold 200
+wait 99
+assert audio quarter in=40-200 pan=6.02+-0.2 pitch=441.18+-2c
+encoder 25
+assert model inst.1.panning=50
+
+# BIT DEPTH (SENDS page F5, the fourth row): 4 bits. The alias figure needs 8192 samples (186 ms) of steady tone, so this one is held 250 ms in a window of 350, and the reference is the 16-bit render of the same length. The tone is the same note; the steps of the rounding are harmonics of it (the sample repeats every 100 frames), so the centroid rises a long way and the
+# energy off the harmonic grid rises too (the rounding of a note that does not repeat is broadband), and the level moves by under 1 dB.
+tap f5
+tap down 3
+encoder -12
+assert model inst.1.bit_depth=4
+render crushed 350
+pad 12 hold 250
+wait 99
+assert audio crushed in=40-250 pitch=441.18+-2c centroid>@base*5 alias>@base+10 rms<@base+1 rms>@base-1 pan=C+-0.1

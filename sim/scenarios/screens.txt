@@ -1,0 +1,234 @@
+# OS-002b: screens, per-view modes and jumps, the Navigator, Learn, notifications.
+snap pattern_start
+assert state screen=PATTERN overlay=NONE playing=0
+
+# Pattern -> Song, and Song again for its next page and back.
+tap song
+snap song_start
+assert state screen=SONG page=0
+tap song
+snap song_page2
+assert state screen=SONG page=1
+tap song
+snap song_page1
+
+# Quarter jumps in the Song screen: Shift + F4 is three quarters through the 24 positions, Shift + F5 the last (OS-SHIFTROW: the slot with a copy of the pattern is Shift + Insert).
+press shift
+tap f4
+release shift
+snap song_three_quarters
+press shift
+tap f5
+release shift
+snap song_end
+
+# ... and back to Pattern. Browse is the default mode (the chip says WATCH); Rec enters STEP (OS-RECMODE2: the chip says STEP), the cursor is left alone and the arrows move it
+# (Down takes one step), Shift + Rec while it plays is LIVE (the red chip), and the stop ends it.
+tap pattern
+snap pattern_back
+assert state screen=PATTERN
+tap rec
+snap pattern_rec_step
+tap down
+snap pattern_rec_step_page
+tap rec
+playhead 3
+press shift
+tap rec
+release shift
+snap pattern_rec_live
+assert state playing=1 seq=1 play_step=3
+playhead stop
+
+# The pads' mode keys (OS-PADS-A, OS-PADOCT): Shift held shows the picker on the key row (F1 says the octave, "C3"; the mode that stays inverted); Shift + F5 leaves TRACKS fixed
+# (the info line says it), Shift + F2 puts NOTES back. They do not jump: the quarter jumps (Shift + F1..F5) are the Song list's and the Navigator's now.
+# (Shift + F1 moves the octave up: the last block of this file, so that the octave stays C3 for the shots between.)
+press shift
+wait 20
+snap pattern_picker
+tap f5
+snap pattern_picker_tracks
+release shift
+snap pattern_pads_tracks
+press shift
+tap f2
+release shift
+snap pattern_pads_notes
+
+# The Navigator (OS-NAV2): a tap of Shift + Pattern opens the view grid and it STAYS open after the keys are let go (a long wait changes nothing);
+# the arrow chooses Song, F8 is GO (the footer says F7 CLOSE / F8 GO, and the screen's F-key row under it is the Navigator's: F1 GO, F7 CLOSE, F8 GO, and
+# the quarter jumps while Shift is still held).
+press shift
+tap pattern
+snap navigator_open_shift
+release shift
+wait 450
+snap navigator_open
+assert state overlay=NAVIGATOR keys=~F8:GO
+tap right
+snap navigator_song
+tap f8
+snap navigator_opened_song
+assert state screen=SONG overlay=NONE
+
+# Held works the same: hold Shift + Pattern past the old hold time, let go of both, the grid is still up; the encoder moves the choice (one cell, the encoder
+# is a cell per detent) and so does an arrow (a row down); F7 is CLOSE and the view stays where it was.
+tap pattern
+press shift
+press pattern
+wait 450
+release pattern
+release shift
+snap navigator_held_open
+encoder 1
+tap down
+snap navigator_down
+tap f7
+snap navigator_closed
+
+# Pattern again closes it too (the plain button, and with Shift held it is the same), and F1 is a second GO.
+press shift
+tap pattern
+release shift
+tap right
+tap pattern
+snap navigator_closed_by_pattern
+press shift
+tap pattern
+release shift
+tap right
+tap f1
+snap navigator_f1_go
+tap pattern
+
+# Learn: the FX1 + FX2 chord opens it, it captures the keys (nothing moves), the chord again closes it.
+press vol
+press fx
+snap learn_open
+release fx
+release vol
+tap down
+tap song
+snap learn_captured
+press fx
+press vol
+release vol
+release fx
+snap learn_closed
+
+# Notifications: an F-key's label is an info notification for 2 s, and then it goes.
+tap f3
+snap notify_shown
+wait 1990
+snap notify_still
+wait 20
+snap notify_expired
+
+# The same label again is one notification with a count: three taps of F3 show "F3 JUMP x3", for 2 s from the last one.
+tap f3
+tap f3
+tap f3
+snap notify_coalesced
+wait 2100
+
+# Eight F-keys at once overflow the queue of four: the oldest are dropped, the head is F5.
+tap f1
+tap f2
+tap f3
+tap f4
+tap f5
+tap f6
+tap f7
+tap f8
+snap notify_overflow
+wait 8100
+snap notify_drained
+
+# The button of a screen that does not exist yet says so.
+tap sampleedit
+snap not_available
+
+# A Shift held down across screen changes is still held afterwards: Shift + Song, then Shift + F2 jumps in the song (a quarter,
+# not the F2 label), and back on the pattern the same key jumps there.
+wait 2100
+press shift
+tap song
+tap f2
+snap shift_song_quarter
+# (Shift + Pattern is the Navigator now, OS-NAV2: it opens on Song's cell, Left chooses Pattern, F8 is GO, with Shift held all the while.)
+tap pattern
+tap left
+tap f8
+tap f2
+snap shift_pattern_quarter
+release shift
+
+# OS-SHIFTROW: the Shift row of each screen with Shift held (rule 1: Shift + F belongs to the screen; a blank key does nothing). The default theme for all; Mixer and Config also in black and white.
+document
+tap song
+press shift
+snap shift_song
+release shift
+tap sampleplay
+press shift
+snap shift_wave
+release shift
+tap sampleplay
+press shift
+snap shift_chop
+release shift
+tap sampleedit
+press shift
+snap shift_sample_edit
+release shift
+tap sampleload
+press shift
+snap shift_sample_load
+release shift
+tap file
+press shift
+snap shift_file
+release shift
+tap samplerec
+press shift
+snap shift_record
+release shift
+tap samplerec
+tap samplerec
+press shift
+snap shift_record_radio
+release shift
+tap master
+press shift
+snap shift_mixer
+theme black
+snap shift_mixer_black
+theme white
+snap shift_mixer_white
+theme amiga
+release shift
+tap performance
+press shift
+snap shift_perform
+release shift
+tap config
+press shift
+snap shift_config
+theme black
+snap shift_config_black
+theme white
+snap shift_config_white
+theme amiga
+release shift
+action nav.screen 12
+press shift
+snap shift_modules
+release shift
+
+# OS-PADOCT: Shift + F1 on Pattern moves the note-entry octave up (the key reads C4, the scale of the info line follows); the mode stays. Last, because the octave stays.
+tap pattern
+press shift
+tap f1
+wait 20
+snap pattern_picker_octave
+release shift

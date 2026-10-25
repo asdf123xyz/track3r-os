@@ -1,0 +1,43 @@
+# OS-001b pattern view: F-key labels (they expire), pad, column buttons, vertical scrolling, ignored input.
+tap f3
+snap f3_label
+
+# The label stays for 2000 ms.
+wait 1900
+snap f3_still_there
+wait 200
+snap f3_expired
+
+# Pad 3 in the Instr column only previews (Browse, the default mode; OS-PADHOLD: it no longer chooses the instrument);
+# Shift and unmapped buttons change nothing.
+tap instr
+pad 3
+press shift
+tap play
+release shift
+
+# Instr -> Vol -> FX1 with two presses to the right, then Fx toggles FX1 -> FX2.
+tap instr
+tap right 2
+tap fx
+encoder 40
+snap scrolled_down
+
+# 40 -> 35; Left from FX2 is FX1, then the Note button jumps to the Note column.
+encoder -5
+tap left
+tap note
+snap note_column
+
+# OS-QJUMP: Shift + Note, Instr, Vol (FX1) and Fx (FX2) jump to 0, 1/4, 2/4 and 3/4 of the pattern (rows 0, 16, 32, 48 of the demo's 64 steps); the column stays.
+tap vol
+press shift
+tap instr
+snap qjump_quarter
+tap vol
+snap qjump_half
+tap fx
+snap qjump_three_quarters
+tap note
+snap qjump_top
+release shift

@@ -1,0 +1,39 @@
+{
+ "name": "qa_mixer",
+ "title": "OS-MASTERVOL: Master held + the encoder moves the master volume from any screen (the Pattern screen here), tells the engine (the level on the master drops) and says the value on the strip; the Master tap acts at the release",
+ "steps": [
+  {"run": "_load_tv16"},
+  {"keys": ["-shift"], "gap": 0.2, "note": "(Shift released, in case a former run left it down)"},
+  {"keys": ["pattern"], "gap": 0.4},
+  {"state": {"screen": "PATTERN"}, "within": 3},
+  {"run": "_play"},
+  {"wait": 3.0},
+  {"mix": {"channels": {"MAIN L": {"min_rms_db": -50}}, "snap": "before", "within": 5}},
+  {"keys": ["+master"], "gap": 0.2, "note": "QA-MIX-030: Master held on Pattern; nothing changes screen"},
+  {"enc": -64},
+  {"enc": -64},
+  {"enc": -64, "note": "(the unit accelerates a burst of detents: well past the lower end, 0)"},
+  {"wait": 0.3},
+  {"shot": "qa_mix_030", "non_blank": true, "soft": true, "note": "QA-MIX-030: still Pattern, the strip says MASTER VOLUME 0%"},
+  {"keys": ["-master"], "gap": 0.4, "note": "the release is silent"},
+  {"state": {"screen": "PATTERN"}, "within": 2, "note": "QA-MIX-030 / 031: the turn consumed the Master tap, so the release did not open the Mixer"},
+  {"wait": 1.5},
+  {"mix": {"drop": {"channel": "MAIN L", "field": "rms", "from": "before", "min_db": 6.0}, "within": 8}, "note": "QA-MIX-030: the master level is lower on the output"},
+  {"keys": ["+master"], "gap": 0.2, "note": "the volume back up, the same way (it is a project value: nothing was saved)"},
+  {"enc": 64},
+  {"enc": 64},
+  {"enc": 64},
+  {"wait": 0.3},
+  {"keys": ["-master"], "gap": 0.4},
+  {"state": {"screen": "PATTERN"}, "within": 2},
+  {"keys": ["master"], "gap": 0.5, "note": "QA-MIX-031: a quick tap of Master; it acts at the release, and is the Mixer"},
+  {"state": {"screen": "MIXER"}, "within": 3},
+  {"keys": ["pattern"], "gap": 0.4},
+  {"run": "_stop"}
+ ],
+ "finally": [
+  {"keys": ["-master"], "gap": 0.2, "note": "(a Master left down by a failed run is let go)"},
+  {"keys": ["-song"], "gap": 0.2, "note": "(a Song left down by a failed run is let go)"},
+  {"run": "_stop"}
+ ]
+}

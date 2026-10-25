@@ -1,0 +1,8 @@
+# OS-E2E-2: a check that does not exist is refused when the script is read.
+document sound
+audio on
+wait 30
+render n 150
+pad 12 hold 100
+wait 49
+assert audio n volume=3

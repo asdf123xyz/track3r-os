@@ -1,0 +1,26 @@
+#pragma once
+
+#include <stdint.h>
+#include <stdbool.h>
+
+typedef struct onePoleFilter_t
+{
+	float tmpL, tmpR, a0, b1;
+} onePoleFilter_t;
+
+typedef struct twoPoleFilter_t
+{
+	float tmpL[4], tmpR[4], a1, a2, b1, b2;
+} twoPoleFilter_t;
+
+void setupOnePoleFilter(double audioRate, double cutOff, onePoleFilter_t *f);
+void clearOnePoleFilterState(onePoleFilter_t *f);
+void onePoleLPFilterStereo(onePoleFilter_t *f, const float *in, float *out);
+void onePoleHPFilterStereo(onePoleFilter_t *f, const float *in, float *out);
+void onePoleLPFilter(onePoleFilter_t *f, const float in, float *out);
+void onePoleHPFilter(onePoleFilter_t *f, const float in, float *out);
+
+void setupTwoPoleFilter(double audioRate, double cutOff, double qFactor, twoPoleFilter_t *f);
+void clearTwoPoleFilterState(twoPoleFilter_t *f);
+void twoPoleLPFilter(twoPoleFilter_t *f, const float in, float *out);
+void twoPoleLPFilterStereo(twoPoleFilter_t *f, const float *in, float *out);

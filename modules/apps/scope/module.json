@@ -1,0 +1,19 @@
+{
+  "name": "Scope Spectrum",
+  "id": "scope",
+  "kind": "app",
+  "abi": "1.10",
+  "capabilities": ["audio_tap"],
+  "description": "Oscilloscope and spectrum analyser for the master output or the line input, one app with a View parameter. SCOPE: rising zero-crossing trigger with a free-run fallback and five fixed time spans (2.9 to 34.8 ms). SPECTRUM: 1024-point FFT with a Hann window, 48 log-frequency bars from 40 Hz to 20 kHz, a 60 dB scale and a falling peak-hold line. Reads the OS's audio tap (ABI 1.4, capability audio_tap); it makes no sound. New Community OS behaviour.",
+  "state_bytes": 20000,
+  "params": [
+    {"name": "View", "min": 1, "max": 2, "default": 1, "type": "int", "learnable": false},
+    {"name": "Source", "min": 1, "max": 2, "default": 2, "type": "int", "learnable": false},
+    {"name": "Timebase", "min": 1, "max": 5, "default": 3, "type": "int", "learnable": false}
+  ],
+  "views": [
+    {"name": "Body", "min_size": [480, 288], "preferred_size": [490, 384]}
+  ],
+  "voices": 1,
+  "memory": {"hot_bytes": 0, "sdram_bytes": 0}
+}

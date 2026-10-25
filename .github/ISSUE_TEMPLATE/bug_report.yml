@@ -1,0 +1,57 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+name: Bug report
+description: Something in track3r-os does not work as it should.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting. The more exactly you say what you did, the faster the maintainers can reproduce it in the simulator.
+
+        Please do not attach files of the official firmware, and do not put personal data in the report.
+  - type: input
+    id: build_id
+    attributes:
+      label: BUILD ID
+      description: "On the unit: Config, INFO, BUILD ID. From a computer: the `version` command of the USB diag console (`o3console.py version`). For example `v0.5.0 (0271ab60bea6)`."
+      placeholder: "v0.5.0 (0271ab60bea6)"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: What you did
+      description: "The steps, one per line, from a state we can reach: the screen you started on, the keys and pads you pressed."
+      placeholder: |
+        1. Open the Pattern screen.
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: input
+    id: card
+    attributes:
+      label: The SD card
+      description: "Size and format (for example 32 GB, FAT32), and the brand if you know it."
+      placeholder: "32 GB, FAT32"
+    validations:
+      required: true
+  - type: textarea
+    id: project
+    attributes:
+      label: A project file, if it matters
+      description: "Zip the project folder (or the project file) and drop the .zip here. Leave this empty if the problem does not depend on a project."
+    validations:
+      required: false

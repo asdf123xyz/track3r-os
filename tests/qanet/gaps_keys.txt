@@ -1,0 +1,21 @@
+# OS-QANET A2: what the key states do not reach (rule | key | state | reason | gap:<what the state lacks>). A setup gap of the net, not a finding: the key was pressed and the state had nothing for it to act on. A line that no
+# longer occurs fails the test (the state reaches it now: delete the line). The reason column is the finding's own text; a pattern (`*`, case ignored) covers a family of keys or states.
+R2 | F1 (record.toggle 0) | Record* | bound key changes nothing and says nothing | gap:the simulator attaches no recorder (app::Recorder) to the engine rig: nothing records, nothing is under review
+R2 | F2 (record.monitor 0) | Record* | bound key changes nothing and says nothing | gap:the simulator attaches no recorder (app::Recorder) to the engine rig: nothing records, nothing is under review
+R2 | F3 (record.save 0) | Record* | bound key changes nothing and says nothing | gap:the simulator attaches no recorder (app::Recorder) to the engine rig: nothing records, nothing is under review
+R2 | F4 (record.discard 0) | Record* | bound key changes nothing and says nothing | gap:the simulator attaches no recorder (app::Recorder) to the engine rig: nothing records, nothing is under review
+R2 | Shift+F3 (record.crop 0) | Record* | bound key changes nothing and says nothing | gap:the simulator attaches no recorder (app::Recorder) to the engine rig: nothing records, nothing is under review
+R2 | F5 (record.seek -1) | Record* | bound key changes nothing and says nothing | gap:the simulator attaches no recorder (app::Recorder) to the engine rig: nothing records, nothing is under review
+R2 | F6 (record.seek 1) | Record* | bound key changes nothing and says nothing | gap:the simulator attaches no recorder (app::Recorder) to the engine rig: nothing records, nothing is under review
+R2 | F8 (record.preview 7) | Record* | bound key changes nothing and says nothing | gap:the simulator attaches no recorder (app::Recorder) to the engine rig: nothing records, nothing is under review
+R2 | Shift+F5 (record.seek -10) | RECORD_page_2 | bound key changes nothing and says nothing | gap:the simulator attaches no recorder (app::Recorder) to the engine rig: nothing records, nothing is under review
+R2 | Shift+F5 (record.seek -10) | RecordRadio | bound key changes nothing and says nothing | gap:the simulator attaches no recorder (app::Recorder) to the engine rig: nothing records, nothing is under review
+R2 | Shift+F6 (record.seek 10) | RECORD_page_2 | bound key changes nothing and says nothing | gap:the simulator attaches no recorder (app::Recorder) to the engine rig: nothing records, nothing is under review
+R2 | Shift+F6 (record.seek 10) | RecordRadio | bound key changes nothing and says nothing | gap:the simulator attaches no recorder (app::Recorder) to the engine rig: nothing records, nothing is under review
+R2 | Up (nav.up 0) | Record* | bound key changes nothing and says nothing | gap:no take under review, so the page has one row
+R2 | Down (nav.down 0) | Record* | bound key changes nothing and says nothing | gap:no take under review, so the page has one row
+R2 | Shift+F* (mixer.*_none 0) | Mixer* | bound key changes nothing and says nothing | gap:nothing is muted or soloed in the state, so there is nothing to clear
+R2 | F8 (perform.key 7) | Perform* | bound key changes nothing and says nothing | gap:nothing on the board is on, so RESET has nothing to turn off
+R2 | F7 (wave.zoom -1) | Wave* | bound key changes nothing and says nothing | gap:the sample is fully zoomed out in every state, so ZOOM- has nowhere to go
+R2 | *(nav.left 0) | SampleEdit | bound key changes nothing and says nothing | gap:no selection on the sample: the edge Left and Right choose is drawn only with one
+R2 | *(nav.right 0) | SampleEdit | bound key changes nothing and says nothing | gap:no selection on the sample: the edge Left and Right choose is drawn only with one

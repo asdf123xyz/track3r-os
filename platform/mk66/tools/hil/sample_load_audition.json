@@ -1,0 +1,74 @@
+{
+ "name": "sample_load_audition",
+ "title": "Sample load: holding F5 on a listed WAV plays it (the audition), releasing it stops it",
+ "steps": [
+  {
+   "keys": [
+    "sampleload"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "screen": "SAMPLE_LOAD"
+   },
+   "within": 4
+  },
+  {
+   "note": "the listing is a scan of the card; the cursor is on its first entry (a folder or a WAV: step down to the first WAV by hand if the card's layout needs it)",
+   "wait": 2.0
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.4
+  },
+  {
+   "keys": [
+    "+f5"
+   ],
+   "gap": 0.2
+  },
+  {
+   "wait": 1.2
+  },
+  {
+   "voices": {
+    "min_in_use": 1
+   },
+   "soft": true
+  },
+  {
+   "mix": {
+    "channels": {
+     "MAIN L": {
+      "min_rms_db": -60
+     }
+    },
+    "within": 3
+   },
+   "soft": true
+  },
+  {
+   "keys": [
+    "-f5"
+   ],
+   "gap": 0.3
+  }
+ ],
+ "finally": [
+  {
+   "keys": [
+    "-f5"
+   ],
+   "gap": 0.2
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.3
+  }
+ ]
+}

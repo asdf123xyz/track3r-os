@@ -1,0 +1,19 @@
+{
+  "name": "Humanize",
+  "id": "humanize",
+  "kind": "app",
+  "abi": "1.10",
+  "capabilities": ["read_project", "edit_project"],
+  "description": "Microtiming and volume jitter on the Pattern's block: every step with a note is delayed by a random Micro-move up to TIME and its volume moved by up to VOL either way. The same SEED gives the same result. F1 APPLY writes it as one undo unit, F2 VARY draws a new one. Opened from Pattern F7 TOOLS. New Community OS behaviour.",
+  "state_bytes": 192,
+  "params": [
+    {"name": "Time", "min": 0, "max": 100, "default": 20, "type": "int", "learnable": false},
+    {"name": "Vol", "min": 0, "max": 64, "default": 8, "type": "int", "learnable": false},
+    {"name": "Seed", "min": 0, "max": 9999, "default": 0, "type": "int", "learnable": false}
+  ],
+  "views": [
+    {"name": "Body", "min_size": [480, 288], "preferred_size": [800, 384]}
+  ],
+  "voices": 1,
+  "memory": {"hot_bytes": 0, "sdram_bytes": 0}
+}

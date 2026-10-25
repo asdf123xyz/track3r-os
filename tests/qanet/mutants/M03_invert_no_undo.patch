@@ -1,0 +1,14 @@
+# mutant:   M03
+# class:    1
+# twin:     OS-BUG-SLDOVER (a change of the document that is no undo unit)
+# expected: A1
+# effect:   Pattern INVERT is treated as a Mixer action: its edit is final, with no undo unit
+diff --git a/app/src/actions.cpp b/app/src/actions.cpp
+index 23023dc0..52ac9135 100644
+--- a/app/src/actions.cpp
++++ b/app/src/actions.cpp
+@@ -348,3 +348,3 @@ model::UndoArea undo_area_of(core::ActionId id, ScreenId screen) noexcept {
+ constexpr core::ActionId kMixerActions[] = {core::action_id("mixer.edit"), core::action_id("mixer.coarse"), core::action_id("mixer.master_vol"), core::action_id("mixer.reset"), core::action_id("mixer.stem_set"),
+-                                            core::action_id("mixer.mute"), core::action_id("mixer.solo"), core::action_id("mixer.mute_none"), core::action_id("mixer.solo_none")};
++                                            core::action_id("mixer.mute"), core::action_id("mixer.solo"), core::action_id("mixer.mute_none"), core::action_id("mixer.solo_none"), core::action_id("pattern.invert")};
+ 

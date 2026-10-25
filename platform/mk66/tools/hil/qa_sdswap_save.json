@@ -1,0 +1,32 @@
+{
+ "name": "qa_sdswap_save",
+ "title": "OS-FINALQA, Global (OS-SDSWAP): the card pulled in the middle of a save. The project in RAM keeps playing and editing; the save ends with a clear failure (SAVE ... FAILED: NO CARD) and is never continued onto the card put back. Needs a card in the unit (--expect-volume is optional): the save writes a project folder on it, as save_test_card does. A person pulls the card; the timing is the person's, so the failure step is soft",
+ "needs": ["card"],
+ "steps": [
+  {"say": "OS-SDSWAP, row QA-GLB-011 of docs/qa/catalogue/global.md. THIS SCENARIO NEEDS A PERSON and WRITES to the test card (a new project folder under Projects/). After 'PULL THE CARD' take it out of the slot right away (the save takes a second or two: have a finger on it). The project plays during all of it"},
+  {"card": {}, "note": "a card is in the unit, not write protected, or nothing below runs"},
+  {"run": "_load_tv16"},
+  {"keys": ["-shift"], "gap": 0.2},
+  {"keys": ["pattern"], "gap": 0.5},
+  {"keys": ["play"], "gap": 1.0, "note": "the project plays through the swap"},
+  {"state": {"playing": "1"}, "within": 5},
+  {"keys": ["file"], "gap": 0.5},
+  {"state": {"screen": "FILE"}, "within": 3},
+  {"say": "SAVING now (F5 SAVE AS): PULL THE CARD within two seconds"},
+  {"keys": ["f5", "f8"], "gap": 0.2},
+  {"cmd": "sd", "expect": ["owner:\\s+no card"], "within": 60, "poll": 0.5, "show": true, "note": "QA-GLB-011: the card left and the Tracker let it go"},
+  {"state": {"msg": "~(FAILED.*NO_CARD|CARD_REMOVED)"}, "within": 5, "poll": 0.3, "soft": true, "note": "QA-GLB-011: the save ended with a clear failure (soft: a save that had already finished says DONE, and the message then is CARD_REMOVED only)"},
+  {"state": {"playing": "1"}, "note": "QA-GLB-011: the project in RAM went on playing"},
+  {"wait": 1.0},
+  {"state": {"playing": "1"}, "note": "(and still does a second later)"},
+  {"say": "PUT THE CARD BACK now. The failed save must not continue onto it"},
+  {"cmd": "sd", "expect": ["mount:\\s+mounted", "owner:\\s+tracker"], "within": 90, "poll": 1.0, "show": true},
+  {"state": {"msg": "~^CARD_READY$"}, "within": 5, "poll": 0.3},
+  {"wait": 3.0},
+  {"state": {"msg": "~^CARD_READY$"}, "note": "QA-GLB-011: nothing was saved or retried by itself after the card came back (no new SAVE message)"},
+  {"state": {"playing": "1"}}
+ ],
+ "finally": [
+  {"run": "_stop"}
+ ]
+}

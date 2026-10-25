@@ -1,0 +1,78 @@
+# OS-E2E-1b: a card in the simulator, and a journey over it: open a project from the card, save it as a new one, edit and save over it, open that one again, pull the card and put it back.
+# Every file is checked on the card itself (`assert file`), and the document through `assert model` and its digest. The card is a scratch copy of the fixture e2e_card (one native project,
+# Projects/Small Song, which is `o3pj_tool gen small`): it is generated into the build directory by the target e2e_card_fixture, never kept in git, and found with `o3sim --cards <build>/sim/cards`
+# (ctest and the update_goldens target pass it). The copy is removed when the run ends. The loader behind File > OPEN is sim/src/sim_project.cpp,
+# the saves are the app's own (SaveService, AtomicSave) writing through DirCard, which applies the real path guard. The ctest has the label `e2e` (tools/ci.sh e2e).
+document
+wait 20
+card e2e_card
+assert file "Projects/Small Song/project.o3pj" size=2648
+assert file "Projects/Small Song/project.o3pj" sha=fe075d31e2849cf6cb81a0bb157e1d748d13ed9c7c9141d98119b51370dc74df
+assert file "Projects/Small Song/project.o3pj.bak" absent
+assert file "Projects/Track 01" absent
+
+# The File screen lists the card; F1 opens the project under the cursor (a native one: the simulator's loader runs the native reader, then the samples, then hands the document over).
+tap file
+wait 300
+assert state screen=FILE overlay=NONE sel=Small_Song
+tap f1
+wait 300
+assert state screen=PATTERN msg=PROJECT_Small_Song_OPENED
+assert model tempo=12850
+assert model order.len=5
+assert model "name=Small Song"
+assert model inst.1.name=Kick
+assert model "inst.49.name=Synth A"
+assert model pat.1.0.1.note=0
+mark model opened
+
+# SAVE AS names a new folder: the first free "Track 01"; F8 saves it. A native file that is loaded and saved is the same bytes (the format is lossless), and nothing of the old folder moved.
+tap file
+tap f5
+wait 50
+assert state overlay=TEXT_ENTRY keys=~F8:SAVE
+tap f8
+wait 400
+assert state overlay=NOTIFY msg=SAVE_TRACK_01_DONE
+assert file "Projects/Track 01/project.o3pj" sha=fe075d31e2849cf6cb81a0bb157e1d748d13ed9c7c9141d98119b51370dc74df
+assert file "Projects/Track 01/_o3save.tmp" absent
+assert file "Projects/Small Song/project.o3pj" sha=fe075d31e2849cf6cb81a0bb157e1d748d13ed9c7c9141d98119b51370dc74df
+
+# An edit (Rec arms the Pattern screen, a pad writes C-3 on step 1 of track 1) and F4 SAVE: the project is now the one in Track 01, so that file is replaced and the old one stays as its .bak.
+tap pattern
+tap rec
+tap down
+pad 36
+assert model pat.1.0.1.note=37
+mark model edited
+# Unsaved work is not thrown away without asking: F1 on a project asks first (the key reads OPEN?) and opens nothing; a save takes the question back.
+tap file
+tap f1
+assert state screen=FILE msg=UNSAVED_CHANGES:_F1_AGAIN_TO_DISCARD_THEM keys=~F1:OPEN[?]
+assert model digest=@edited
+tap f4
+wait 400
+assert state msg=SAVE_TRACK_01_DONE
+assert file "Projects/Track 01/project.o3pj.bak" sha=fe075d31e2849cf6cb81a0bb157e1d748d13ed9c7c9141d98119b51370dc74df
+assert file "Projects/Track 01/project.o3pj" sha=15cf2ba3c20b043ca1e3e908a26cfbbf4556f56caa1f24ab8072c3424a57e13a
+assert file "Projects/Small Song/project.o3pj" size=2648
+
+# Open Track 01 again (a rescan puts the most recent project first): the document is the edited one, byte for byte, through the file.
+tap f2
+wait 500
+assert state screen=FILE sel=Track_01
+tap f1
+wait 300
+assert state screen=PATTERN msg=PROJECT_Track_01_OPENED
+assert model pat.1.0.1.note=37
+assert model digest=@edited
+
+# The card is pulled and put back: the strip says so, and the files are where they were.
+tap file
+card pull
+assert state screen=FILE msg=CARD_REMOVED
+card insert
+wait 100
+assert state msg=CARD_READY
+assert file "Projects/Track 01/project.o3pj" sha=15cf2ba3c20b043ca1e3e908a26cfbbf4556f56caa1f24ab8072c3424a57e13a
+assert file "Projects/Small Song/project.o3pj" size=2648

@@ -1,0 +1,67 @@
+# OS-MANUAL2 C1: the walk-through of the Perform chapter's "Try it" (docs/manual/perform.md). Each `snap walk_<n>` is the picture of step n, `perform_walk_<n>.png` in docs/manual/img/
+# (the manifest is docs/manual/images.txt; tools/manual_images.py renders it, ctest o3sim_manual_images keeps the committed pictures in step).
+# A new step or a changed key means a changed picture: edit the chapter's step and this line together.
+#
+# The manual numbers the pads 1 to 48; the simulator's `pad` takes 0 to 47, so the manual's pad N is `pad N-1`.
+# `document sound` and `audio on` wire the Perform slots (the board is the engine's; without it the screen says "no engine: the slots are not wired"). Nothing here is played: no step needs a sound.
+# The waits let the engine take each change before the picture; the long one lets the strip's message go, so a picture shows the message of its own step.
+document sound
+audio on
+wait 30
+
+# Step 1. Press `Perform` (a fresh unit opens on SLOTS; the chapter says what to do when the strip says PAGE DJ). The 12 slots are all OFF and no track is on. No picture: with no track on, the info line runs into the hint on its right (a latent defect of the screen,
+# perform_screen.cpp `left.assign(...)`: the text is wider than the room), and "The screen at a glance" has its own picture.
+tap performance
+wait 20
+assert state screen=PERFORM
+
+# Step 2. Hold `Shift` and press pad 1 and pad 2, the top row: T1 and T2 turn ON (TRACKS 2). Release `Shift`.
+press shift
+pad 0
+pad 1
+release shift
+wait 20
+snap walk_2
+
+# Step 3. Hold pad 16, row 2 of slot 4 (LOWPASS; its first value is the default -30, OS-PRFDEFAULTS), and turn the encoder down 10 detents. While the pad is down the cell shows -40 and LOWPASS closes the filter on T1 and T2 (the cutoff
+# is the base plus the value / 100, so a negative value closes a low-pass filter). This is the live value: EDIT is off, so nothing is stored in the row (the stored one stays -30).
+# (LOWPASS is one of the Perform effects that act today; the simulator has no performance engine, so nothing is heard.)
+pad 15 down
+wait 20
+encoder -10
+wait 20
+
+# Step 4. Let go of pad 16. The row was never written, so the live -40 ends and the stored default -30 comes back: the cell stays selected and lit, and reads -30.
+pad 15 up
+wait 20
+snap walk_4
+
+# Step 5. Press `Rec` (EDIT on), hold pad 16, turn the encoder down 10 detents and let go. In EDIT the encoder stores the value in the row. LATCH is on (the default), so the row stays on after the
+# release: the cell is lit and reads -40. Press `Rec` again to leave EDIT.
+tap rec
+wait 20
+pad 15 down
+wait 20
+encoder -10
+wait 20
+pad 15 up
+wait 20
+tap rec
+wait 20
+snap walk_5
+
+# Step 6. Hold `Shift` and press `F1` (STORE 1). The strip says SCENE 1 STORED. Release both keys.
+press shift
+tap f1
+release shift
+wait 20
+assert state msg=SCENE_1_STORED
+
+# Step 7. Press `F8` (RESET): every slot goes back to OFF and the cell is no longer lit; T1 and T2 stay on. Then press `F1` (SCENE 1): LOWPASS is on at -40 again and the key row marks SCENE 1.
+wait 3000
+tap f8
+wait 20
+assert state screen=PERFORM
+tap f1
+wait 20
+snap walk_7

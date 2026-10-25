@@ -1,0 +1,26 @@
+# OS-PATTEMPO, docs/qa/catalogue/global.md QA-GLB-153..155. Goldens: qa_tempo/qa_glb_NNN.
+wait 300
+
+# QA-GLB-153 and 154 (OS-PATTEMPO): Pattern held + the encoder is the project tempo, on any screen. On Song (the screen does not change) seven detents up from the demo's tempo, the strip says TEMPO and the value;
+# the release of Pattern is silent. Pattern held + pad taps 500 ms apart make 120.0: the strip says TAP after the first and TAP 120.0 BPM after the second; no note, no navigation.
+document
+tap song
+press pattern
+wait 5
+encoder 7
+snap qa_glb_153
+assert state screen=SONG
+release pattern
+wait 5
+assert state screen=SONG
+press pattern
+wait 5
+pad 5
+wait 500
+pad 9
+snap qa_glb_154
+release pattern
+wait 5
+assert state screen=SONG
+tap pattern
+assert state screen=PATTERN

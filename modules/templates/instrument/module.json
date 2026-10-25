@@ -1,0 +1,17 @@
+{
+  "name": "Example Instrument",
+  "id": "example_instrument",
+  "kind": "instrument",
+  "description": "A sine voice with an exponential decay and a view of its envelope: the smallest instrument that uses every part of the SDK.",
+  "state_bytes": 64,
+  "params": [
+    {"name": "Level", "min": -48, "max": 6, "default": -12, "unit": "db"},
+    {"name": "Pitch", "min": -24, "max": 24, "default": 0, "type": "int", "unit": "semitones"},
+    {"name": "Decay", "min": 20, "max": 4000, "default": 400, "curve": "log", "unit": "ms"}
+  ],
+  "views": [
+    {"name": "Envelope", "min_size": [120, 80], "preferred_size": [380, 140]}
+  ],
+  "voices": 1,
+  "memory": {"hot_bytes": 400, "sdram_bytes": 0}
+}

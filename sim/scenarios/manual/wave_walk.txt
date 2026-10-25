@@ -1,0 +1,42 @@
+# OS-MANUAL2 C3: the walk-through of the Wave chapter's "Try it" (docs/manual/wave.md): open the play modes, choose WAVETABLE, halve the window, choose SLICE, cut the sample in even parts.
+# The simulator's demo instrument is a sine with no sample, so the WAVETABLE and CHOP views show "no sample" here: the chapter's pictures are the gallery states (wave_qa_wav_003, wave_qa_wav_004). This scenario checks the keys of the steps.
+
+# Step 1. Press `Sample Play`: the WAVE page of the instrument in view.
+document sound
+wait 30
+tap sampleplay
+wait 20
+assert state screen=WAVE
+
+# Step 2. Press `Shift` + `F1` (MODE): the list of the eight play modes; NOW marks the instrument's own.
+press shift
+tap f1
+release shift
+wait 20
+assert state screen=WAVE
+
+# Step 3. Press `Down` six times to WAVETABLE and `F1` (SELECT): the WAVETABLE view, a window marked on the sample.
+tap down 6
+tap f1
+wait 20
+assert state screen=WAVE
+
+# Step 4. Press `F2` (WINDOW) and turn the encoder down one click: the window halves and the same part of the sample stays marked.
+tap f2
+encoder -1
+wait 20
+assert state screen=WAVE
+
+# Step 5. Press `Shift` + `F1`, `Up` twice to SLICE, `F1`: the CHOP page, with no slices yet.
+press shift
+tap f1
+release shift
+tap up 2
+tap f1
+wait 20
+assert state screen=WAVE
+
+# Step 6. Press `F2` (EVEN): the sample is cut in equal parts, drawn as lines.
+tap f2
+wait 20
+assert state screen=WAVE

@@ -1,0 +1,204 @@
+# OS-E2E J2: the "OG project migration" journey. A project made by the original firmware's folder layout (the card e2e_og: Projects/OG Demo/{project.mt, patterns/pattern_01.mtp, instruments/01 Sine.pti}, one sample
+# instrument, a loop of 200 frames = two periods of a 441 Hz sine, and sixteen steps of 75 ms at 200 BPM) is opened from the card, played, edited, saved as a native project, exported back to the OG layout, the
+# exported folder is opened again (the user copies it from Export/ into Projects/ on a computer: `card copy`), saved native and reloaded, and heard again. About 1.8 s of audio and 7 s a run under the sanitizers, against the spec's target of under 6 s (the live take 0.7 s, the reloaded
+# project 0.7 s, the export read back 0.4 s). The card is GENERATED, never committed: target e2e_og_fixture runs `o3og_fixture` (tests/tools/o3og_fixture.cpp, from the synthetic byte maps of tests/support/og_fixture.h,
+# docs/formats/og.md; nothing of the official firmware); ctest e2e_fixture_fresh holds it to what the tool writes. Evidence label: new Community OS behaviour (test only, no firmware file is touched). The OG leg is
+# checked by field probes, not by bytes or by a digest: an OG export resamples and converts levels by design (tests/og_roundtrip_test.cpp). The takes are compared by measurement, not by a sample null: the first block of
+# a take falls at another phase of the engine's pacing (up to 1.45 ms, docs/specs/OS-E2E.md, E2E-13).
+# Known cases (docs/specs/OS-E2E.md, J2, "Found, not changed"): (a) the project name of the OG export is the model's ("OG Demo"), not the folder the project was saved to ("Track 01"); the probe `name=OG Demo`
+# of step 5 pins that until the maintainer decides which name an export should carry. (b) F1 on the EXPORT page acts on the row the cursor was left on (OG PROJECT from an earlier visit), so the journey moves
+# the cursor first (`tap down 4`, `tap up 4`).
+document
+wait 20
+card e2e_og
+audio on
+wait 20
+
+# 1. File > OPEN of an OG folder (the listing tags it as OG by its project.mt): the OG loader reads the project, its pattern and the .pti, the sample loader binds the PCM. Probes of what the files said.
+tap file
+wait 300
+assert state screen=FILE overlay=NONE sel=OG_Demo
+tap f1
+wait 800
+assert state screen=PATTERN msg=PROJECT_OG_Demo_OPENED
+assert model "name=OG Demo"
+assert model tempo=20000
+assert model order.len=1
+assert model order.0=1
+assert model inst.1.name=Sine
+assert model pat.1.0.1.note=61
+assert model pat.1.0.3.note=68
+assert model pat.1.0.5.note=61
+assert model pat.1.0.7.note=255
+assert model pat.1.0.9.note=0
+assert model pat.1.1.1.note=0
+
+# 2. Play the pattern and capture it (the tracks too): C-5, G-5, C-5 on steps 1, 3, 5 (75 ms a step: 75, 225 and 375 ms), a note off on step 7 (525 ms). The sample is a loop of a sine of 12000/32768 (a peak of -8.73 dB and
+# an RMS of -11.74 dB at unity); the instrument's volume 40 and panning 60 (not the defaults, so that the probes after the re-import can catch a dropped field) take 4.80 dB off in the engine: peak -13.53 dB and
+# RMS -16.54 dB as measured. A note plays at the sample's pitch at C-5 (441.18 Hz as measured), 661 Hz at G-5.
+render live 700 stems
+tap play
+wait 700
+tap play
+wait 1
+assert state playing=0
+assert audio live.t1 in=100-220 pitch=441.18+-4c rms=-16.54+-0.3 peak=-13.53+-0.3 clicks=0
+assert audio live.t1 in=250-370 pitch=661.00+-4c
+assert audio live.t1 in=400-520 pitch=441.18+-4c
+assert audio live.t1 in=0-60 silent
+assert audio live.t1 in=560-690 silent
+assert audio live.t1 in=0-700 onset=75+-3 clicks=0
+assert audio live.t2 silent
+assert audio live in=100-220 pitch=441.18+-4c
+
+# 3. An edit (Rec arms the Pattern screen; the cursor goes to step 9, a pad writes C-5 there), then SAVE AS: the first free name, Track 01. The native project and the sample, as a WAV, are the project's files.
+tap pattern
+tap rec
+action cursor.jump_fraction 0
+tap down 9
+action instrument.select 1
+pad 12
+assert model pat.1.0.9.note=61
+assert model pat.1.0.9.instr=1
+tap file
+tap f5
+wait 50
+assert state overlay=TEXT_ENTRY
+tap f8
+wait 1700
+assert state msg=SAVE_TRACK_01_DONE
+assert file "Projects/Track 01/project.o3pj" exists
+assert file "Projects/Track 01/samples/instr01.wav" size=444
+assert file "Projects/OG Demo/project.mt" sha=6a4aa92c4eb0c27f58dfddd8120e82e8b21fcc8cf21a89a49bdf28fee7597238
+assert file "Projects/OG Demo/patterns/pattern_01.mtp" sha=2048e5a10363fd905151d2a4583b9379e86f70028ee53cbdbed7d37aec38eb05
+assert file "Projects/OG Demo/instruments/01 Sine.pti" sha=81307ee6530409301084bede4d006f98117c20e2e2519cfdab4a37336f4c1d8d
+
+# 4. File > EXPORT, OG PROJECT (the fifth row): Export/Track 01 OG gets the instrument, the pattern, the pattern names and, last, project.mt. The order is watched file by file: a folder without project.mt is
+# not a project, so a cut export can never be taken for a finished one.
+tap pattern
+tap file
+wait 50
+tap f6
+tap f6
+tap f7
+wait 50
+tap down 4
+wait 300
+tap f1
+wait 10
+assert file "Export/Track 01 OG/instruments/01 Sine.pti" exists
+assert file "Export/Track 01 OG/patterns/pattern_01.mtp" absent
+assert file "Export/Track 01 OG/project.mt" absent
+wait 20
+assert file "Export/Track 01 OG/patterns/pattern_01.mtp" exists
+assert file "Export/Track 01 OG/patterns/patternsMetadata" absent
+assert file "Export/Track 01 OG/project.mt" absent
+wait 30
+assert file "Export/Track 01 OG/patterns/patternsMetadata" exists
+assert file "Export/Track 01 OG/project.mt" absent
+wait 500
+assert state msg=SAVED_TRACK_01_OG_(4_FILES)
+assert file "Export/Track 01 OG/project.mt" size=2320
+assert file "Export/Track 01 OG/patterns/pattern_01.mtp" size=9260
+assert file "Export/Track 01 OG/instruments/01 Sine.pti" size=792
+assert file "Export/Track 01 OG/_o3save.tmp" absent
+
+# 5. The exported folder is opened again. A user copies Export/Track 01 OG into Projects/ on a computer (the card is pulled; `card copy` is that copy, outside the unit's write guard); the listing finds it by its project.mt.
+tap file
+card pull
+card copy "Export/Track 01 OG" "Projects/Track 01 OG"
+card insert
+wait 100
+tap pattern
+tap file
+wait 50
+tap f6
+tap f6
+wait 500
+tap down 4
+assert state screen=FILE sel=Track_01_OG
+tap f1
+wait 800
+assert state screen=PATTERN msg=PROJECT_Track_01_OG_OPENED
+
+# The OG leg, by field probes: the export wrote what the model held (the name of the project, the tempo, the song, the notes with the edit, the note off, the instrument and the fields of its sampler), and
+# not byte for byte or by digest: an OG export resamples, converts levels and normalises by design (tests/og_roundtrip_test.cpp), so only fields the format carries are compared.
+# The name pins known case (a) of the header: the export carries the model's name, not the folder's (Track 01). If a later change gives the export the folder's name, this line is the one to move.
+assert model "name=OG Demo"
+assert model tempo=20000
+assert model order.len=1
+assert model order.0=1
+assert model pat.1.0.1.note=61
+assert model pat.1.0.3.note=68
+assert model pat.1.0.5.note=61
+assert model pat.1.0.7.note=255
+assert model pat.1.0.9.note=61
+assert model pat.1.0.9.instr=1
+assert model pat.1.0.2.note=0
+assert model pat.1.1.1.note=0
+assert model inst.1.name=Sine
+assert model inst.1.volume=40
+assert model inst.1.panning=60
+assert model inst.1.tune=0
+mark model reimported
+
+# 6. Lossless in the native format: the re-imported project is saved native (Track 02) and read back: the digest of the document is the one marked before the save.
+tap file
+tap f5
+wait 50
+tap f8
+wait 1700
+assert state msg=SAVE_TRACK_02_DONE
+assert file "Projects/Track 02/project.o3pj" exists
+assert file "Projects/Track 02/samples/instr01.wav" size=444
+tap pattern
+tap file
+wait 50
+tap f6
+tap f6
+wait 500
+assert state screen=FILE sel=Track_02
+tap f1
+wait 800
+assert state screen=PATTERN msg=PROJECT_Track_02_OPENED
+assert model digest=@reimported
+assert model pat.1.0.9.note=61
+
+# 7. Reload = the same sound: the project read back from Track 02 (the native file and the WAV of its sample) is played from the top and sounds like the first take, to 0.15 dB, a cent and 1.5 ms; its edit (C-5 on
+# step 9, 675 ms) is heard as well.
+render again 800 stems
+tap play
+wait 800
+tap play
+wait 1
+assert audio again.t1 in=100-220 pitch=@live.t1+-1c rms=@live.t1+-0.15 peak=@live.t1+-0.15 clicks=0
+assert audio again.t1 in=250-370 pitch=@live.t1+-1c rms=@live.t1+-0.15
+assert audio again.t1 in=400-520 pitch=@live.t1+-1c
+assert audio again.t1 in=560-660 silent
+assert audio again.t1 in=690-790 pitch=441.18+-4c rms=-16.54+-0.3
+assert audio again.t1 in=0-700 onset=@live.t1+-1.5
+
+# 8. Export = playback: File > EXPORT, SONG (the first row; F1 starts it): the arrangement rendered offline to a WAV on the card, read back as a render. Its level and its pitches are the live take's.
+tap pattern
+tap file
+wait 50
+tap f6
+tap f6
+tap f7
+wait 50
+tap up 4
+wait 100
+tap f1
+wait 600
+assert state msg=SAVED_EXPORT/TRACK_02/TRACK_02_SONG0001.WAV
+assert file "Export/Track 02/Track 02_Song0001.wav" exists
+wav export "Export/Track 02/Track 02_Song0001.wav"
+assert audio export in=20-600 sound rms=@live+-0.3 peak=@live+-0.3
+assert audio export in=100-220 pitch=441.18+-4c
+assert audio export in=250-370 pitch=661.00+-4c
+assert audio export in=400-520 pitch=441.18+-4c
+assert audio export in=560-660 silent
+# OS-E2E-4: the audio fingerprint (tests/audio_fingerprints/e2e_og_migration.json): the first track as the OG project plays it, and again after the migration's save and reload.
+# Taken at the 44,100 Hz clock (OS-RATE): a 441 Hz tone reads 441.00 Hz; the low bands move with the phase at which a note is cut.
+fingerprint live.t1
+fingerprint again.t1

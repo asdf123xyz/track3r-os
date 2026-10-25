@@ -1,0 +1,42 @@
+# OS-QANET simulator checks of two audit expectations (docs/qa/og-user-audit/triage.md rows 74 and 75): assertions only, no pictures (so no goldens). `playhead <step>` is what the sequencer publishes.
+# The first line of each block opens a fresh demo document.
+
+# E-PAT-20: Play in WATCH, the view follows the playhead; Stop. Where is the cursor? The user had it on step 4 (row 3) before Play.
+document
+tap down 3
+assert state screen=PATTERN mode=3 row=3 playing=0
+tap play
+playhead 11
+assert state playing=1 row=11
+playhead 12
+assert state row=12
+tap play
+playhead stop
+assert state playing=0 row=12
+# (what it does: the cursor stays on the last followed row, 12; it is neither back on row 3 nor at the top)
+
+# E-PAT-23: LIVE (Shift + Rec while the pattern plays). A note is played at the playhead (step 12); then plain Up, the encoder and Delete are used with the playhead still on step 12.
+document
+playhead 11
+press shift
+tap rec
+release shift
+assert state mode=0 row=11
+playhead 12
+pad 14
+assert model pat.1.0.12.note=63
+assert state row=12
+# The encoder edits the step under the cursor, which is the playhead's: the note changes (63 to 64). Delete clears it.
+encoder 1
+assert model pat.1.0.12.note=64
+tap delete
+assert model pat.1.0.12.note=0
+# Plain Up: the cursor leaves the playhead's row (the step above), no step changes; the next step the playhead publishes pulls the cursor back onto it.
+playhead 13
+pad 14
+assert model pat.1.0.13.note=63
+tap up
+assert state row=12
+assert model pat.1.0.13.note=63
+playhead 14
+assert state row=14

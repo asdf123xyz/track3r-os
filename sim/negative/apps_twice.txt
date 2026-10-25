@@ -1,0 +1,5 @@
+# OS-APPUX S0: the apps are on already: a second `apps on` is exit 2.
+document
+card e2e_card
+apps on
+apps on

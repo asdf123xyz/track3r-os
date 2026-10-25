@@ -1,0 +1,92 @@
+# OS-ZOOM (docs/specs/PAT-NAV.md): Note is a held modifier. Note + Instr cycles the zoom of the Pattern grid, 5 tracks (every field), 8 (Note, Instr, Vol) and 12 (Note);
+# Note + Left / Right moves a whole track. The 12-track demo document, then a project of three tracks.
+document
+tap vol
+snap zoom5
+
+# Note + Instr: 5 -> 8. Neither Note's tap (the Note column) nor Instr's (the Instr column) ran: the cursor stays on Vol.
+press note
+tap instr
+release note
+snap zoom8
+
+# 8 -> 12: Vol is hidden, the cursor snaps to Note. A block over four steps of three tracks (Shift + Down, Shift + Right) is drawn over the 64 px columns.
+press note
+tap instr
+release note
+press shift
+tap down 3
+tap right 2
+release shift
+snap zoom12_block
+
+# A field the zoom hides refuses its key and says which one zooms.
+tap instr
+snap zoom12_hint
+
+# The collapse of the block, then Note + Right nine times at 12 tracks: the cursor is on the 10th track.
+tap left
+press note
+tap right 9
+release note
+snap zoom12_track10
+
+# 12 -> 5: the window holds the cursor's track.
+press note
+tap instr
+release note
+snap zoom5_track10
+
+# 5 -> 8 again, the window clamps: tracks 5..12 hold track 10.
+press note
+tap instr
+release note
+snap zoom8_track10
+tap instr
+tap vol
+snap zoom8_vol
+tap note
+
+# Note + Left to the first track, then the popup of a held Note with its hint; Note + Right inside it moves the grid underneath, the popup stays open.
+press note
+tap left 12
+release note
+wait 10
+press note
+wait 700
+snap zoom8_note_popup
+tap right
+snap zoom8_note_popup_track2
+release note
+wait 10
+
+# The themes.
+theme black
+snap zoom8_black
+press note
+tap instr
+release note
+snap zoom12_black
+theme white
+snap zoom12_white
+press note
+tap instr
+release note
+snap zoom5_white
+press note
+tap instr
+release note
+snap zoom8_white
+theme amiga
+
+# A project of three tracks (the zoom level survives the load: still 8): what exists is shown, the width of a track is fixed and the right of the pane stays empty.
+document tracks 3
+snap three_tracks_zoom8
+press note
+tap instr
+release note
+snap three_tracks_zoom12
+press note
+tap right 5
+release note
+snap three_tracks_track3

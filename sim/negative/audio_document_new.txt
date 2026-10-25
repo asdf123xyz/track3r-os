@@ -1,0 +1,3 @@
+# OS-E2E-2: `document new` attaches a File > NEW that rewrites the project in place, under the engine that plays it, with no Stop and no wait for the voices: `audio on` after it is refused.
+document sound new
+audio on

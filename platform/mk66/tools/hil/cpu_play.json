@@ -1,0 +1,17 @@
+{
+ "name": "cpu_play",
+ "title": "CPU while t-v16 plays: read cpu three times during playback, no underrun, no over-budget",
+ "steps": [
+  {"run": "_load_tv16"},
+  {"keys": ["pattern"], "gap": 0.5},
+  {"run": "_play"},
+  {"wait": 3.0},
+  {"cmd": "cpu", "expect": ["underrun 0"]},
+  {"wait": 5.0},
+  {"cmd": "cpu", "expect": ["underrun 0"]},
+  {"wait": 5.0},
+  {"cmd": "cpu", "expect": ["underrun 0", "over-budget 0", "shed 0 blocks"]},
+  {"voices": {"min_in_use": 1}}
+ ],
+ "finally": [{"run": "_stop"}]
+}

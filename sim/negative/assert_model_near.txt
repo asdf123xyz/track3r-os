@@ -1,0 +1,4 @@
+# OS-E2E-1a: a whole-number read is compared exactly: the demo's tempo is 13000, so 13001 fails (it once passed on a 1e-4 relative tolerance).
+document
+assert model tempo=13000
+assert model tempo=13001

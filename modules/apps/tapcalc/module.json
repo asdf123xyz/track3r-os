@@ -1,0 +1,18 @@
+{
+  "name": "Tap Calc",
+  "id": "tapcalc",
+  "kind": "app",
+  "abi": "1.10",
+  "capabilities": ["read_project", "edit_project"],
+  "description": "Tap tempo and BPM calculator: tap a pad N times for the BPM, read the note lengths (1/1 to 1/32, straight, dotted, triplet) as delay times in ms and as LFO rates in Hz, and set the project's tempo with F2 (one undoable edit). New Community OS behaviour; no audio work at all.",
+  "state_bytes": 256,
+  "params": [
+    {"name": "Average", "min": 4, "max": 8, "default": 8, "type": "int", "learnable": false},
+    {"name": "Bpm", "min": 200, "max": 3000, "default": 1200, "type": "int", "learnable": false}
+  ],
+  "views": [
+    {"name": "Body", "min_size": [480, 288], "preferred_size": [490, 384]}
+  ],
+  "voices": 1,
+  "memory": {"hot_bytes": 0, "sdram_bytes": 0}
+}

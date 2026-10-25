@@ -1,0 +1,10 @@
+# OS-QANET A2: findings of rule 2 (tests/qanet/keys_test.cpp): rule | key (action) | state | reason | ID or `new`. A bound key that was pressed in its state and changed nothing and said nothing, or a label and a binding that
+# disagree. The file holds what a person has to look at: a key the net cannot excuse. `new` is a finding nobody has triaged (the triage table goes to the maintainer; a fixed one leaves the file). A line is exact, or a pattern
+# (`*` in the key, state and reason columns stands for any run of characters, case ignored; a pattern line must match at least one finding of a state that the run walked).
+# What the net excuses by itself, and so is not here (keys_test.cpp walk_state, with the reason in its comment):
+#   * a key that selects what is already selected: the same action with another argument acts in the state (param.group, pads.mode, instrument.page, mixer.page, chooser.toggle, wave.point ...; not the ones whose argument
+#     names a function: perform.key, dj.key, ui.softkey). Every argument silent is a finding;
+#   * an arrow that does nothing at the edge of what it moves, when its opposite moves; any arrow where no plain arrow moves anything;
+#   * the placeholder soft key (ui.softkey) that reads "-" and does nothing; any other silent key under a blank label is a finding or an allow line with its reason;
+#   * a key that acts while it is held (HALF and DOUBLE of Perform): tried again pressed and held when the tap is silent and the key has no other gesture.
+# allow_rules.txt: decisions and screens that are one-axis (a reason each). gaps_keys.txt: what the states do not reach (the net's holes, not findings).

@@ -1,0 +1,326 @@
+{
+  "name": "FM",
+  "id": "fm",
+  "kind": "instrument",
+  "abi": "1.8",
+  "description": "A four-operator FM voice written from scratch: sixteen algorithms, per-operator ratio, detune, level and ADSR, operator-4 feedback. Phase modulation with a polynomial sine; one mono voice an instance.",
+  "state_bytes": 448,
+  "params": [
+    {
+      "name": "Op1 Ratio",
+      "min": 0,
+      "max": 31,
+      "default": 1,
+      "type": "int"
+    },
+    {
+      "name": "Op1 Detune",
+      "min": -1200,
+      "max": 1200,
+      "default": 0,
+      "type": "int",
+      "unit": "cents"
+    },
+    {
+      "name": "Op1 Level",
+      "min": 0,
+      "max": 100,
+      "default": 100,
+      "type": "int",
+      "mod": true
+    },
+    {
+      "name": "Op1 Attack",
+      "min": 1,
+      "max": 4000,
+      "default": 1,
+      "curve": "log",
+      "unit": "ms"
+    },
+    {
+      "name": "Op1 Decay",
+      "min": 5,
+      "max": 8000,
+      "default": 1500,
+      "curve": "log",
+      "unit": "ms"
+    },
+    {
+      "name": "Op1 Sustain",
+      "min": 0,
+      "max": 100,
+      "default": 25,
+      "type": "int",
+      "unit": "percent"
+    },
+    {
+      "name": "Op1 Release",
+      "min": 5,
+      "max": 8000,
+      "default": 300,
+      "curve": "log",
+      "unit": "ms"
+    },
+    {
+      "name": "Algorithm",
+      "min": 1,
+      "max": 16,
+      "default": 5,
+      "type": "int",
+      "learnable": false,
+      "labels": [
+        "4>3>2>1",
+        "(4+3)>2>1",
+        "(4>3)+2>1",
+        "3>2>1 + 4",
+        "2>1 + 4>3",
+        "4>3>2 + 1",
+        "4>1,2,3",
+        "1+2+3+4",
+        "4>(3+2)>1",
+        "4>3>1,2",
+        "3>1 + 4>2",
+        "4+3+2>1",
+        "4>3>2, 4>1",
+        "(4+3)>(2+1)",
+        "(3>2)+4>1",
+        "4>2>1 + 3"
+      ]
+    },
+    {
+      "name": "Op2 Ratio",
+      "min": 0,
+      "max": 31,
+      "default": 14,
+      "type": "int"
+    },
+    {
+      "name": "Op2 Detune",
+      "min": -1200,
+      "max": 1200,
+      "default": 0,
+      "type": "int",
+      "unit": "cents"
+    },
+    {
+      "name": "Op2 Level",
+      "min": 0,
+      "max": 100,
+      "default": 55,
+      "type": "int",
+      "mod": true
+    },
+    {
+      "name": "Op2 Attack",
+      "min": 1,
+      "max": 4000,
+      "default": 1,
+      "curve": "log",
+      "unit": "ms"
+    },
+    {
+      "name": "Op2 Decay",
+      "min": 5,
+      "max": 8000,
+      "default": 250,
+      "curve": "log",
+      "unit": "ms"
+    },
+    {
+      "name": "Op2 Sustain",
+      "min": 0,
+      "max": 100,
+      "default": 0,
+      "type": "int",
+      "unit": "percent"
+    },
+    {
+      "name": "Op2 Release",
+      "min": 5,
+      "max": 8000,
+      "default": 100,
+      "curve": "log",
+      "unit": "ms"
+    },
+    {
+      "name": "Feedback",
+      "min": 0,
+      "max": 7,
+      "default": 0,
+      "type": "int"
+    },
+    {
+      "name": "Op3 Ratio",
+      "min": 0,
+      "max": 31,
+      "default": 1,
+      "type": "int"
+    },
+    {
+      "name": "Op3 Detune",
+      "min": -1200,
+      "max": 1200,
+      "default": 4,
+      "type": "int",
+      "unit": "cents"
+    },
+    {
+      "name": "Op3 Level",
+      "min": 0,
+      "max": 100,
+      "default": 90,
+      "type": "int",
+      "mod": true
+    },
+    {
+      "name": "Op3 Attack",
+      "min": 1,
+      "max": 4000,
+      "default": 1,
+      "curve": "log",
+      "unit": "ms"
+    },
+    {
+      "name": "Op3 Decay",
+      "min": 5,
+      "max": 8000,
+      "default": 1800,
+      "curve": "log",
+      "unit": "ms"
+    },
+    {
+      "name": "Op3 Sustain",
+      "min": 0,
+      "max": 100,
+      "default": 25,
+      "type": "int",
+      "unit": "percent"
+    },
+    {
+      "name": "Op3 Release",
+      "min": 5,
+      "max": 8000,
+      "default": 300,
+      "curve": "log",
+      "unit": "ms"
+    },
+    {
+      "name": "Volume",
+      "min": -48,
+      "max": 6,
+      "default": -12,
+      "unit": "db",
+      "mod": true
+    },
+    {
+      "name": "Op4 Ratio",
+      "min": 0,
+      "max": 31,
+      "default": 1,
+      "type": "int"
+    },
+    {
+      "name": "Op4 Detune",
+      "min": -1200,
+      "max": 1200,
+      "default": 0,
+      "type": "int",
+      "unit": "cents"
+    },
+    {
+      "name": "Op4 Level",
+      "min": 0,
+      "max": 100,
+      "default": 50,
+      "type": "int",
+      "mod": true
+    },
+    {
+      "name": "Op4 Attack",
+      "min": 1,
+      "max": 4000,
+      "default": 1,
+      "curve": "log",
+      "unit": "ms"
+    },
+    {
+      "name": "Op4 Decay",
+      "min": 5,
+      "max": 8000,
+      "default": 800,
+      "curve": "log",
+      "unit": "ms"
+    },
+    {
+      "name": "Op4 Sustain",
+      "min": 0,
+      "max": 100,
+      "default": 0,
+      "type": "int",
+      "unit": "percent"
+    },
+    {
+      "name": "Op4 Release",
+      "min": 5,
+      "max": 8000,
+      "default": 200,
+      "curve": "log",
+      "unit": "ms"
+    },
+    {
+      "name": "Vel Sens",
+      "min": 0,
+      "max": 100,
+      "default": 50,
+      "unit": "percent"
+    }
+  ],
+  "views": [
+    {
+      "name": "Algorithm",
+      "min_size": [
+        160,
+        110
+      ],
+      "preferred_size": [
+        380,
+        130
+      ]
+    },
+    {
+      "name": "Envelopes",
+      "min_size": [
+        160,
+        80
+      ],
+      "preferred_size": [
+        380,
+        130
+      ]
+    }
+  ],
+  "pitch": true,
+  "pages": [
+    {
+      "name": "OP1",
+      "first": 0
+    },
+    {
+      "name": "OP2",
+      "first": 8
+    },
+    {
+      "name": "OP3",
+      "first": 16
+    },
+    {
+      "name": "OP4",
+      "first": 24
+    }
+  ],
+  "voices": 1,
+  "memory": {
+    "hot_bytes": 1800,
+    "sdram_bytes": 0
+  }
+}

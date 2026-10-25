@@ -1,0 +1,14 @@
+# OS-001b pattern view: initial view, cursor right x3 and down x5, encoder +8, then scrolled to the last tracks.
+# The step grid shows 5 of the 12 tracks, so the last window is tracks 8-12.
+snap initial
+
+tap right 3
+tap down 5
+snap cursor_moved
+
+encoder +8
+snap encoder_scroll
+
+# 5 columns per track: from track 1 / FX1 to track 12 / FX2 is 5 * 11 + 1 = 56 presses to the right.
+tap right 56
+snap tracks_8_12

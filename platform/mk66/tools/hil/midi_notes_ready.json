@@ -1,0 +1,31 @@
+{
+ "name": "midi_notes_ready",
+ "title": "setup for MANUAL.md: t-v16 loaded, Pattern in Browse with the cursor on track 2 (a sounding track) and instrument 1: USB / DIN MIDI notes then play instrument 1 on track 2",
+ "steps": [
+  {"run": "_load_tv16"},
+  {"keys": ["-shift"], "gap": 0.2, "note": "(Shift released, in case a former run left it down)"},
+  {"keys": ["f7"], "gap": 0.3, "if_state": {"overlay": "NAVIGATOR"}, "note": "(a leftover Navigator is closed: F7 is CLOSE, F8 would GO since OS-NAV2)"},
+  {"keys": ["f8"], "gap": 0.3, "if_state": {"overlay": "~^(LEARN|PATTERN_CHOOSER|LENGTH_CHOOSER|JUMP_CHOOSER|MODULE_PICKER|STEP_POPUP)$"}, "note": "(a leftover overlay is put away: F8 is Back)"},
+  {"keys": ["f7"], "gap": 0.3, "if_state": {"overlay": "TEXT_ENTRY"}, "note": "(the on-screen keyboard is cancelled with F7, never accepted)"},
+  {"keys": ["pattern"], "gap": 0.4},
+  {"state": {"screen": "PATTERN"}, "within": 3},
+  {"run": "_stop"},
+  {"cmd": "cpu reset", "note": "(the cpu counters are since boot or since this reset: a scenario that checks underruns / over-budget starts from zero)"},
+  {"run": "_play"},
+  {"wait": 1.0},
+  {"run": "_stop"},
+  {"wait": 1.0, "note": "(the outputs are open now)"},
+  {"keys": ["rec"], "gap": 0.4, "if_state": {"mode": "0"}},
+  {"state": {"mode": "3"}, "within": 2},
+  {"keys": ["left"], "gap": 0.1, "repeat": 130},
+  {"keys": ["right"], "gap": 0.15, "repeat": 5},
+  {"state": {"track": "1", "col": "NOTE"}, "within": 3},
+  {"keys": ["params"], "gap": 0.5},
+  {"keys": ["+shift"], "gap": 0.3},
+  {"pad": 0, "note": "Shift + pad selects instrument 1"},
+  {"keys": ["-shift"], "gap": 0.3},
+  {"state": {"instrument": "1"}, "within": 2},
+  {"keys": ["pattern"], "gap": 0.5},
+  {"state": {"screen": "PATTERN", "mode": "3", "track": "1"}, "within": 3}
+ ]
+}

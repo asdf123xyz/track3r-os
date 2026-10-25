@@ -1,0 +1,5 @@
+# OS-APPUX S0: the apps' audio tap is not the engine's, so `audio on` after `apps on` is exit 2 (and `apps on` after `audio on`: the parser says so too).
+document
+card e2e_card
+apps on
+audio on

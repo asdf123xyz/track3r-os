@@ -1,0 +1,3 @@
+# OS-E2E-1a: a digest label with no `mark model` before it is a scenario error, at parse time.
+document
+assert model digest=@never_marked

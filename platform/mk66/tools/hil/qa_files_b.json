@@ -1,0 +1,320 @@
+{
+ "name": "qa_files_b",
+ "title": "OS-FILES part B, rows QA-FIL-032..044 (and QA-FIL-103) of docs/qa/catalogue/file.md: DELETE by marker (Delete key), the RECENT group and PURGE UNUSED (Shift + F7) on the File screen's PROJECTS page, on the test card, with ONE scratch project made by the steps; no other project is deleted or opened; the marker is looked at from a computer by hand (RENAME was dropped: its rows 030, 031 and 043 are marked dropped)",
+ "needs": [
+  "card"
+ ],
+ "steps": [
+  {
+   "say": "OS-FILES part B, rows QA-FIL-032..044 of docs/qa/catalogue/file.md (docs/specs/OS-FILES-B.md): DELETE by marker (the Delete key), the RECENT group and PURGE UNUSED (Shift + F7) on the File screen's PROJECTS page, on the card in the unit (the card is checked first). It WRITES on the card: it makes ONE scratch project with SAVE AS (Projects/Track NN, the next free number) and marks it deleted (an empty .deleted file in its folder). It never deletes or opens any other project: the Delete is of the folder under the cursor, which the steps keep on the scratch project (the RECENT group puts the project just saved on the first row), and it is sent only when the strip has named a TRACK nn project. Nothing is erased, renamed or moved by any of it (the card layer has none of those): the last step is yours, a look at /Projects/Track nn from a computer. PURGE (QA-FIL-037..040) needs a project with sample instruments of its own and is done by hand at the end (say steps); it never touches the card."
+  },
+  {
+   "card": {}
+  },
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.2
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "TEXT_ENTRY"
+   },
+   "note": "(an on-screen keyboard left open is cancelled with F7, never accepted)"
+  },
+  {
+   "keys": [
+    "file"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "screen": "FILE"
+   },
+   "within": 4
+  },
+  {
+   "keys": [
+    "f5"
+   ],
+   "gap": 0.5,
+   "note": "SAVE AS: the keyboard opens with the next free Track NN"
+  },
+  {
+   "state": {
+    "overlay": "TEXT_ENTRY"
+   },
+   "within": 3
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.5,
+   "note": "accept the automatic name: the scratch project (it is the open project from now on)"
+  },
+  {
+   "state": {
+    "msg": "~^SAVE_TRACK_[0-9]+_DONE$"
+   },
+   "within": 30,
+   "note": "the scratch project is on the card"
+  },
+  {
+   "keys": [
+    "f3"
+   ],
+   "gap": 0.3,
+   "note": "QA-FIL-103 (OS-BUG-PROMPTQ): F3 within the 2 s of SAVE TRACK nn DONE: the question takes the strip at once, ahead of the DONE (it used to wait behind it, with the keys unmarked)"
+  },
+  {
+   "state": {
+    "msg": "~^NEW_PROJECT:_F3_ALL,_F1_KEEP_INSTRUMENTS$",
+    "keys": "~F3:ALL,F1:KEEP_INS"
+   },
+   "within": 3,
+   "note": "QA-FIL-103: the question is the head (the row marks ALL and KEEP INS); the next step's F2 takes it back, nothing is answered"
+  },
+  {
+   "keys": [
+    "f2"
+   ],
+   "gap": 0.5,
+   "note": "RESCAN: the list is read again; the project just saved is the first of the RECENT group"
+  },
+  {
+   "wait": 2.0
+  },
+  {
+   "shot": "qa_fil_035",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-FIL-035: the RECENT group: the scratch project on the first row with RECENT at the right, then the A-Z list (the simulator's picture is gallery/file_recent); the cursor is on the first row"
+  },
+  {
+   "say": "QA-FIL-033: the scratch project is the OPEN project, so DELETE refuses it: the Delete key says CANNOT DELETE THE OPEN PROJECT and does not ask. F8 on the PROJECTS page is blank (RENAME was dropped): no keyboard opens, no strip message."
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "overlay": "~^(NONE|)$"
+   },
+   "within": 2,
+   "soft": true,
+   "note": "F8 is blank on the PROJECTS page: no keyboard"
+  },
+  {
+   "keys": [
+    "delete"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "msg": "~^CANNOT_DELETE_THE_OPEN_PROJECT$"
+   },
+   "within": 3,
+   "note": "QA-FIL-033"
+  },
+  {
+   "keys": [
+    "delete"
+   ],
+   "gap": 0.5,
+   "note": "QA-FIL-033: a second press does not delete it either"
+  },
+  {
+   "state": {
+    "msg": "~^CANNOT_DELETE_THE_OPEN_PROJECT$"
+   },
+   "within": 3
+  },
+  {
+   "say": "F3 NEW asks which new project (OS-NEWKEEP, QA-FIL-070): the strip says NEW PROJECT: F3 ALL, F1 KEEP INSTRUMENTS (the scratch project was saved, so no unsaved-changes warning). F3 again is ALL: a fresh document with no folder, so the scratch project is no longer the open one. Then it is deleted. The answer is sent inside the 4 s the question stays on the strip."
+  },
+  {
+   "keys": [
+    "f3"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "msg": "~^NEW_PROJECT:_F3_ALL,_F1_KEEP_INSTRUMENTS$"
+   },
+   "within": 3,
+   "note": "QA-FIL-070: the question; nothing is replaced yet"
+  },
+  {
+   "keys": [
+    "f3"
+   ],
+   "gap": 0.5,
+   "note": "QA-FIL-070: F3 again is ALL"
+  },
+  {
+   "state": {
+    "msg": "~^NEW_PROJECT$"
+   },
+   "within": 10,
+   "note": "the fresh document is in place (NEW PROJECT... while it loads, NEW PROJECT when it is done)"
+  },
+  {
+   "state": {
+    "screen": "PATTERN"
+   },
+   "within": 3,
+   "soft": true,
+   "note": "QA-FIL-097 (OS-OPENTOPAT): NEW shows the Pattern view"
+  },
+  {
+   "keys": [
+    "file"
+   ],
+   "gap": 0.5,
+   "note": "back to File for the Delete steps below"
+  },
+  {
+   "state": {
+    "screen": "FILE"
+   },
+   "within": 4
+  },
+  {
+   "keys": [
+    "f2"
+   ],
+   "gap": 0.5
+  },
+  {
+   "wait": 2.0
+  },
+  {
+   "say": "QA-FIL-032: the Delete key. The first press asks in the strip (DELETE TRACK nn? DELETE AGAIN); a cursor move, another key or leaving the screen takes the question back; the second press creates the empty marker .deleted in the folder. The second press below is sent only while the strip still shows the question for a TRACK nn project (the scratch project is the only one this scenario makes)."
+  },
+  {
+   "keys": [
+    "delete"
+   ],
+   "gap": 0.6,
+   "note": "the question"
+  },
+  {
+   "state": {
+    "msg": "~^DELETE_TRACK_[0-9]+\\?"
+   },
+   "within": 3,
+   "note": "QA-FIL-032: the strip names the scratch project"
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.5,
+   "note": "a move takes the question back"
+  },
+  {
+   "keys": [
+    "up"
+   ],
+   "gap": 0.5
+  },
+  {
+   "keys": [
+    "delete"
+   ],
+   "gap": 0.6,
+   "note": "asks again (the second press of the pair is the next one)"
+  },
+  {
+   "state": {
+    "msg": "~^DELETE_TRACK_[0-9]+\\?"
+   },
+   "within": 3
+  },
+  {
+   "keys": [
+    "delete"
+   ],
+   "gap": 0.8,
+   "if_state": {
+    "msg": "~^DELETE_TRACK_[0-9]+\\?"
+   },
+   "note": "QA-FIL-032: the second press marks the project deleted (sent only while the strip shows the question for a TRACK nn project)"
+  },
+  {
+   "state": {
+    "msg": "~^DELETED:_TRACK_[0-9]+$"
+   },
+   "within": 4,
+   "note": "QA-FIL-032"
+  },
+  {
+   "wait": 2.0
+  },
+  {
+   "shot": "qa_fil_032",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-FIL-032: the scratch project has left the list and the RECENT group (its folder is still on the card)"
+  },
+  {
+   "say": "QA-FIL-042: OWNER CHECK FROM A COMPUTER. Put the card in a computer: /Projects/Track nn is still there with its project.o3pj and an EMPTY file .deleted; nothing was erased; there is no /Trash; /Settings/recent.o3rc is a text file starting O3RC 1 and no longer names the scratch project. Remove .deleted to see the project in the list again, or delete the folder to free the space. A card pulled in the middle of a RENAME can leave a folder under two names: run a disk check before deleting either."
+  },
+  {
+   "say": "QA-FIL-037: PURGE UNUSED on a fresh document. Shift + F7 on a project with no instruments says NO UNUSED INSTRUMENTS. (The next two rows need a project with instruments and are by hand.)"
+  },
+  {
+   "keys": [
+    "+shift",
+    "f7",
+    "-shift"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "msg": "~^NO_UNUSED_INSTRUMENTS"
+   },
+   "within": 3,
+   "note": "QA-FIL-037"
+  },
+  {
+   "say": "QA-FIL-037..040 BY HAND, on a scratch project of your own with 4 sample instruments (Sample load into slots 1-4), steps playing slots 1 and 3 only, saved with SAVE AS: (1) Shift + F7 says PURGE 2 UNUSED INSTRUMENTS? SHIFT+F7 AGAIN; a cursor move takes it back; (2) the second Shift + F7 says PURGED 2 INSTRUMENTS - F8 UNDO; the Instrument screen shows slots 2 and 4 empty; (3) F8 UNDO on the Pattern screen brings both back at once (ONE undo step); (4) purge again, then F4 SAVE: the strip says only SAVE <NAME> DONE; on the computer the project's samples/ folder still holds all four instr0N.wav (the purge and the save never touch the files); (5) undo the purge and F4 SAVE again: the project names the four again."
+  }
+ ],
+ "finally": [
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.2
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "TEXT_ENTRY"
+   }
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.3
+  }
+ ]
+}

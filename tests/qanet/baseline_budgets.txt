@@ -1,0 +1,2 @@
+# OS-QANET D3: the findings of budgets.cpp that are known. One line each: budget | difference | ID or `new`.
+# The test fails on a finding that is not here, on a line here that no longer occurs, and on a value that moved by more than 10 %; a fixed bug leaves the file.

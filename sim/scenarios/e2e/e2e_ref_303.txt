@@ -1,0 +1,28 @@
+# OS-E2E-9: the TB-303 module against Open303 (tests/e2e_open303_ref.py, ctest e2e_ref_open303). The document of `document tb303` is an acid line at 150 BPM (a step is 100 ms) on a MODULE instrument,
+# the module "tb303" (a float port of Open303, modules/tb303), bound by `audio on` as the unit binds a project's module instruments. The line (sim/include/o3os/sim/demo_project.h kTb303Line): C-2 on
+# steps 0 and 2, C-3 with the accent on 3, a note off on 4, D#2 on 6, G-2 with the accent on 8, C-2 on 10, off on 11, G#2 on 12, off on 14. The parameters: saw, cutoff 600 Hz, resonance 70 %, env mod 60 %, decay 400 ms,
+# accent 80 %, slide 60 ms, volume -18 dB (low enough that the master limiter is never reached). The test renders the ORIGINAL Open303 (double precision, tests/support/open303_ref.*) with the same notes at the engine's rate and compares the take
+# `acid` with it: the level in 10 ms windows (mean under 0.5 dB, worst under 5 dB), the spectrum in third-octave bands (mean under 0.5 dB, 95th percentile under 2 dB), the pitch of each note
+# (1 cent), the whole take (1 dB). The module is the sequencer's: a sequencer note first releases the held
+# one and starts again (the module retriggers its envelopes), where Open303 slides on overlapping notes.
+document tb303
+audio on
+wait 20
+assert model order.len=1
+assert model tempo=15000
+assert model pat.1.0.0.note=37
+assert model pat.1.0.0.vol=96
+assert model pat.1.0.3.note=49
+assert model pat.1.0.3.vol=127
+assert model pat.1.0.4.note=255
+assert model pat.1.0.12.note=45
+
+render acid 1900
+tap play
+assert state playing=1
+wait 1900
+tap play
+assert audio acid sound
+# OS-E2E-4: the audio fingerprint (tests/audio_fingerprints/e2e_ref_303.json): the acid line of the TB-303 module (modules/tb303).
+# Taken at the 44,100 Hz clock (OS-RATE): the render ends at block 1309 (sample 83776), 8 samples before the 49th retrigger of the line, so it holds 48 onsets. The last frame then reads 2 clicks (it read 0 at 4080/1): they are the sawtooth wraps of the 303's last notes, which the click counter counts and whose number moves with the note's phase (sim/include/o3os/sim/audio_fingerprint.h); the tone, the onsets and the other 18 frames are within 0.06 dB and 0.04 % of time. Not a defect of the engine.
+fingerprint acid nof0

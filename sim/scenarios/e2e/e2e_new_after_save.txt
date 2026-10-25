@@ -1,0 +1,57 @@
+# OS-E2E-13 finding F2, fixed by OS-BUG-PROMPTQ: a question takes the head of the strip at once, ahead of an info message. After SAVE AS the strip shows "SAVE TRACK 01 DONE" for its 2 s
+# (ViewState::kMessageMs, the job's message); the F3 NEW question (source "file") used to queue BEHIND it, and a question counts only while it is the head (file_question, app/src/key_prompt.cpp,
+# strip_head_is_ask), so the second F3 only asked again (file_new, app/src/file_actions.cpp: new_question_open) and F1 was an OPEN of the project under the cursor (the guard of OS-NEWKEEP2: a
+# quick second key must not answer a question nobody has read). Now NotifyQueue::ask puts the question ahead of the DONE (dropped, not shown after), so the same keys work at once: the first block of
+# asserts below is what changed (it pinned the second F3 asking again with the screen still on File, then waited 2.1 s for the DONE to run out). A warning or an error on the strip still keeps its
+# place in front of a question (tests/notify_test.cpp).
+document
+wait 20
+card e2e_pro
+audio on
+wait 20
+tap file
+wait 300
+assert state screen=FILE sel=Kit
+tap f1
+wait 1500
+assert state screen=PATTERN msg=PROJECT_Kit_OPENED
+tap file
+tap f3
+tap f1
+wait 500
+assert state screen=PATTERN msg=NEW_PROJECT
+tap file
+tap f5
+wait 50
+assert state overlay=TEXT_ENTRY
+tap f8
+wait 2500
+assert state msg=SAVE_TRACK_01_DONE
+
+# The message is on the strip: F3 asks and the question is the head (keys= is live only then: F3 is ALL, F1 KEEP INS), the DONE is gone; the second F3 two ticks later answers it, ALL: a new
+# project, the instruments go too, and the screen is Pattern (it used to ask again and stay on File).
+tap file
+wait 100
+tap f3
+wait 20
+assert state screen=FILE msg=~^NEW_PROJECT:_F3_ALL,_F1_KEEP keys=~F3:ALL,F1:KEEP_INS
+tap f3
+wait 500
+assert state screen=PATTERN msg=NEW_PROJECT
+
+# And F1 on the question is KEEP INSTRUMENTS, never an OPEN of the project under the cursor (it was one while the DONE stood in front): a second save, the same journey with F1.
+tap file
+tap f5
+wait 50
+assert state overlay=TEXT_ENTRY
+tap f8
+wait 2500
+assert state msg=~^SAVE_TRACK_[0-9]+_DONE$
+tap file
+wait 100
+tap f3
+wait 20
+assert state screen=FILE msg=~^NEW_PROJECT:_F3_ALL,_F1_KEEP keys=~F3:ALL,F1:KEEP_INS
+tap f1
+wait 500
+assert state screen=PATTERN msg=NEW_PROJECT

@@ -1,0 +1,4 @@
+# OS-E2E-2: the sequencer plays the document that was open when the engine came on, in place: another `document` after it is refused.
+document sound
+audio on
+document

@@ -1,0 +1,14 @@
+# mutant:   M06
+# class:    1
+# twin:     OS-BUG-WATCHSEL (a bound key does nothing and says nothing in one state)
+# expected: A2
+# effect:   Song F5 UNIQUE on a pattern that no other slot holds changes nothing and says nothing (it used to say IS ONLY IN THIS SLOT)
+diff --git a/app/src/song_map_actions.cpp b/app/src/song_map_actions.cpp
+index e12820f6..2a00b43d 100644
+--- a/app/src/song_map_actions.cpp
++++ b/app/src/song_map_actions.cpp
+@@ -347,3 +347,3 @@ bool song_unique(ActionContext& ctx, core::ActionArg) noexcept {
+     }
+-    return say(ctx, core::Severity::Info, text.c_str());
++    return one ? true : say(ctx, core::Severity::Info, text.c_str());
+   }

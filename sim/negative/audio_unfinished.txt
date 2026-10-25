@@ -1,0 +1,6 @@
+# OS-E2E-2: a script that ends with a window open is an error (the render would be cut short).
+document sound
+audio on
+wait 30
+render n 500
+pad 12 hold 100

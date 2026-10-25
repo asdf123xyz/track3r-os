@@ -1,0 +1,4 @@
+# OS-E2E-2: the fake `playhead` is refused once the engine publishes the real position.
+document sound
+audio on
+playhead 3

@@ -1,0 +1,98 @@
+# OS-FINALQA (docs/specs/OS-FINALQA.md): the Wave screen's QA rows, docs/qa/catalogue/wave.md. One `snap qa_wav_NNN` per row with a visible result; the goldens are keyed qa_wave/qa_wav_NNN.
+# OS-SHIFTROW: with Shift held the key row shows the Shift layer: a label only on a key that does something, "-" elsewhere; Shift + F never falls through to the plain key.
+
+# QA-WAV-001: the WAVE page with Shift held: MODE - - - - PRV SEL - REDO (F1 is MODE since OS-INSTUI S4).
+document
+tap sampleplay
+press shift
+snap qa_wav_001
+release shift
+
+# QA-WAV-002: the same Shift row on the CHOP page (the screen's own button again).
+tap sampleplay
+press shift
+snap qa_wav_002
+release shift
+
+# OS-INSTUI S4 (the simulator has no sample bank: the waveform lane says so; the keys and rows are what is shown).
+# QA-WAV-003: Shift + F1 MODE opens the list of the eight play modes, the cursor on the instrument's own.
+press shift
+tap f1
+release shift
+snap qa_wav_003
+
+# QA-WAV-004: F1 on WAVETABLE (six clicks down): the WAVETABLE view, its keys POSITION WINDOW - - - PREVIEW ZOOM- UNDO and its two rows.
+tap down 6
+tap f1
+snap qa_wav_004
+
+# QA-WAV-007: the encoder edits the selected row: F2 WINDOW, one click down halves the window (2048 -> 1024).
+tap f2
+encoder -1
+snap qa_wav_007
+
+# QA-WAV-005: GRANULAR (one down from WAVETABLE): POSITION LENGTH SHAPE LOOP.
+press shift
+tap f1
+release shift
+tap down
+tap f1
+snap qa_wav_005
+
+# QA-WAV-006: BEAT SLICE (two up): the CHOP page, whose keys are the slices'.
+press shift
+tap f1
+release shift
+tap up 2
+tap f1
+snap qa_wav_006
+
+# FQA-1a: the point, ZC and CHOP keys need a real sample. The card e2e_og (a generated fixture): File > OPEN loads one OG project whose instrument 1 is a loop of 200 frames, mode LOOP FWD. The waveform lane
+# stays empty in the simulator; the rows (START, LOOP START, LOOP END, END), the ZC state in the header and the slice list are the visible results.
+card e2e_og
+tap file
+wait 300
+tap f1
+wait 800
+tap sampleplay
+wait 3000
+# the screen arrives on the WAVE page: the instrument is in LOOP FWD, and only the slice modes arrive on CHOP (a CHOP page left open above is not remembered).
+
+# QA-WAV-010: F3 picks LOOP END, F4 picks END (the highlighted row); F5 turns ZC off.
+tap f3
+snap qa_wav_010
+tap f4
+snap qa_wav_011
+tap f5
+snap qa_wav_012
+
+# QA-WAV-015: the encoder moves the picked point (END 200 -> 195). QA-WAV-016: F8 UNDO puts it back.
+encoder -5
+wait 100
+snap qa_wav_015
+tap f8
+wait 300
+snap qa_wav_016
+
+# QA-WAV-017: the screen's button again is the CHOP page; F2 EVEN cuts the sample into equal slices (beat slice mode), F4 ADD splits the selected slice at its middle, F5 DEL removes the selected one.
+tap sampleplay
+tap f2
+wait 300
+snap qa_wav_017
+tap f4
+wait 300
+snap qa_wav_019
+tap f5
+wait 300
+snap qa_wav_020
+
+# QA-WAV-025 (OS-AUDIT E-PLAY-03): in ONE SHOT the WAVE page dims the LOOP START / LOOP END values and draws no loop marks (F3 picks LOOP END); LOOP FWD lights them again and draws the marks.
+tap sampleplay
+action instrument.play_mode 0
+wait 300
+tap f3
+wait 300
+snap qa_wav_025
+action instrument.play_mode 1
+wait 300
+snap qa_wav_025b

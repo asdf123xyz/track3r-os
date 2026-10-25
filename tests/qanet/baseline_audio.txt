@@ -1,0 +1,4 @@
+# OS-QANET C1 to C3: the findings of audio_matrix_test.cpp that are known. One line each: cell | paths | difference | ID or `new`.
+# Every `.fresh` line of the edit.* cells (and of the slice.beat_* cells) is the pad pressed straight after the edit; the `lag:` lines of the log size it: each is gone when the pad is pressed 5 ms later (SampleBank::kSettleMs = 5).
+# edit.load_empty has no line: its pad is pressed when the voices have the audio (the first version pressed it at the instrument's name, before the bank had bound it, and read that as silence).
+# The test fails on a finding that is not here and on a line here that no longer occurs; a fixed bug leaves the file. A pitch or onset value may move by 50 cents or 1.5 ms.

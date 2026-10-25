@@ -1,0 +1,19 @@
+# OS-E2E-2: the demo document through the whole engine. `document` is ten instruments (volumes up to +24 dB, filters, envelopes, sends) and a pattern of 12 tracks that is mostly full; `audio on` binds the
+# test bank to its instruments and Play runs the sequencer, the sampler voices (12 at once), the graph with the delay and the reverb, and the master limiter. What a measurement can say about a mix this dense:
+# there is sound, the master never goes above the limiter's ceiling (-0.3 dBFS: 0.966), it reaches it (the mix is far louder than that, so the limiter is the loudest thing in it), and it has no DC.
+# The window is 1500 ms: the first 11 steps of the pattern at 130 BPM.
+document
+audio on
+wait 30
+assert state screen=PATTERN playing=0
+render demo 1500
+tap play
+assert state playing=1
+wait 1498
+assert audio demo sound peak=-0.3+-0.02 dc<0.01 rms=-8+-3
+# The ceiling holds in every part of the take, not only over the whole of it.
+assert audio demo in=0-500 peak<-0.29
+assert audio demo in=500-1000 peak<-0.29
+assert audio demo in=1000-1500 peak<-0.29
+tap play
+assert state playing=0

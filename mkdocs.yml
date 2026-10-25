@@ -1,0 +1,31 @@
+site_name: track3r-os
+site_description: Community operating system for the Polyend Tracker hardware (unofficial)
+repo_url: https://github.com/trak3r-os/track3r-os
+docs_dir: docs
+theme:
+  name: material
+  palette:
+    - scheme: slate
+nav:
+  - Home: index.md
+  - User manual:
+      - manual/index.md
+      - Installing: manual/install.md
+  - Developers:
+      - Toolchain: toolchain.md
+      - Agent set-up: agent-setup.md
+      - Modules and apps: guides/app-modules.md
+      - Module SDK: guides/module-sdk.md
+      - Architecture: architecture/os-tree.md
+      - CPU budget: architecture/cpu-budget.md
+  - Reference:
+      - File formats: formats/o3-project.md
+      - UI map: ui/ui-map.md
+      - Style guide: ui/style-guide.md
+      - QA catalogue: qa/catalogue/README.md
+      - Backlog: roadmap/BACKLOG.md
+markdown_extensions:
+  - tables
+  - admonition
+  - toc:
+      permalink: true

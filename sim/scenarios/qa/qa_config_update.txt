@@ -1,0 +1,105 @@
+# OS-FWCONFIG slice 2b (docs/specs/OS-FWCONFIG.md; Level C, the update path): the firmware update dialog on Config's INFO page, F8 UPDATE, over the simulator's update port with no flash behind it
+# (`firmware on`: platform/host/fake_firmware.h, the files are in Simulator::firmware_on). The list has four files in this order: TRACKER_1.PTF (the reset target; a good image, the check takes 3 passes, the
+# hand-over ends in "did not start"), SLOW_CHECK.PTF (a good image, the check takes 600 passes so that its bar can be looked at), BAD_IMAGE.PTF (the check fails at byte 1104) and NEVER_ENDS.PTF (a good
+# image whose hand-over never ends, as the unit's, whose chip resets). Nothing here reads a card or touches a pin. One snap per row of docs/qa/catalogue/config.md (QA-CFG-040..055); the goldens are
+# qa_config_update/qa_cfg_NNN. The refusal of an unsaved project is the next file, qa_config_update_refused.txt (it dirties the document for the rest of its run).
+firmware on
+
+# QA-CFG-040: the INFO page labels its F8 key UPDATE (the product and the build id stay as they were).
+tap config
+tap f4
+snap qa_cfg_040
+
+# QA-CFG-041: F8 does nothing on the other pages (the MIDI page: no dialog, the key row has no label on F8).
+tap f1
+tap f8
+assert state overlay=NONE
+snap qa_cfg_041
+
+# QA-CFG-042: F8 on INFO opens the list: the four files with their sizes, the first marked RESET TARGET, the cursor on it.
+tap f4
+tap f8
+assert state overlay=FIRMWARE_UPDATE
+snap qa_cfg_042
+
+# QA-CFG-043: Down moves the cursor to the second file.
+tap down
+snap qa_cfg_043
+
+# QA-CFG-044: F1 UPDATE asks question 1 about the file under the cursor. Nothing has been started: no check, nothing written.
+tap f1
+snap qa_cfg_044
+
+# QA-CFG-045: any other key takes question 1 back: the list again (Up then acts as it does in the list: the cursor goes up one), no check is running.
+tap up
+assert state overlay=FIRMWARE_UPDATE
+snap qa_cfg_045
+
+# QA-CFG-046: YES starts the check of SLOW_CHECK.PTF: CHECKING <name> with a bar that grows, 250 ms into its 600 (about 40 %).
+tap down
+tap f1
+tap f1
+wait 250
+snap qa_cfg_046
+
+# QA-CFG-047: F8 CANCEL drops the check: the list again with no line on it.
+tap f8
+snap qa_cfg_047
+
+# QA-CFG-048: the same check run to its end asks question 2: the image's length, the file's CRC, INSTALL on F1, good for 30 s.
+tap f1
+tap f1
+wait 700
+snap qa_cfg_048
+
+# QA-CFG-049: question 2 left alone for 30 s lapses: the list says THE CHECK EXPIRED: CHECK AGAIN, nothing was written.
+wait 30500
+snap qa_cfg_049
+
+# QA-CFG-050: a good check of TRACKER_1.PTF (3 passes), then any other key (Up) takes question 2 back: the list again, no hand-over.
+tap up
+tap f1
+tap f1
+wait 20
+tap up
+assert state overlay=FIRMWARE_UPDATE
+snap qa_cfg_050
+
+# QA-CFG-051: BAD_IMAGE.PTF fails its check: the list again, with NOT A VALID IMAGE, the fault and the byte it was found at on the dialog's line. Nothing is written.
+tap down 2
+tap f1
+tap f1
+wait 20
+snap qa_cfg_051
+
+# QA-CFG-052: a good image whose hand-over the bootloader does not take: TRACKER_1.PTF checked, INSTALL, then the list says UPDATE DID NOT START (the pin is released and the hand-over file deleted).
+tap up 2
+tap f1
+tap f1
+wait 20
+tap f1
+wait 100
+snap qa_cfg_052
+
+# QA-CFG-053: F8 BACK on the list closes the dialog: the INFO page again.
+tap f8
+assert state overlay=NONE
+snap qa_cfg_053
+
+# QA-CFG-054: NEVER_ENDS.PTF is checked and installed: the dialog says UPDATING: DO NOT POWER OFF with a bar, and stays so.
+tap f8
+tap down 3
+tap f1
+tap f1
+wait 20
+tap f1
+wait 100
+snap qa_cfg_054
+
+# QA-CFG-055: while the hand-over runs no key acts and nothing closes the dialog: F8, F1, Config and five seconds of waiting leave the same picture.
+tap f8
+tap f1
+tap config
+wait 5000
+assert state overlay=FIRMWARE_UPDATE screen=CONFIG
+snap qa_cfg_055

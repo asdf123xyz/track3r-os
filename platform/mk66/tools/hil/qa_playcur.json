@@ -1,0 +1,163 @@
+{
+ "name": "qa_playcur",
+ "title": "OS-PLAYCUR, Pattern: Shift + Play plays from the cursor's row (stopped: starts there; playing: the play line jumps there at the next step; never a count-in). Edits nothing; by ear and by the state read-out",
+ "steps": [
+  {
+   "run": "_load_tv16"
+  },
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.2,
+   "note": "(Shift released, in case a former run left it down)"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "NAVIGATOR"
+   },
+   "note": "(a leftover Navigator is closed: F7 is CLOSE, F8 would GO since OS-NAV2)"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "~^(LEARN|PATTERN_CHOOSER|LENGTH_CHOOSER|JUMP_CHOOSER|MODULE_PICKER|STEP_POPUP|FILL)$"
+   },
+   "note": "(a leftover overlay is put away: F8 is Back)"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "TEXT_ENTRY"
+   },
+   "note": "(the on-screen keyboard is cancelled with F7, never accepted)"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.4
+  },
+  {
+   "state": {
+    "screen": "PATTERN"
+   },
+   "within": 3
+  },
+  {
+   "run": "_stop"
+  },
+  {
+   "keys": [
+    "rec"
+   ],
+   "gap": 0.4,
+   "if_state": {
+    "mode": "0"
+   },
+   "note": "(stopped, Rec in Edit (STEP) goes back to WATCH: the scenario starts in WATCH, mode 3)"
+  },
+  {
+   "state": {
+    "mode": "3",
+    "playing": "0"
+   },
+   "within": 2,
+   "note": "WATCH, stopped (mode 3 is Browse)"
+  },
+  {
+   "say": "OS-PLAYCUR, rows QA-PAT-231..234 of docs/qa/catalogue/pattern.md (docs/specs/OS-RECFLOW.md). For check 1 set Config > PATTERN > COUNT-IN to 2 BARS first (a persistent setting: put it back afterwards): Shift + Play must not count in."
+  },
+  {
+   "say": "CHECK 1 (QA-PAT-231): stopped, move the cursor to about row 21 (Down), then Shift + Play. The pattern starts on that row at once: no countdown, no click-only bars, the first sound is the row's own step."
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "repeat": 20,
+   "gap": 0.05,
+   "note": "cursor to row 21"
+  },
+  {
+   "keys": [
+    "+shift",
+    "play",
+    "-shift"
+   ],
+   "gap": 0.5,
+   "note": "Shift + Play from stopped"
+  },
+  {
+   "state": {
+    "playing": "1"
+   },
+   "within": 2,
+   "note": "playing"
+  },
+  {
+   "cmd": "state",
+   "show": true,
+   "note": "the play line is on or just past row 21 (read it; it must not have started from row 1)"
+  },
+  {
+   "say": "CHECK 2 (QA-PAT-232): playing, press REC for a free cursor (STEP), move the cursor to about row 33 with Down, then Shift + Play. The play line jumps to row 33 on the next step and goes on from there; the song does not stop, the chip stays STEP. Listen: no step repeats or is skipped around the jump."
+  },
+  {
+   "keys": [
+    "rec"
+   ],
+   "gap": 0.4,
+   "note": "STEP while playing: a free cursor"
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "repeat": 12,
+   "gap": 0.05,
+   "note": "cursor 12 rows down"
+  },
+  {
+   "keys": [
+    "+shift",
+    "play",
+    "-shift"
+   ],
+   "gap": 0.5,
+   "note": "Shift + Play while playing: the line jumps to the cursor's row"
+  },
+  {
+   "state": {
+    "mode": "0",
+    "playing": "1"
+   },
+   "within": 2,
+   "note": "still STEP, still playing"
+  },
+  {
+   "cmd": "state",
+   "show": true,
+   "note": "the play line is on or just past the cursor's row"
+  },
+  {
+   "say": "CHECK 3 (QA-PAT-233): Shift + Down a few times to select a block, then Shift + Play: the same jump from the cursor's row, the block stays selected."
+  },
+  {
+   "run": "_stop"
+  },
+  {
+   "say": "Put COUNT-IN back to OFF if you changed it. In the report: any count-in on Shift + Play? did a step repeat or drop at the jump?"
+  }
+ ]
+}

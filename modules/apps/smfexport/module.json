@@ -1,0 +1,17 @@
+{
+  "name": "SMF Export",
+  "id": "smfexport",
+  "kind": "app",
+  "abi": "1.10",
+  "capabilities": ["read_project", "export_files"],
+  "description": "The pattern as a Standard MIDI File (type 1, 96 PPQ, one track per track with a note, the tempo and 4/4 first) in AppExport/smfexport/ on the card: the Pattern F7 TOOLS block, or the whole pattern. Micro-move is exported; other FX are counted, not written. A MIDI instrument keeps its channel. F1 EXPORT. New Community OS behaviour.",
+  "state_bytes": 2912,
+  "params": [
+    {"name": "Pattern", "min": 0, "max": 255, "default": 0, "type": "int", "learnable": false}
+  ],
+  "views": [
+    {"name": "Body", "min_size": [480, 288], "preferred_size": [800, 384]}
+  ],
+  "voices": 1,
+  "memory": {"hot_bytes": 0, "sdram_bytes": 0}
+}

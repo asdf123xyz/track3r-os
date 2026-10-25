@@ -1,0 +1,32 @@
+{
+ "name": "qa_nav3",
+ "title": "OS-NAV3, rows QA-FIL-013 and QA-GLB-014 of docs/qa/catalogue: Shift + Up / Down move the File screen's list by one page (the 16 rows it shows), clamped, never wrapping, on the IMPORT page in the card's /MOD folder (16 module files at the SD root: PC copy build-sdtest/, git-ignored, never committed). Nothing is opened or imported; the project and the settings are not touched. The cursor is read from the pictures (the `state` line has no list position).",
+ "steps": [
+  {"say": "OS-NAV3, row QA-FIL-013 (docs/qa/catalogue/file.md). The card holds the maintainer's test set at its root; /MOD has 16 module files, exactly one page of the 16-row list. Watch the highlighted row: Shift + Down is a page down, so it goes to the last file, a second one stays there (no wrap), Shift + Up goes back to the first file. The plain Up / Down still move one row."},
+  {"keys": ["-shift"], "gap": 0.2, "note": "(Shift released, in case a former run left it down)"},
+  {"keys": ["f7"], "gap": 0.3, "if_state": {"overlay": "NAVIGATOR"}, "note": "(a leftover Navigator is closed: F7 is CLOSE, F8 would GO since OS-NAV2)"},
+  {"keys": ["f8"], "gap": 0.3, "if_state": {"overlay": "~^(LEARN|PATTERN_CHOOSER|LENGTH_CHOOSER|JUMP_CHOOSER|MODULE_PICKER|STEP_POPUP|FILL|PLAY_MODE)$"}, "note": "(a leftover overlay is put away: F8 is Back)"},
+  {"keys": ["file"], "gap": 0.5},
+  {"state": {"screen": "FILE"}, "within": 4},
+  {"keys": ["f6"], "gap": 0.5, "note": "the IMPORT page, at the root of the card"},
+  {"wait": 2.0},
+  {"say": "Move the cursor to the folder MOD (Up / Down; the folders are listed first) and press F1 (ENTER): the list shows the module files of /MOD, TYPE MOD, with the DIR field of the strip saying MOD. The cursor starts on the first file."},
+  {"keys": ["f1"], "gap": 0.5, "note": "ENTER /MOD (or whichever folder the cursor is on)"},
+  {"wait": 1.0},
+  {"shot": "qa_fil_013_first", "non_blank": true, "soft": true, "note": "QA-FIL-013: the files of /MOD, the cursor on the first one"},
+  {"keys": ["+shift", "down", "-shift"], "gap": 0.4, "note": "QA-FIL-013: Shift + Down, a page down"},
+  {"shot": "qa_fil_013_down1", "compare": {"sim_scenario": "sim/scenarios/qa/qa_file.txt", "snap": "qa_fil_013", "regions": ["100,458,700,22"], "tol": 24, "aa": 1, "max_bad": 0.005}, "non_blank": true, "soft": true, "note": "QA-FIL-013: the cursor is on the last file of /MOD (16 files, one page); the key row is the IMPORT page's, as in the simulator's picture of the page (the simulator's list is empty and F3 UP may differ there: read the cursor)"},
+  {"keys": ["+shift", "down", "-shift"], "gap": 0.4, "note": "QA-FIL-013: Shift + Down again"},
+  {"shot": "qa_fil_013_down2", "non_blank": true, "soft": true, "note": "QA-FIL-013: still the last file: the move clamps and does not wrap to the first"},
+  {"keys": ["+shift", "up", "-shift"], "gap": 0.4, "note": "QA-FIL-013: Shift + Up, a page up"},
+  {"shot": "qa_fil_013_up", "non_blank": true, "soft": true, "note": "QA-FIL-013: the cursor is back on the first file; nothing was opened or imported (the strip is unchanged)"},
+  {"say": "Plain Down moves one row; F3 goes back up to the root. Nothing was imported."},
+  {"keys": ["down"], "gap": 0.3},
+  {"keys": ["f3"], "gap": 0.5, "note": "UP to the root of the card"},
+  {"say": "QA-GLB-018 (OS-SHIFTENC, by hand): Shift + encoder one detent pages the same lists as Shift + Up / Down: File PROJECTS and IMPORT, Sample load, Modules, the engine picker, Tools (Pattern F7), Learn, the play-mode picker (Wave, Shift + F1), the Navigator and the Instr-hold list. It clamps at both ends and never wraps; the plain encoder is one entry. QA-FIL-092: File F7 EXPORT, Down to PATTERN nn, Shift + encoder moves 8 existing patterns (or to the last one) and back, stopping at the ends; the SONG row does nothing."}
+ ],
+ "finally": [
+  {"keys": ["-shift"], "gap": 0.2},
+  {"keys": ["pattern"], "gap": 0.3}
+ ]
+}

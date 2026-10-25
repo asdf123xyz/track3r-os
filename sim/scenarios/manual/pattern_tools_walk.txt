@@ -1,0 +1,53 @@
+# OS-MANUAL2 C4: the "Try it" of docs/manual/pattern_tools.md. Each `snap walk_<n>` is the picture of step n, `pattern_tools_walk_<n>.png` in docs/manual/img/ (manifest docs/manual/images.txt).
+# The pad and F-key presses are the chapter's own.
+
+# Setup, not a step: the empty project (File > NEW, ALL), so the walk-through starts on one empty pattern, as a new project does.
+document new
+wait 20
+tap file
+wait 20
+tap f3
+wait 20
+tap f3
+wait 700
+assert state screen=PATTERN
+wait 3000
+
+# Step 1. Press `Pattern`, then `Rec`. The chip reads STEP. No picture: the Pattern chapter shows it.
+wait 700
+tap rec
+wait 20
+assert state screen=PATTERN
+
+# Step 2. Press `F4` (FILL). The Fill dialog opens on TRACK / NOTE / EVERY N.
+tap f4
+wait 20
+snap walk_2
+
+# Step 3. `Down` twice and `Right` twice: TYPE reads EUCLID. `Down` and `Right` once more: EVENTS 5 (from 4). The line shows the five hits.
+tap down 2
+tap right 2
+tap down
+tap right
+wait 20
+snap walk_3
+
+# Step 4. Press `F1` (FILL). The notes land on the five hits, the dialog closes, the strip says FILL: EUCLID 5 EVENTS.
+tap f1
+wait 20
+snap walk_4
+
+# Step 5. Press `F7` (TOOLS). The list opens with EXPORT PATTERN first, then DUPLICATE x2, EXPAND x2 and SHRINK /2. No picture: step 6 shows the list's result.
+wait 3000
+tap f7
+wait 20
+
+# Step 6. `Down` twice, to EXPAND x2, and `F1` (RUN). Each note moves to every second step and the strip names the new length.
+tap down 2
+tap f1
+wait 20
+snap walk_6
+
+# Step 7. Press `F8` (UNDO). The length comes back. No picture.
+tap f8
+wait 20

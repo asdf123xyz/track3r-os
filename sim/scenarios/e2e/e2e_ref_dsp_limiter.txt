@@ -1,0 +1,72 @@
+# OS-E2E-9: the master limiter's static curve against the reference (tools/dsp_ref.py limiter_static_db, tests/e2e_dsp_ref.py limiter, ctest e2e_ref_dsp_limiter). The deep user's way: the
+# Instrument page (PARAMS), the VOICE page (F2), the VOLUME row and the encoder, a pad. Instrument 1 of `document sound` is the sine (0.5 of full scale, 441.18 Hz at the root pad): its VOLUME
+# is the voice's level, 0.48 dB a step under the 1.2+ law (50 is unity: -6.02 dBFS), up to 100 (+24 dB: +17.98 dBFS). Seven takes of 250 ms, the pad down for 200, in ASCENDING order of level (the fast
+# stage's release is 100 ms: a loud take must not leave the next one waiting for it): the peak of each over 60 to 190 ms, the steady part, is the output level of the limiter for that input. The test
+# reads the level off the quiet takes (the unlimited ones lie on a line of 0.48 dB a step, which it fits) and extends the line, so the engine's volume law is not assumed above what was measured,
+# and holds the output to min(level, ceiling): the identity below the ceiling (-0.3 dBFS, MasterLimiter::kCeiling) and the ceiling above it; volume 62 is the knee: a level of -0.26 dBFS, 0.04 dB over the ceiling.
+# WHAT THE LIMITER SEES above volume 62 is not that line: the sampler voice clips at int16 full scale (audio/voices.cpp, "the voices saturate"), so v64 to v100 reach the master as a square wave of
+# full scale (distortion -30 dB at v64, -7.5 dB at v100: the test prints it), and a hard clipper at the ceiling would give the same peaks. The last two takes are the proof that separates a limiter from
+# a clipper: v60b is the pad 24 voice alone (an octave down, 220.59 Hz), `poly` presses pads 12 and 24 together: two clean sines of -1.2 dBFS that SUM to +4.6 dBFS, 4.9 dB over the ceiling, with
+# nothing clipped before the master. A limiter scales that by a gain (the ceiling over the peak of the sum, the same at both tones, what a fit of the two tones leaves under -30 dB); a clipper does not.
+document sound
+audio on
+wait 30
+tap params
+tap f2
+assert state screen=INSTRUMENT
+
+encoder -20
+assert model inst.1.volume=30
+render v30 250
+pad 12 hold 200
+wait 49
+encoder 20
+assert model inst.1.volume=50
+render v50 250
+pad 12 hold 200
+wait 49
+encoder 10
+assert model inst.1.volume=60
+render v60 250
+pad 12 hold 200
+wait 49
+encoder 2
+assert model inst.1.volume=62
+render v62 250
+pad 12 hold 200
+wait 49
+encoder 2
+assert model inst.1.volume=64
+render v64 250
+pad 12 hold 200
+wait 49
+encoder 21
+assert model inst.1.volume=85
+render v85 250
+pad 12 hold 200
+wait 49
+encoder 15
+assert model inst.1.volume=100
+render v100 250
+pad 12 hold 200
+wait 49
+
+# The clean overload: back to volume 60 (the same -1.22 dBFS voice as v60), the voice an octave down alone (v60b), then the two together.
+encoder -40
+assert model inst.1.volume=60
+render v60b 250
+pad 24 hold 200
+wait 49
+render poly 250
+pad 12 down
+pad 24 down
+wait 200
+pad 12 up
+pad 24 up
+wait 49
+
+# What the master gives at the extremes, as a one-line measurement: -0.2999 dBFS at the top (the same figure as e2e_audio_demo), and the quietest take as the sine at its level.
+assert audio v100 in=60-190 peak=-0.3+-0.05 pitch=441.18+-3c
+assert audio v30 in=60-190 peak=-15.6+-0.3 pitch=441.18+-2c clicks=0
+assert audio v60b in=60-190 peak=-1.22+-0.3 pitch=220.59+-2c clicks=0
+assert audio poly in=60-190 peak=-0.3+-0.05

@@ -1,0 +1,237 @@
+# OS-FINALQA (docs/specs/OS-FINALQA.md): the Modules screen's QA rows, docs/qa/catalogue/modules.md. One `snap qa_mod_NNN` per row with a visible result; the goldens are keyed qa_modules/qa_mod_NNN.
+# OS-SHIFTROW: with Shift held the key row shows the Shift layer: a label only on a key that does something, "-" elsewhere; Shift + F never falls through to the plain key.
+
+# QA-MOD-001: the Modules screen (the Navigator only: nav.screen 12) with Shift held: - - - - - - - -.
+action nav.screen 12
+press shift
+snap qa_mod_001
+release shift
+
+# OS-APPUX S0 (docs/specs/OS-APPUX.md 3.9, Q12): the card carries the shipped apps (`apps on`, sim/include/o3os/sim/sim_apps.h: the host objects the per-app tests load, with the manifests' capabilities),
+# so the app pages have pictures. MODULES is the screen already (QA-MOD-001), so F2 RESCAN reads the card's new apps. The cursor is on the apps in the order of the list: chords, humanize, loudness, midimon (3), morph, mutate, rhythmgen, scope, smfexport, tapcalc (9), tuner (10).
+document
+wait 20
+card e2e_card
+apps on
+tap f2
+wait 50
+assert state screen=MODULES
+# QA-MOD-157 (OS-QAFIX-RESCAN): F2 RESCAN tells the count of apps on the strip; the notice runs out before the next picture.
+snap qa_mod_157
+wait 2500
+
+# QA-MOD-120 (and the page of QA-MOD-010): MIDI Monitor, an app of ABI 1.9 with labels: F1 PAUSE, F2 CLEAR, the rest `-`, F8 BACK. Shift held: the Shift row repeats the labels (Shift + Fn runs Fn), Shift + F8 reads nothing.
+tap down 3
+tap f1
+wait 100
+assert state screen=APP
+snap qa_mod_120
+press shift
+wait 50
+snap qa_mod_120_shift
+tap f8
+wait 50
+assert state screen=APP
+release shift
+wait 20
+
+# QA-MOD-121: F8 is BACK, one level, to MODULES; the chord F7 + F8 still leaves.
+tap f8
+wait 50
+assert state screen=MODULES
+snap qa_mod_121_f8
+tap f1
+wait 100
+assert state screen=APP
+press f7
+wait 5
+press f8
+wait 5
+release f8
+release f7
+wait 50
+assert state screen=MODULES
+snap qa_mod_121_chord
+
+# QA-MOD-122 (and the page of QA-MOD-024): Tuner declares ABI 1.4, so its page shows the legacy row `-- -- -- -- -- -- -- BACK`.
+tap down 7
+tap f1
+wait 100
+assert state screen=APP
+snap qa_mod_122
+tap f8
+wait 50
+assert state screen=MODULES
+
+# QA-MOD-117 and QA-MOD-009: Tap Calc edits the project, so the first launch of the boot asks (F1 reads LAUNCH?, inverted, the strip says F1 AGAIN); the second F1 starts it; after that it starts at once.
+tap up
+tap f1
+wait 50
+assert state screen=MODULES
+snap qa_mod_117
+tap f1
+wait 100
+assert state screen=APP
+tap f8
+wait 50
+tap f1
+wait 100
+assert state screen=APP
+
+# QA-MOD-123 (OS-APPUX S2, 3.2): the one grammar of an app page, on Rhythm Gen opened from Pattern F7 TOOLS at the cursor (track 1, row 1: one lane of 16 rows). The OS puts no cursor over the app's rows: the app moves its own with
+# the keys it gets. No line of keys under the rows (the key row names APPLY and VARY). TOOLS lists the four fixed entries, then chords, humanize, morph, mutate, rhythmgen: nine presses of Down.
+action nav.screen 0
+wait 20
+tap f7
+wait 20
+tap down 8
+tap f1
+wait 50
+tap f1
+wait 100
+assert state screen=APP
+snap qa_mod_123
+
+# Down: the next row (here ROTATE, the third). The encoder: the row's value, one step per detent (3 detents). Shift + the encoder: the coarse step (4 per detent on ROTATE). Delete: the row's default.
+tap down 2
+wait 20
+snap qa_mod_123_row
+encoder 3
+wait 20
+snap qa_mod_123_value
+press shift
+wait 20
+encoder 1
+wait 20
+release shift
+wait 20
+snap qa_mod_123_coarse
+tap delete
+wait 20
+snap qa_mod_123_default
+
+# Right: the next page, four times to the shared values (INSTR, VOL, MODE, SEED); Left comes back.
+tap right 4
+wait 20
+snap qa_mod_123_page
+
+# QA-MOD-132 (OS-APPUX S5, 3.7): the shared page ends with the target rows PATTERN, TRACK, ROW and ROWS: the app starts at the Pattern cursor (pattern 1, track 1, row 1) and they move the target inside the app. Down x3 to TRACK,
+# two detents to track 3, Down to ROW, four detents to row 5; Delete puts ROW back to the launch row 1.
+tap down 3
+encoder 2
+tap down
+encoder 4
+wait 20
+snap qa_mod_132_target
+tap delete
+wait 20
+snap qa_mod_132_default
+tap left 4
+wait 20
+tap f8
+wait 50
+assert state screen=PATTERN
+
+# QA-MOD-126 (OS-APPUX S3): the apps that declared rows draw them themselves, in the same grammar, and keep them with the project. Loudness VU: SOURCE and HOLD at the bottom; Scope: VIEW, SOURCE and TIMEBASE
+# (the encoder on VIEW switches to the spectrum, which dims TIMEBASE); Tap Calc: BPM and AVERAGE (the encoder moves BPM by 0.1 a detent).
+action nav.screen 12
+wait 20
+tap up 12
+tap down 2
+tap f1
+wait 100
+assert state screen=APP
+snap qa_mod_126_loudness
+tap f8
+wait 50
+tap down 5
+tap f1
+wait 100
+assert state screen=APP
+snap qa_mod_126_scope
+encoder 1
+wait 20
+snap qa_mod_126_scope_spectrum
+tap f8
+wait 50
+tap down 2
+tap f1
+wait 100
+assert state screen=APP
+encoder 25
+wait 20
+snap qa_mod_126_tapcalc
+tap f8
+wait 50
+assert state screen=MODULES
+
+# Humanize (eight rows: TIME, VOL, SEED, then the five target rows, TRACKS included) and Chords (the target rows are its second page, Right): the same rows in the same grammar.
+action nav.screen 0
+wait 20
+tap f7
+wait 20
+tap down 5
+tap f1
+wait 50
+tap f1
+wait 100
+assert state screen=APP
+tap down 4
+encoder 2
+wait 20
+snap qa_mod_132_humanize
+tap f8
+wait 50
+assert state screen=PATTERN
+action nav.screen 0
+wait 20
+tap f7
+wait 20
+tap down 4
+tap f1
+wait 50
+tap f1
+wait 100
+assert state screen=APP
+tap right
+wait 20
+snap qa_mod_132_chords
+tap f8
+wait 50
+assert state screen=PATTERN
+
+# QA-MOD-133 (OS-APPUX S5, 3.7): Mutate and Morph take an INSTRUMENT row (the last): the instrument the Pattern shows (01), moved inside the app by the encoder, Delete the launch instrument.
+action nav.screen 0
+wait 20
+tap f7
+wait 20
+tap down 7
+tap f1
+wait 50
+tap f1
+wait 100
+assert state screen=APP
+tap down 3
+encoder 1
+wait 20
+snap qa_mod_133_mutate
+tap f8
+wait 50
+assert state screen=PATTERN
+action nav.screen 0
+wait 20
+tap f7
+wait 20
+tap down 6
+tap f1
+wait 50
+tap f1
+wait 100
+assert state screen=APP
+tap down 2
+encoder 1
+wait 20
+snap qa_mod_133_morph
+tap f8
+wait 50
+assert state screen=PATTERN

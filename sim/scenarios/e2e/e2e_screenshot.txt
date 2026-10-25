@@ -1,0 +1,65 @@
+# OS-SCREENSHOT (docs/specs/OS-SCREENSHOT.md, QA-GLB-130..139): Shift then Power saves the screen as Screenshots/SHOT_nnnn.bmp on the card. The simulator runs the platform's own ScreenshotService
+# (platform/mk66/usb/screenshot_service.h) over a ShotPort that reads its frame buffer in RGB565, and the real path guard on the card (DirCard): the file is a 66 byte header and 768,000 bytes. The switch
+# arms after 100 ms of release; the picture is taken after both keys are up and a frame later; the app draws no frame while it is written (about 400 ms of ticks: one 2 KiB piece a tick).
+# The ctest has the label `e2e`; the card is the generated fixture e2e_card (see e2e_card.txt).
+document
+wait 20
+card e2e_card
+wait 400
+assert file Screenshots/SHOT_0001.bmp absent
+
+# QA-GLB-130: Shift down, then Power (the debounce is 30 ms), both let go: the first frame after is the picture. The strip says so, and the file has the BMP's exact size.
+press shift
+power down
+wait 100
+release shift
+power up
+wait 30
+assert file Screenshots/SHOT_0001.bmp absent
+wait 700
+assert file Screenshots/SHOT_0001.bmp size=768066
+assert file Screenshots/_o3save.tmp absent
+assert state msg=SCREENSHOT_SAVED:_SHOT_0001.BMP
+snap e2e_screenshot_saved
+
+# QA-GLB-131: the next shot is 0002; the first is not touched.
+press shift
+power down
+wait 100
+release shift
+power up
+wait 800
+assert file Screenshots/SHOT_0001.bmp size=768066
+assert file Screenshots/SHOT_0002.bmp size=768066
+assert state msg=SCREENSHOT_SAVED:_SHOT_0002.BMP
+
+# QA-GLB-137: a plain Power hold is not a screenshot (it switches off at 2 s; not run here), and a tap of Power makes no file.
+power hold 300
+wait 800
+assert file Screenshots/SHOT_0003.bmp absent
+
+# QA-GLB-139: the card is taken away in the middle of a capture: the shot fails and no SHOT file is left under a final name (the torn temporary file stays on a pulled card; the strip's own
+# SCREENSHOT FAILED is proved by mk66_screenshot_service_test, here the card's CARD REMOVED comes with it).
+press shift
+power down
+wait 100
+release shift
+power up
+wait 200
+card pull
+wait 800
+card insert
+wait 800
+assert file Screenshots/SHOT_0003.bmp absent
+
+# QA-GLB-133: no card in the slot: refused, nothing is taken.
+card pull
+wait 400
+press shift
+power down
+wait 100
+release shift
+power up
+wait 400
+assert state msg=NO_SCREENSHOT:_NO_CARD
+snap e2e_screenshot_refused

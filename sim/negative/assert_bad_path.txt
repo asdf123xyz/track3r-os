@@ -1,0 +1,3 @@
+# OS-E2E-1a: a model path the grammar does not have is a scenario error (exit 2, at parse time), whatever the document holds.
+wait 1
+assert model pat.1.0.0.colour=3

@@ -1,0 +1,11 @@
+{
+ "name": "qa_power_last",
+ "title": "OS-POWER P2: the record of the last shutdown: the stage reached, the ms of each stage, the notes, the result of the off. Run it alone AFTER A BOOT that follows qa_power / qa_power_off (not straight after qa_power: the unit is still restarting)",
+ "steps": [
+  {"say": "OS-POWER P2, rows QA-GLB-113 and QA-GLB-117. Run this as its own run AFTER A BOOT that follows qa_power (the dry run restarts the unit: straight after it the unit is still restarting and the run fails) or after qa_power_off and the wake: it reads the record that the shutdown left in the noinit SRAM. Nothing is changed on the unit. An empty record (`last shutdown` missing) after a restart means the SRAM did not hold through the reset, or the unit was powered up from cold"},
+  {"cmd": "version", "within": 90, "poll": 2.0, "note": "precondition: the unit answers on the console (it has booted again after the restart of qa_power)"},
+  {"wait": 3.0},
+  {"cmd": "power", "expect": ["power: last shutdown (dry|off), reached (A quiet|A2 mute|B card|C unmount|D usb|E lights|F off|done)", "power: ms from A: A quiet 0, A2 mute \\d+, B card \\d+, C unmount \\d+, D usb \\d+, E lights \\d+, F off \\d+, done \\d+"], "within": 30, "poll": 1.0, "show": true, "note": "QA-GLB-113: the stages of the last shutdown with the ms from A at which each was entered (the whole run, to the call of enter_off), read with no hands. `reached done` is a run that got to the restart or the off"},
+  {"cmd": "power", "expect": ["power: last off (ended by a press \\(the wake\\)|RESTARTED at step: .+|began and left no result.*)"], "soft": true, "show": true, "note": "QA-GLB-117 / 103: after a real off only. `ended by a press` is the wake that booted the unit; `RESTARTED at step` names the clock or mode step that failed (a restart came instead of an off); `began and left no result` is a hang or a cable pull. Nothing after a dry run: soft"}
+ ]
+}

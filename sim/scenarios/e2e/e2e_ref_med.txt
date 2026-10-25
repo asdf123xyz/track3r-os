@@ -1,0 +1,25 @@
+# OS-E2E-9: an OctaMED module played in the simulator and compared with libopenmpt (tests/e2e_openmpt_ref.py, ctest e2e_ref_openmpt_med). The session of e2e_ref_mod: File > IMPORT, F1, Play
+# (the import binds the sample to the engine its Paula rate names, OS-BUG-MODENGINE: no engine step). The card e2e_ref_med is GENERATED (tools/e2e_ref_cards.py:
+# an MMD1 song of one block in BPM mode, 125 BPM, speed 6: a tick of 20 ms; a 32-byte sine at the unity note 13, 259 Hz, seven cases of two rows). The render `song` is compared tick by tick: the pitch to
+# 1.5 cents and the level to 0.03 + 2 % of the song's (the volume slide also + 0.6 of its step); a volume on a line with no note is the one pinned difference (docs/specs/OS-E2E.md "E2E-9", finding F3).
+document
+wait 20
+card e2e_ref_med
+audio on
+wait 20
+tap file
+wait 50
+tap f6
+wait 100
+assert state screen=FILE sel=ref.med
+tap f1
+wait 800
+assert state msg=~IMPORTED_REF.MED
+assert model order.len=1
+
+render song 1850
+tap play
+assert state playing=1
+wait 1850
+assert audio song sound
+tap play

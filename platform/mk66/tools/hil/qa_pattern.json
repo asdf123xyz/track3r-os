@@ -1,0 +1,1941 @@
+{
+ "name": "qa_pattern",
+ "title": "OS-FINALQA, Pattern > OS-PFX FX (Chord 14, Arp 21, Tune 40, Slide 41/42) and OS-IFX1 FX (Glide 19, Overdrive 38, Bit depth 39): the FX in the list and their words on the info line, then the notes and the sound by monitor and by ear; OS-COREFX CF1: the tracker FX (Arpeggio, Volume slide, Fine volume slide, Fine porta up / down) in the list and on the info line, and a MOD and an S3M by ear. Edits the loaded project in RAM only (nothing is saved)",
+ "steps": [
+  {
+   "say": "OS-PFX, rows QA-PAT-011..021 of docs/qa/catalogue/pattern.md (docs/specs/OS-PFX.md). 011..015 are the readout and the list (the simulator's pictures are the demo document's: the unit's shots are read by a person, the info line says CHORD 5A / ARP DOWN 4 STEPS / TUNE +7 ST / SLIDE UP 2.19 ST). 016..021 are the notes and the sound: the Chord / Arp notes are read on a MIDI monitor on the DIN or USB MIDI port (`amidi -d`, or any monitor; the scenario `pfx_midi` captures and compares them by itself) and the sample ones by ear or over USB AUDIO. The scenario writes to the loaded project in RAM only (nothing is saved) HOW THE VALUES ARE REACHED (OS-HILFIX): the FX picker (held Vol / Fx) changes only the TYPE of the cell and keeps its value, clamped to the new FX's range (our rule); it does not apply the FX's table default (Tune would start at 0 = -24 ST, not 24). So the steps below turn the encoder one detent at a time, from the value the FX before left. FX1 is edited with the held Vol key (+vol / -vol); FX2 with the held Fx key (+fx / -fx; `key fx down` / `key fx up` on the console), the same way."
+  },
+  {
+   "run": "_load_tv16"
+  },
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.2,
+   "note": "(Shift released, in case a former run left it down)"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "NAVIGATOR"
+   },
+   "note": "(a leftover Navigator is closed: F7 is CLOSE, F8 would GO since OS-NAV2)"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "~^(LEARN|PATTERN_CHOOSER|LENGTH_CHOOSER|JUMP_CHOOSER|MODULE_PICKER|STEP_POPUP|FILL)$"
+   },
+   "note": "(a leftover overlay is put away: F8 is Back)"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "TEXT_ENTRY"
+   },
+   "note": "(the on-screen keyboard is cancelled with F7, never accepted)"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.4
+  },
+  {
+   "state": {
+    "screen": "PATTERN"
+   },
+   "within": 3
+  },
+  {
+   "run": "_stop"
+  },
+  {
+   "cmd": "cpu reset",
+   "note": "(the cpu counters are since boot or since this reset: the CPU readings below start from zero)"
+  },
+  {
+   "keys": [
+    "rec"
+   ],
+   "gap": 0.4,
+   "if_state": {
+    "mode": "3"
+   },
+   "note": "(Rec toggles Browse <-> Edit: only when it is in Browse)"
+  },
+  {
+   "state": {
+    "mode": "0"
+   },
+   "within": 2,
+   "note": "mode 0 = Edit"
+  },
+  {
+   "say": "QA-PAT-011..014: the FX1 cell of the first step, set to each of the four in turn; the info line is read in the shot"
+  },
+  {
+   "keys": [
+    "fx"
+   ],
+   "gap": 0.4
+  },
+  {
+   "state": {
+    "col": "~^FX1$"
+   },
+   "within": 2
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9,
+   "note": "the FX list opens on the cell's own FX (held Vol is the first FX column's)"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "enc": 36,
+   "note": "picker index 36 from None: Chord (Swing 34, Gate 35, Chord 36, Arp 37, Tune 38, Slide up 39, Slide down 40)"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4,
+   "note": "the release enters it in the cursor step"
+  },
+  {
+   "enc": 1,
+   "repeat": 8,
+   "gap": 0.25,
+   "note": "Chord 8: a fresh cell starts at the table default (0 for Chord), then +8"
+  },
+  {
+   "shot": "qa_pat_011",
+   "non_blank": true,
+   "note": "QA-PAT-011: the info line says CHORD 5A"
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9,
+   "note": "the FX list opens on the cell's own FX (held Vol is the first FX column's)"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "enc": 1,
+   "note": "one place on: Arp"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4,
+   "note": "the release enters it in the cursor step"
+  },
+  {
+   "enc": 1,
+   "repeat": 6,
+   "gap": 0.25,
+   "note": "Arp 14: the 8 of the Chord is kept, +6"
+  },
+  {
+   "shot": "qa_pat_012",
+   "non_blank": true,
+   "note": "QA-PAT-012: ARP DOWN 4 STEPS (Arp 17 would read ARP DOWN 1 STEP)"
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9,
+   "note": "the FX list opens on the cell's own FX (held Vol is the first FX column's)"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "enc": 1,
+   "note": "one place on: Tune"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4,
+   "note": "the release enters it in the cursor step"
+  },
+  {
+   "enc": 1,
+   "repeat": 17,
+   "gap": 0.25,
+   "note": "Tune 31: the cell already has a type (Arp), so the 14 is carried over (the table default, 24, only applies to an EMPTY cell: QA-PAT-104), +17 = 31: +7 semitones"
+  },
+  {
+   "shot": "qa_pat_013",
+   "non_blank": true,
+   "note": "QA-PAT-013: TUNE +7 ST"
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9,
+   "note": "the FX list opens on the cell's own FX (held Vol is the first FX column's)"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "enc": 1,
+   "note": "one place on: Slide up"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4,
+   "note": "the release enters it in the cursor step"
+  },
+  {
+   "enc": 1,
+   "repeat": 4,
+   "gap": 0.25,
+   "note": "Slide up 35: the 31 is kept, +4"
+  },
+  {
+   "shot": "qa_pat_014",
+   "non_blank": true,
+   "note": "QA-PAT-014: SLIDE UP 2.19 ST"
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9,
+   "note": "QA-PAT-015: the list again, on Slide up"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "enc": 1
+  },
+  {
+   "shot": "qa_pat_015",
+   "non_blank": true,
+   "note": "QA-PAT-015: the list scrolled to its end, Slide down highlighted, its description under it"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4
+  },
+  {
+   "say": "OS-IFX1, rows QA-PAT-022..029 of docs/qa/catalogue/pattern.md (docs/specs/OS-IFX1.md). 022..025 are the readout and the list (same cell, FX1 of the first step); 026..029 are the sound and are heard by ear (and over USB AUDIO), with `diag bench` for the cost"
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9,
+   "note": "QA-PAT-022: the list again, on Slide down"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "enc": 1,
+   "note": "one place on: Overdrive"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4
+  },
+  {
+   "enc": 1,
+   "repeat": 5,
+   "gap": 0.25,
+   "note": "Overdrive 40: the 35 of Slide down is kept, +5"
+  },
+  {
+   "shot": "qa_pat_022",
+   "non_blank": true,
+   "note": "QA-PAT-022: the info line says DRIVE 40 %"
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9,
+   "note": "on Overdrive"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "enc": 1,
+   "note": "one place on: Bit Depth, the last"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4
+  },
+  {
+   "enc": -1,
+   "repeat": 8,
+   "gap": 0.25,
+   "note": "Bit Depth 8: the 40 is clamped to 16 (its maximum) by the picker, -8"
+  },
+  {
+   "shot": "qa_pat_023",
+   "non_blank": true,
+   "note": "QA-PAT-023: BITS 8"
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9,
+   "note": "QA-PAT-024: the list on Bit Depth"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "shot": "qa_pat_024",
+   "non_blank": true,
+   "note": "QA-PAT-024: the list ends with Overdrive and Bit Depth, Bit Depth highlighted, its description under it"
+  },
+  {
+   "enc": -37,
+   "note": "back to picker index 5: Glide"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4
+  },
+  {
+   "enc": 1,
+   "repeat": 4,
+   "gap": 0.25,
+   "note": "Glide 12: the 8 of Bit Depth is kept, +4"
+  },
+  {
+   "shot": "qa_pat_025",
+   "non_blank": true,
+   "note": "QA-PAT-025: GLIDE 240 MS"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.25,
+   "until": {
+    "msg": "~^NOTHING_TO_UNDO_HERE$"
+   },
+   "max": 120,
+   "note": "Undo drains the journal: every edit of this scenario is taken back (the loaded pattern is as it was); F8 is pressed until the strip says there is nothing left"
+  },
+  {
+   "state": {
+    "msg": "~^NOTHING_TO_UNDO_HERE$"
+   },
+   "within": 3
+  },
+  {
+   "say": "QA-PAT-016 (Chord on MIDI): give a track a MIDI instrument (Instrument kind MIDI, channel 1) and write on it a C note with FX1 = Chord 5 (`47`, Maj) at step 1, an OFF at step 5; connect a MIDI monitor to the DIN out (or the USB MIDI port); Play. Expect the monitor to show note-on C, E, G (+4, +7) with the same velocity at one instant, and the three note-offs together at step 5; Stop with the note sounding sends all three offs"
+  },
+  {
+   "say": "QA-PAT-017 (Arp on MIDI): the same step with FX2 = Arp 6 (up, a note a step; FX2 is edited with the Fx key, not Vol: hold Fx (`key fx down` on the console), choose Arp in the list, release it (`key fx up`), then turn the encoder to 6 one detent at a time - Vol edits FX1 only). Expect C, then each step the note before ends and E, G, C ... start, ending at the OFF; Arp 17 goes down (G, E, C), Arp 28 draws at random from the three; Chord 0 with the Arp is chromatic (C, C#, D ... B, C); the automated check of the notes is the scenario `pfx_midi`"
+  },
+  {
+   "say": "QA-PAT-018 (Arp on a sample): a sample track, step 1 with Chord 5 (FX1: hold Vol) + Arp 7 (FX2: hold Fx) (two notes a step); Play and read `voices`: the track's voice restarts in the pitches of C, E, G, twice a step, until the next note"
+  },
+  {
+   "cmd": "voices",
+   "expect": [
+    "in use \\d+/12"
+   ],
+   "show": true,
+   "soft": true,
+   "note": "(read with a track playing)"
+  },
+  {
+   "say": "QA-PAT-019 (Tune): a sample step with Tune 31, the same note again with Tune 17: the first sounds seven semitones above the written note, the second seven below; on a MIDI track the monitor shows the note-on shifted"
+  },
+  {
+   "say": "QA-PAT-020 (Slide): a sample step with Slide up 192: the pitch rises an octave over the step and holds; the next note without the FX starts at its own pitch. Slide down 192 falls an octave. A MIDI step with a Slide plays its note and nothing more"
+  },
+  {
+   "say": "QA-PAT-021 (Arp alone): a step with Arp 6 and no Chord FX in the other column plays the note once, as written"
+  },
+  {
+   "say": "QA-PAT-026 (Overdrive on a sample): a sample track, a sustained note, step FX Overdrive 0, then 40, then 100 on three repeats: the sound gets steadily more saturated (a soft clipper, a harmonic edge, louder at low drive, bounded at full scale); 0 is the clean sample. The instrument's OVERDRIVE row on the Params screen does the same for every note of the instrument, live while it plays"
+  },
+  {
+   "say": "QA-PAT-027 (Bit depth on a sample): the same note with Bit depth 16, 12, 8, 4: 16 is clean, the lower ones add the grainy quantisation noise of a lo-fi sampler; Bit depth 1 is a hard square-ish buzz. The Params BIT DEPTH row (4..16) does the same live; the PLAY ENGINE presets 12 and 8 bit are a cap (the lower of the two applies)"
+  },
+  {
+   "say": "QA-PAT-028 (Glide): the instrument's GLIDE row at 500 (ms) and two notes in a row on one track, C then G: the second note starts at the C's pitch and slides to G in half a second; a repeated note does not slide; Glide FX 12 (240 ms) over an instrument with none does the same, Glide FX 0 turns the instrument's off"
+  },
+  {
+   "say": "QA-PAT-029 (OFF is the sample as it was): Overdrive 0 and Bit depth 16 (the defaults) sound exactly as before this feature; no extra noise, no level change"
+  },
+  {
+   "cmd": "bench voice_od 64",
+   "if_reply_not": "not in this image",
+   "expect": [
+    "BENCH voice_od \\d+ 64 avg \\d+ max \\d+ \\(.*peak \\d+\\)",
+    "BENCH done"
+   ],
+   "show": true,
+   "note": "QA-PAT-026: the overdrive pass at full drive: cycles a block; the cost of the pass is the minimum minus `bench voice`'s (transport stopped; a sample must be loaded)",
+   "timeout": 20
+  },
+  {
+   "cmd": "bench voice_bit 64",
+   "if_reply_not": "not in this image",
+   "expect": [
+    "BENCH voice_bit \\d+ 64 avg \\d+ max \\d+ \\(.*peak \\d+\\)",
+    "BENCH done"
+   ],
+   "show": true,
+   "timeout": 20,
+   "note": "QA-PAT-027: the bit depth pass at 8 bits"
+  },
+  {
+   "cmd": "bench voice_odbit 64",
+   "if_reply_not": "not in this image",
+   "expect": [
+    "BENCH voice_odbit \\d+ 64 avg \\d+ max \\d+ \\(.*peak \\d+\\)",
+    "BENCH done"
+   ],
+   "show": true,
+   "timeout": 20,
+   "note": "both passes"
+  },
+  {
+   "cmd": "bench voice 64",
+   "if_reply_not": "not in this image",
+   "expect": [
+    "BENCH voice \\d+ 64 avg \\d+ max \\d+ \\(.*peak \\d+\\)",
+    "BENCH done"
+   ],
+   "show": true,
+   "note": "the reference: both OFF (the pass is skipped)",
+   "timeout": 20
+  },
+  {
+   "say": "CPU (docs/specs/OS-PFX.md, Real time): fill 12 tracks with a note on every step, `cpu reset`, Play four bars, `cpu` and `diag cpu`; then the same pattern with Chord + Arp on the MIDI tracks and Tune + Slide up on the sample tracks. The two `cpu` lines go in the report: no underrun in either, and the difference is the cost of the FX"
+  },
+  {
+   "say": "CPU with the TB-303 module (the heaviest load the unit carries: the TB-303 song is about 70 %): load the built-in module and bind it to an instrument (`mod load tb303`, `mod bind 33 tb303`, as modules.json: a free slot, the console refuses a slot that holds a MIDI or sample instrument), give one track instrument 33 and a note on every step; `cpu reset`, Play four bars, `cpu` and `diag cpu`; then the same track with FX1 = Chord 5 (hold Vol) and FX2 = Arp 11 (hold Fx) (up, 8 module notes a step, the fastest rate is 6 microsteps: each a retrigger of the module). Read `underrun`, the worst block and any governor line (`mod`, `diag cpu`): none may rise, and the difference between the two readings is the cost of an Arp on a module. The Chord is there so that the Arp has notes: on a module the Chord alone plays its root only"
+  },
+  {
+   "say": "MIDI traffic (docs/specs/OS-PFX.md, Real time): a Chord sends four times the notes of a plain step, and an Arp note is an off and an on of 3 bytes each; the DIN out carries about 3.1 kB/s (no running status, 960 us a message). Four MIDI tracks with Arp at rate 3 (value 11) are 3.07 kB/s at 120 BPM and more above 122 BPM: on a MIDI monitor the notes then arrive late and some are missing, the DIN being the limit and the sequencer not. Check once on the DIN out at 120 BPM (all arrive, in time) and at 160 BPM (late or lost on DIN, complete on USB MIDI)"
+  },
+  {
+   "say": "OS-METROALIGN, rows QA-PAT-080..082 of docs/qa/catalogue/pattern.md (docs/specs/OS-METRO.md section 2): a take armed on the Record screen with START ON BAR (the default) while the transport RUNS waits for the next bar line, and the strip counts that wait down like the count-in (`RECORDING IN 4.. 3..`) when a beat or more is left when it is armed. The pad LEDs flash each beat and the click follows METRO (both by eye and ear). F1 lands at a random point of the bar: armed in its last beat the take starts with no countdown, by design (the message step is soft: repeat the scenario). The take is thrown away at the end: nothing is saved"
+  },
+  {
+   "run": "_play"
+  },
+  {
+   "keys": [
+    "samplerec"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "screen": "RECORD"
+   },
+   "within": 3
+  },
+  {
+   "keys": [
+    "samplerec"
+   ],
+   "gap": 0.4,
+   "if_state": {
+    "page": "1"
+   }
+  },
+  {
+   "keys": [
+    "samplerec"
+   ],
+   "gap": 0.4,
+   "if_state": {
+    "page": "2"
+   }
+  },
+  {
+   "state": {
+    "page": "0"
+   },
+   "within": 2
+  },
+  {
+   "wait": 0.6,
+   "note": "(the source settles for 200 ms after the screen is entered: an F1 before it is refused)"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.05,
+   "note": "arm the take: it waits for the bar"
+  },
+  {
+   "state": {
+    "msg": "~^RECORDING[ _]IN[ _]4\\.\\."
+   },
+   "within": 2.5,
+   "poll": 0.1,
+   "soft": true,
+   "note": "QA-PAT-080: the countdown starts (soft: not when the take was armed in the last beat of a bar)"
+  },
+  {
+   "shot": "qa_pat_080",
+   "non_blank": true,
+   "note": "QA-PAT-080..082: the strip says RECORDING IN 4.. (then 3.., 2.., 1.. a beat apart); the take starts at the bar line and the text is gone"
+  },
+  {
+   "wait": 3.0,
+   "note": "(the bar line has passed: the take is recording)"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.5,
+   "note": "stop the take"
+  },
+  {
+   "keys": [
+    "f4"
+   ],
+   "gap": 0.5,
+   "note": "throw it away (nothing is saved)"
+  },
+  {
+   "run": "_stop"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.4
+  },
+  {
+   "state": {
+    "screen": "PATTERN"
+   },
+   "within": 3
+  },
+  {
+   "say": "OS-PTOOLS part 1, rows QA-PAT-086..095 of docs/qa/catalogue/pattern.md (docs/specs/OS-PTOOLS.md): the Fill dialog of F4. 086..093 are the dialog and its result in the shots (the simulator's pictures are the demo document's, the unit's are the loaded project's, read by a person); 094..095 are the generators and the scales, host tests. The scenario edits the loaded project in RAM only (nothing is saved); each fill is undone at its end"
+  },
+  {
+   "keys": [
+    "rec"
+   ],
+   "gap": 0.4,
+   "if_state": {
+    "mode": "3"
+   },
+   "note": "(the block sets its own state: Rec toggles Browse <-> Edit, only when it is in Browse)"
+  },
+  {
+   "state": {
+    "mode": "0"
+   },
+   "within": 2,
+   "note": "mode 0 = Edit"
+  },
+  {
+   "keys": [
+    "note"
+   ],
+   "gap": 0.3,
+   "note": "(the Note column: the fill writes the note)"
+  },
+  {
+   "keys": [
+    "f4"
+   ],
+   "gap": 0.5,
+   "note": "QA-PAT-086: F4 FILL opens the dialog"
+  },
+  {
+   "state": {
+    "overlay": "FILL"
+   },
+   "within": 3
+  },
+  {
+   "shot": "qa_pat_086",
+   "non_blank": true,
+   "note": "QA-PAT-086: eight rows, the steps line, and the dialog's own key row F1 FILL / F8 BACK (no PATTERN LENGTH JUMP behind it)"
+  },
+  {
+   "keys": [
+    "up",
+    "up",
+    "up",
+    "up",
+    "up",
+    "up",
+    "up",
+    "down",
+    "down",
+    "right",
+    "right",
+    "down",
+    "right"
+   ],
+   "gap": 0.25,
+   "note": "top row, TYPE two places on (EUCLID), the next row (EVENTS) one place up: 5"
+  },
+  {
+   "shot": "qa_pat_087",
+   "non_blank": true,
+   "note": "QA-PAT-087: TYPE EUCLID, EVENTS 5: the line of x and . shows the hits, the count says 5 OF the track's steps"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.5,
+   "note": "QA-PAT-088: FILL"
+  },
+  {
+   "state": {
+    "overlay": "~^(NONE|NOTIFY)$",
+    "msg": "~^FILL:[ _]EUCLID[ _]5[ _]EVENTS"
+   },
+   "within": 3,
+   "poll": 0.1,
+   "note": "(the dialog is gone; the fill says its result in the strip, a notice of 2 s, so the overlay is NOTIFY and not NONE: the lasting check is the text)"
+  },
+  {
+   "shot": "qa_pat_088",
+   "non_blank": true,
+   "note": "QA-PAT-088: the first track carries the note on the hits only, the strip says FILL: EUCLID 5 EVENTS. Play it once: five hits spread evenly over the pattern, the first on step 1"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.5
+  },
+  {
+   "shot": "qa_pat_089",
+   "non_blank": true,
+   "note": "QA-PAT-089: F8 UNDO takes the whole fill back in one press"
+  },
+  {
+   "keys": [
+    "+shift",
+    "fx"
+   ],
+   "gap": 0.5,
+   "note": "QA-PAT-090: Shift + Fx is the 3/4 jump (OS-QJUMP), no longer a repeat of the fill"
+  },
+  {
+   "shot": "qa_pat_090",
+   "non_blank": true,
+   "note": "QA-PAT-090: the cursor is on row 49 of 64 and nothing was written (the track is as after the undo)"
+  },
+  {
+   "keys": [
+    "note",
+    "-shift"
+   ],
+   "gap": 0.5,
+   "note": "(Shift + Note back to the top, then Shift is let go)"
+  },
+  {
+   "say": "QA-PAT-091/092 (block): select a few steps with Shift + Down, F4: SCOPE says BLOCK; EVERY N with N 2, F1: only the block's steps get the note. QA-PAT-093: in Browse F4 says FILL: TURN EDIT ON and opens nothing. Read in the shots; the simulator has the pictures"
+  },
+  {
+   "say": "QA-PAT-094/095 (host tests): RANDOM density 0 / 100 / 30, the Euclid table and the SCALE run (`pattern_fill_test.cpp`); the four corrected scales (melodic minor, blues major, Todi, Gypsy minor) are `pattern_edit_rules_test.cpp`. By ear on the unit: Fill with WHAT NOTE, TYPE SCALE, KEY C Todi (KEY is one row since OS-FILL2: the encoder steps the scale, Shift + encoder the root), play: the notes of one octave of the scale, ascending, repeating"
+  },
+  {
+   "say": "OS-COREFX CF1, rows QA-PAT-096..101 (docs/specs/OS-COREFX.md, ADR 0004 amendment 2): the five tracker FX are the last five entries of the FX list (@ Tracker Arp, ^ Volume Slide, ~ Fine Volume Slide, < Fine Porta Up, > Fine Porta Down; picker 43..47) and the info line says ARPEG +3 +7 / VSLIDE -4 / FVOL +3 / FINE UP 4.00 PER / FINE DOWN 0.25 PER. Set the FX1 cell of step 1 to each in turn (Fx held, encoder) and read the info line in the shot; Vol held on the last one opens the list at its end (48 entries). The simulator has the pictures"
+  },
+  {
+   "keys": [
+    "fx"
+   ],
+   "gap": 0.4
+  },
+  {
+   "state": {
+    "col": "~^FX1$"
+   },
+   "within": 2
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9,
+   "note": "the FX list opens on the cell's own FX"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "enc": -60,
+   "note": "to the top of the list (the encoder holds at None)"
+  },
+  {
+   "enc": 43,
+   "note": "picker index 43 (Tracker Arp 43, Volume Slide 44, Fine Volume Slide 45, Fine Porta Up 46, Fine Porta Down 47)"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4,
+   "note": "the release enters it in the cursor step"
+  },
+  {
+   "enc": -64,
+   "note": "the value to 0 (4 x 64 detents)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": 55,
+   "note": "value 55 (decimal; the grid shows it in hex)"
+  },
+  {
+   "shot": "qa_pat_096",
+   "non_blank": true,
+   "note": "QA-PAT-096: the info line says ARPEG +3 +7"
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9,
+   "note": "the FX list opens on the cell's own FX"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "enc": -60,
+   "note": "to the top of the list (the encoder holds at None)"
+  },
+  {
+   "enc": 44,
+   "note": "picker index 44 (Tracker Arp 43, Volume Slide 44, Fine Volume Slide 45, Fine Porta Up 46, Fine Porta Down 47)"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4,
+   "note": "the release enters it in the cursor step"
+  },
+  {
+   "enc": -64,
+   "note": "the value to 0 (4 x 64 detents)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": 4,
+   "note": "value 4 (decimal; the grid shows it in hex)"
+  },
+  {
+   "shot": "qa_pat_097",
+   "non_blank": true,
+   "note": "QA-PAT-097: VSLIDE -4"
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9,
+   "note": "the FX list opens on the cell's own FX"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "enc": -60,
+   "note": "to the top of the list (the encoder holds at None)"
+  },
+  {
+   "enc": 45,
+   "note": "picker index 45 (Tracker Arp 43, Volume Slide 44, Fine Volume Slide 45, Fine Porta Up 46, Fine Porta Down 47)"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4,
+   "note": "the release enters it in the cursor step"
+  },
+  {
+   "enc": -64,
+   "note": "the value to 0 (4 x 64 detents)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": 48,
+   "note": "value 48 (decimal; the grid shows it in hex)"
+  },
+  {
+   "shot": "qa_pat_098",
+   "non_blank": true,
+   "note": "QA-PAT-098: FVOL +3"
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9,
+   "note": "the FX list opens on the cell's own FX"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "enc": -60,
+   "note": "to the top of the list (the encoder holds at None)"
+  },
+  {
+   "enc": 46,
+   "note": "picker index 46 (Tracker Arp 43, Volume Slide 44, Fine Volume Slide 45, Fine Porta Up 46, Fine Porta Down 47)"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4,
+   "note": "the release enters it in the cursor step"
+  },
+  {
+   "enc": -64,
+   "note": "the value to 0 (4 x 64 detents)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": 16,
+   "note": "value 16 (decimal; the grid shows it in hex)"
+  },
+  {
+   "shot": "qa_pat_099",
+   "non_blank": true,
+   "note": "QA-PAT-099: FINE UP 4.00 PER"
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9,
+   "note": "the FX list opens on the cell's own FX"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "enc": -60,
+   "note": "to the top of the list (the encoder holds at None)"
+  },
+  {
+   "enc": 47,
+   "note": "picker index 47 (Tracker Arp 43, Volume Slide 44, Fine Volume Slide 45, Fine Porta Up 46, Fine Porta Down 47)"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4,
+   "note": "the release enters it in the cursor step"
+  },
+  {
+   "enc": -64,
+   "note": "the value to 0 (4 x 64 detents)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": 1,
+   "note": "value 1 (decimal; the grid shows it in hex)"
+  },
+  {
+   "shot": "qa_pat_100",
+   "non_blank": true,
+   "note": "QA-PAT-100: FINE DOWN 0.25 PER"
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "shot": "qa_pat_101",
+   "non_blank": true,
+   "note": "QA-PAT-101: the list at its end, Fine Porta Down highlighted, 48 entries"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9,
+   "note": "QA-PAT-104: clear the cell (None), then pick Tune on the EMPTY cell"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "enc": -60,
+   "note": "to the top of the list (the encoder holds at None)"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4,
+   "note": "the release enters None: the cell is empty"
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "enc": 38,
+   "note": "picker index 38: Tune, from None"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4,
+   "note": "the release enters it: an empty cell takes the table default, 24"
+  },
+  {
+   "shot": "qa_pat_104",
+   "non_blank": true,
+   "note": "QA-PAT-104: TUNE 0 ST (before OS-PFXFIX a Tune picked on an empty cell was 0 = -24 ST)"
+  },
+  {
+   "say": "QA-PAT-102 (by ear, against a desktop player): import /MOD/kc_dancinonamiga.mod with the engine window OFF (the Modern engine: its 0xy arpeggio, Axy volume slides and E1x / E2x / EAx / EBx fine slides are the tracker FX) and /S3M/speed_chip.s3m (the S3M default: Jxy, Dxy, the fine slides) from the file browser; play them next to the same files in a desktop player (OpenMPT or any libopenmpt player). The arpeggios step through the same notes on the same ticks, a slide moves the volume tick by tick and a bare note after it keeps the level, a fine slide moves the pitch once and keeps it. Expected differences: slides run on every tick on the Amiga engine (open maintainer decision, docs/formats/mod.md section 4); MOD 8xx and S3M Xxx are Channel pan (FX 57), which holds the channel's pan (QA-PAT-114). The files are the maintainer's test set at the card root (/MOD, /S3M), never copied into the repository"
+  },
+  {
+   "say": "QA-PAT-103 (CPU): the same song playing with slides on every track that has one, then `cpu` and `voices`: the tracker FX run once a tick (50 to 300 a second) from flash, one pass over the 16 tracks, so the reading should be within a few tenths of a percent of the same song without them (docs/specs/OS-COREFX.md: the cycle estimate is in the item's report). Note the load against a pattern of plain notes"
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9,
+   "note": "the FX list opens on the cell's own FX"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "enc": -60,
+   "note": "to the top of the list (the encoder holds at None)"
+  },
+  {
+   "enc": 48,
+   "note": "picker index 48 (CF2: Pan Slide 48, Vibrato Wave 49, Tremolo Wave 50, Glissando 51, Retrigger 52, Tremor 53)"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4,
+   "note": "the release enters it in the cursor step"
+  },
+  {
+   "enc": -64,
+   "note": "the value to 0 (4 x 64 detents)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": 4,
+   "note": "value 4 (decimal; the grid shows it in hex)"
+  },
+  {
+   "shot": "qa_pat_105",
+   "non_blank": true,
+   "note": "QA-PAT-105: PANSL R 4"
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9,
+   "note": "the FX list opens on the cell's own FX"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "enc": -60,
+   "note": "to the top of the list (the encoder holds at None)"
+  },
+  {
+   "enc": 49,
+   "note": "picker index 49 (CF2: Pan Slide 48, Vibrato Wave 49, Tremolo Wave 50, Glissando 51, Retrigger 52, Tremor 53)"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4,
+   "note": "the release enters it in the cursor step"
+  },
+  {
+   "enc": -64,
+   "note": "the value to 0 (4 x 64 detents)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": 2,
+   "note": "value 2 (decimal; the grid shows it in hex)"
+  },
+  {
+   "shot": "qa_pat_106",
+   "non_blank": true,
+   "note": "QA-PAT-106: VIB SQUARE"
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9,
+   "note": "the FX list opens on the cell's own FX"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "enc": -60,
+   "note": "to the top of the list (the encoder holds at None)"
+  },
+  {
+   "enc": 50,
+   "note": "picker index 50 (CF2: Pan Slide 48, Vibrato Wave 49, Tremolo Wave 50, Glissando 51, Retrigger 52, Tremor 53)"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4,
+   "note": "the release enters it in the cursor step"
+  },
+  {
+   "enc": -64,
+   "note": "the value to 0 (4 x 64 detents)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": 7,
+   "note": "value 7 (decimal; the grid shows it in hex)"
+  },
+  {
+   "shot": "qa_pat_107",
+   "non_blank": true,
+   "note": "QA-PAT-107: TREM RANDOM NORETRIG"
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9,
+   "note": "the FX list opens on the cell's own FX"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "enc": -60,
+   "note": "to the top of the list (the encoder holds at None)"
+  },
+  {
+   "enc": 51,
+   "note": "picker index 51 (CF2: Pan Slide 48, Vibrato Wave 49, Tremolo Wave 50, Glissando 51, Retrigger 52, Tremor 53)"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4,
+   "note": "the release enters it in the cursor step"
+  },
+  {
+   "enc": -64,
+   "note": "the value to 0 (4 x 64 detents)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": 1,
+   "note": "value 1 (decimal; the grid shows it in hex)"
+  },
+  {
+   "shot": "qa_pat_108",
+   "non_blank": true,
+   "note": "QA-PAT-108: GLISS ON"
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9,
+   "note": "the FX list opens on the cell's own FX"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "enc": -60,
+   "note": "to the top of the list (the encoder holds at None)"
+  },
+  {
+   "enc": 52,
+   "note": "picker index 52 (CF2: Pan Slide 48, Vibrato Wave 49, Tremolo Wave 50, Glissando 51, Retrigger 52, Tremor 53)"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4,
+   "note": "the release enters it in the cursor step"
+  },
+  {
+   "enc": -64,
+   "note": "the value to 0 (4 x 64 detents)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": 35,
+   "note": "value 35 (decimal; the grid shows it in hex)"
+  },
+  {
+   "shot": "qa_pat_109",
+   "non_blank": true,
+   "note": "QA-PAT-109: RETRIG EVERY 3 VOL -2"
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9,
+   "note": "the FX list opens on the cell's own FX"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "enc": -60,
+   "note": "to the top of the list (the encoder holds at None)"
+  },
+  {
+   "enc": 53,
+   "note": "picker index 53 (CF2: Pan Slide 48, Vibrato Wave 49, Tremolo Wave 50, Glissando 51, Retrigger 52, Tremor 53)"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4,
+   "note": "the release enters it in the cursor step"
+  },
+  {
+   "enc": -64,
+   "note": "the value to 0 (4 x 64 detents)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": 33,
+   "note": "value 33 (decimal; the grid shows it in hex)"
+  },
+  {
+   "shot": "qa_pat_110",
+   "non_blank": true,
+   "note": "QA-PAT-110: TREMOR ON 3 OFF 2"
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9,
+   "note": "the FX list opens on the cell's own FX"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "enc": -60,
+   "note": "to the top of the list (the encoder holds at None)"
+  },
+  {
+   "enc": 54,
+   "note": "picker index 54 (Channel Pan, appended after the CF2 FX)"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4,
+   "note": "the release enters it in the cursor step"
+  },
+  {
+   "enc": -64,
+   "note": "the value to 0 (4 x 64 detents)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": -64,
+   "note": "(...)"
+  },
+  {
+   "enc": 64,
+   "note": "value 64 (decimal; one turn holds at most 64 detents)"
+  },
+  {
+   "enc": 11,
+   "note": "value 75 (the grid shows it in hex, 4B)"
+  },
+  {
+   "shot": "qa_pat_116",
+   "non_blank": true,
+   "note": "QA-PAT-116: CHPAN 75"
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "shot": "qa_pat_111",
+   "non_blank": true,
+   "note": "QA-PAT-111: the list on Channel Pan (entry 55 of 60), highlighted in the middle"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9,
+   "note": "the FX list opens on the cell's own FX"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "enc": -60,
+   "note": "to the top of the list (the encoder holds at None)"
+  },
+  {
+   "enc": 55,
+   "note": "picker index 55"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4,
+   "note": "the release enters it in the cursor step"
+  },
+  {
+   "enc": -64,
+   "note": "the value to 0 (64 is the default: one turn of 64 detents)"
+  },
+  {
+   "enc": 32,
+   "note": "value 32 (decimal; the grid shows it in hex, 20)"
+  },
+  {
+   "shot": "qa_pat_140",
+   "non_blank": true,
+   "note": "QA-PAT-140: CHVOL 32"
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9,
+   "note": "the FX list opens on the cell's own FX"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "enc": -60,
+   "note": "to the top of the list (the encoder holds at None)"
+  },
+  {
+   "enc": 56,
+   "note": "picker index 56"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4,
+   "note": "the release enters it in the cursor step"
+  },
+  {
+   "enc": -64,
+   "note": "the value to 0"
+  },
+  {
+   "enc": 4,
+   "note": "value 4"
+  },
+  {
+   "shot": "qa_pat_141",
+   "non_blank": true,
+   "note": "QA-PAT-141: CHVSL -4"
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9,
+   "note": "the FX list opens on the cell's own FX"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "enc": -60,
+   "note": "to the top of the list (the encoder holds at None)"
+  },
+  {
+   "enc": 57,
+   "note": "picker index 57"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4,
+   "note": "the release enters it in the cursor step"
+  },
+  {
+   "enc": -64,
+   "note": "the value to 0 (64 is the default)"
+  },
+  {
+   "enc": 48,
+   "note": "value 48 (decimal; the grid shows it in hex, 30)"
+  },
+  {
+   "shot": "qa_pat_142",
+   "non_blank": true,
+   "note": "QA-PAT-142: GVOL 48"
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9,
+   "note": "the FX list opens on the cell's own FX"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "enc": -60,
+   "note": "to the top of the list (the encoder holds at None)"
+  },
+  {
+   "enc": 58,
+   "note": "picker index 58"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4,
+   "note": "the release enters it in the cursor step"
+  },
+  {
+   "enc": -64,
+   "note": "the value to 0"
+  },
+  {
+   "enc": 64,
+   "note": "value 64 (decimal, 40 hex: one turn holds at most 64 detents)"
+  },
+  {
+   "shot": "qa_pat_143",
+   "non_blank": true,
+   "note": "QA-PAT-143: GVSL +4"
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9,
+   "note": "the FX list opens on the cell's own FX"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "enc": -60,
+   "note": "to the top of the list (the encoder holds at None)"
+  },
+  {
+   "enc": 59,
+   "note": "picker index 59"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4,
+   "note": "the release enters it in the cursor step"
+  },
+  {
+   "enc": -64,
+   "note": "the value to 0"
+  },
+  {
+   "enc": 58,
+   "note": "value 58 (decimal, 3A hex)"
+  },
+  {
+   "shot": "qa_pat_144",
+   "non_blank": true,
+   "note": "QA-PAT-144: PANBR SPD 3 DEP 10"
+  },
+  {
+   "keys": [
+    "+vol"
+   ],
+   "gap": 0.9,
+   "note": "the FX list opens on the cell's own FX"
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "shot": "qa_pat_145",
+   "non_blank": true,
+   "note": "QA-PAT-145: the list at its end, Panbrello highlighted, 60 entries"
+  },
+  {
+   "keys": [
+    "-vol"
+   ],
+   "gap": 0.4
+  },
+  {
+   "say": "QA-PAT-112 (by ear, against a desktop player): import /S3M/ompt_retrig_cut.s3m and /S3M/simpsons16.s3m (an S3M is the Modern engine by default: its Qxy retrigger is now the tracker FX 55 with the volume code, where it was a MED Roll approximation) and play them beside the same file in a desktop player: the restarts are on the same ticks, counted every y ticks across the rows, and the volume code changes the level at each restart as in the player. The Pxy pan slide, Ixy tremor, S1x glissando and the waveforms have no file in the test set: build one with tools/mod_build.py (the oracle's modules, tests/corefx_openmpt_oracle.py) and copy it to the card root as /S3M/cf2_test.s3m (never into the repository): P04 sweeps the pan from the S88 centre to the right over a row, I11 gates the note two ticks on two off, Q23 restarts it every three ticks."
+  },
+  {
+   "say": "QA-PAT-113 (parameter memory, host-verified): an S3M with D04 then D00, J37 then J00, EF4 then E00 keeps sliding / arpeggiating on the rows with 00: open the imported pattern and read the cells: the importer wrote the explicit value (D04 twice, 46 37 twice), not a 00. Against the desktop player the slides continue on the same rows."
+  },
+  {
+   "say": "QA-PAT-114 (pan, by ear with headphones): MOD 8xx E8x and S3M Xxx S8x import as Channel pan (FX 57, 0 left, 100 right, 50 centre; the Pan Slide Pxy goes on from it). A MOD with 8xx (any in /MOD/ with a pan command, or the module built for QA-PAT-112) moves a channel across the stereo field, and the pan stays on the notes after it, even for instruments with a pan of their own, until another 8xx or stop and play again (then every track is back on its instrument's pan at its next note). The OG export drops it (the report counts it with the other core FX)."
+  },
+  {
+   "say": "QA-PAT-117 (the Panning FX, by ear with headphones): put Panning (FX 31) 100 on a note of a pattern, then a plain note after it with an instrument whose pan is at the centre: the first note plays hard right, the plain note plays at the instrument's pan (the FX ended with its step: our rule); a FX Off (01) step ends it too. Channel Pan 100 in the same place stays hard right on the plain note."
+  },
+  {
+   "say": "QA-PAT-115 (CPU): with pan slides, tremors and retriggers running on every track that has one, `cpu` and `voices`: the processor runs once a tick, from flash; the host bench puts 12 tracks with an effect each at about 0.2 % of the CPU at 50 ticks a second (an upper bound); the reading should stay within a few tenths of a percent of the same song without them."
+  },
+  {
+   "say": "QA-PAT-146 (volumes, by ear): put a held note on tracks 1 and 2 of a pattern and Channel Volume 20 (hex) on track 1's step, then play: track 1 sounds half as loud as track 2 and keeps it over its next notes until another Channel Volume or play. Global Volume 20 on any track's FX halves every track at once (the two multiply on a track that has both). A Channel Vol Slide 04 on a long row fades the track a step a tick from the second tick (a Global Vol Slide 04 fades the whole song); Fy / xF (3F, F2) move once. For an imported S3M with Mxx / Nxy / Vxx / Wxy (none in the card's test set: copy a module of tools/mod_build.py or any of your own to the card root) play beside a desktop player: the levels follow it (the oracle compares them per tick: corefx_openmpt_oracle.py chvol_*, gvol_*, 0 disagreements)."
+  },
+  {
+   "say": "QA-PAT-147 (stop gives the volumes back): end a pattern with Global Volume 00 (or a Global Vol Slide that reaches 0) and a Channel Volume 00 on one track, play to the end, Stop, then play the pads of that track: they sound at full level (the volumes end with the stop as well as with the next play, so a fade-out song does not leave the instrument silent)."
+  },
+  {
+   "say": "OS-ZOOM / OS-QJUMP (QA-PAT-236..245): Note is a held modifier. The steps below start at the default zoom (5 tracks) and end there."
+  },
+  {
+   "keys": [
+    "+note",
+    "instr",
+    "-note"
+   ],
+   "gap": 0.5,
+   "note": "QA-PAT-236: Note + Instr: 8 tracks of Note, Instr and Vol"
+  },
+  {
+   "shot": "qa_pat_236",
+   "non_blank": true,
+   "note": "QA-PAT-236: 8 tracks, small text, no popup, the cursor column unchanged"
+  },
+  {
+   "keys": [
+    "+note",
+    "instr",
+    "-note",
+    "+shift",
+    "down",
+    "down",
+    "down",
+    "right",
+    "right",
+    "-shift"
+   ],
+   "gap": 0.5,
+   "note": "QA-PAT-237: 12 tracks and a block over three of them"
+  },
+  {
+   "shot": "qa_pat_237",
+   "non_blank": true,
+   "note": "QA-PAT-237: Note names in the smallest face, legible at arm's length? The cursor block and the block's bar are visible"
+  },
+  {
+   "keys": [
+    "left",
+    "+note",
+    "right",
+    "right",
+    "right",
+    "-note"
+   ],
+   "gap": 0.5,
+   "note": "QA-PAT-239: Note + Right x3: the cursor moves three tracks"
+  },
+  {
+   "shot": "qa_pat_239",
+   "non_blank": true,
+   "note": "QA-PAT-239: three tracks to the right of where it was; the column and the step are the same"
+  },
+  {
+   "keys": [
+    "+note"
+   ],
+   "gap": 1.0,
+   "note": "QA-PAT-242: hold Note until the popup shows"
+  },
+  {
+   "keys": [
+    "right",
+    "instr"
+   ],
+   "gap": 0.5
+  },
+  {
+   "shot": "qa_pat_242",
+   "non_blank": true,
+   "note": "QA-PAT-242: the popup is open with the zoom keys in its footer; the grid underneath is at 5 tracks, one track on"
+  },
+  {
+   "keys": [
+    "-note"
+   ],
+   "gap": 0.5
+  },
+  {
+   "keys": [
+    "+shift",
+    "instr"
+   ],
+   "gap": 0.5,
+   "note": "QA-PAT-244: Shift + Instr is the 1/4 jump"
+  },
+  {
+   "shot": "qa_pat_244",
+   "non_blank": true,
+   "note": "QA-PAT-244: the cursor is on row 17 (a 64-step pattern; 1/4 of the length); Shift + Note is row 1, Shift + Vol row 33, Shift + Fx row 49"
+  },
+  {
+   "keys": [
+    "note",
+    "-shift"
+   ],
+   "gap": 0.5,
+   "note": "(Shift + Note back to the top, Shift let go)"
+  },
+  {
+   "say": "QA-PAT-245 (a fast roll, by hand): press Note and Instr one after the other and let both go, quickly, ten times: the zoom changes ten times, no tap is dropped or doubled, no popup. Then Vol + Fx (Learn) and Shift + Vol / Shift + Fx still work. Ends at 5 tracks if ten rolls were made from 5 (10 mod 3 = 1: finish with two more rolls)"
+  },
+  {
+   "say": "QA-PAT-148 (panbrello, by ear with headphones): a held note with Panbrello 3A on several rows sweeps left and right about its pan (speed 3, depth 10; F as the depth swings nearly the whole range) and is back at its pan on the first row without it. An S3M with Yxy swings as in a desktop player (the oracle's pb_* cases: 0 disagreements on the stereo position per tick)."
+  },
+  {
+   "say": "QA-PAT-149 (CPU): with Channel Vol Slides and a panbrello on every track, `cpu` and `voices`: the tick pass is a compare a track plus a float multiply when a volume changes, from flash; the strip's gain and pan offset go through the per-block smoothers that already run. The reading should stay within a few tenths of a percent of the same song without them."
+  },
+  {
+   "say": "QA-PAT-251 (OS-SHIFTENC, by hand): Edit, a step with a note. Instr column: Shift + encoder one detent up and down: the instrument moves 8 places of the order (64..49 then 1..48; from 1: 9 up, 56 down), then past the ends: it stops at 64 and 48. Vol column (volume 100): 110, 90, then 127 and 0 at the ends. FX column (Low-pass, value 5): 21, 0, then the type's top. The plain encoder is still one step; the Note column's Shift + encoder is still an octave."
+  },
+  {
+   "say": "QA-PAT-252 (OS-SHIFTENC, by hand): Browse (WATCH): Shift + encoder one detent down: the cursor moves 16 rows; ten detents stop on the last row, and back up on the first, with no wrap. The plain encoder is one row; nothing is edited."
+  },
+  {
+   "say": "QA-PAT-253 (OS-SHIFTENC, by hand): F1 PATTERN, F2 LENGTH, F3 JUMP: Shift + encoder moves 8 places a detent and stops at 1/255, 1/128 and 0/32. F4 Fill: on N (4 a detent), DENSITY with TYPE RANDOM (10 a detent) it clamps at 1..32 and 0..100; on TYPE, SCOPE, WHAT it is one place as the plain encoder. Hold Instr: Shift + encoder moves the popup list one page and stops at the ends; hold Note: nothing moves."
+  },
+  {
+   "cmd": "cpu",
+   "expect": [
+    "underrun 0"
+   ],
+   "show": true,
+   "soft": true,
+   "note": "(the reading after the scenario's own playing, if any)"
+  },
+  {
+   "say": "OS-PATSWITCH, rows QA-PAT-254..264 of docs/qa/catalogue/pattern.md (docs/specs/OS-PATSWITCH.md): F1 HELD on Pattern switches the PLAYING pattern at once (at the next step boundary, on the same row); a tap of F1 opens nothing; PATS (Shift + F6) still queues for the end of the pattern. By hand, with a project whose patterns 1 and 2 hold a recognisable rhythm (a kick on every beat, a hat on the offbeats in 2), pattern 3 empty, 9 unused, and `diag log` open on the console: every landing prints `play: switched to pattern P row R` (row counted from 0)."
+  },
+  {
+   "say": "QA-PAT-254 / 260: play pattern 1 (Play), hold F1 for half a second: the strip says PATTERN 01 and `release F1: close`; the pads light as PATS does (pad 1 bright, 2 dim, 3 and 9 dark); let go: strip and lights go. Tap F1 (stopped and playing): nothing opens, nothing changes."
+  },
+  {
+   "say": "QA-PAT-255 / 257 / 256: playing 1, hold F1 and press pad 2: by ear the rhythm of 2 starts on the next step, no gap, no double hit, the grid follows in WATCH, the log prints `play: switched to pattern 2 row R` (R is the row after the one that was running, modulo the length of 2: compare the rows on the screen). Turn the encoder one detent up and down quickly inside one step: nothing changes. Shift + encoder moves eight patterns. Let go of F1: pattern 2 loops."
+  },
+  {
+   "say": "QA-PAT-258 / 259: the same in STEP (Rec) and in LIVE (Shift + Rec, take going); on the Song screen play the song, then F1 held + a pad on Pattern: the strip says LEAVES THE SONG, the pattern loops, the song does not come back (Play stops, Play on the Song screen starts it again)."
+  },
+  {
+   "say": "QA-PAT-257 (notes): with a pad-held or sustained sample note on a track and the old pattern's OFF row ahead, switch: the note is released at the landing (a release, not a cut), a MIDI note gets its note off (watch `amidi -d`); nothing hangs. An even-to-even length keeps the swing pairs (set SWING to 62 and listen)."
+  },
+  {
+   "say": "QA-PAT-264 / 261: playing 1, hold F1 and pad 9 (no pattern 9): the strip says EMPTY, the transport does not stop, the play bar runs through an empty grid of 32 steps (the default length) and loops; the pad of an unused pattern in PATS queues it and plays it at the end of the pattern. Save and reload the project: pattern 9 does not exist. Stopped: F1 held + a pad only chooses the pattern in view."
+  },
+  {
+   "say": "QA-PAT-262 / 263: PATS queues pattern 5 while 3 plays, then a Song live jump (or F1 held + pad): the pad stops blinking at once. Heavy pattern on 16 tracks: hold F1 and spin the encoder through patterns while it plays; `diag cpu` shows no underrun and no peak above the natural pattern end."
+  },
+  {
+   "say": "OS-PATCENTER (new Community OS behaviour, maintainer's decision of 2026-10-17; rows QA-PAT-270..275 of docs/qa/catalogue/pattern.md): the cursor's row stays on the centre slot (the 8th of the 16) at BOTH ends of the pattern. By hand, on a 64-step pattern, WATCH (Browse), stopped: Up / the encoder to step 1 (or Shift + Insert): the cursor bar sits on the 8th row of the grid with seven blank rows above it (no numbers, no dashes), the window never shows more than steps 1..9 there. Hold Down / turn the encoder to the last step: the cursor bar is again on the 8th row, with eight blank rows below it. The cursor never leaves that row anywhere in between."
+  },
+  {
+   "say": "QA-PAT-272 / 273: Play from step 1 in WATCH: the cursor and the play bar are one bar, always on the 8th row; at the start of the pattern the rows above it are blank, and at the last steps the rows below; when the pattern loops the window jumps from the blank bottom to the blank top. In LIVE (Shift + Rec) the same. In STEP (Rec) the cursor is free: it stays on the 8th row, the play bar moves through the grid (and out of it at the blank rows)."
+  },
+  {
+   "say": "QA-PAT-274 / 275: Note + Instr to the 8-track and 12-track zoom (and back to 5): at the first and the last step the cursor is on the same 8th row and the blank rows are the same, at every zoom level. A pattern shorter than 16 steps (LENGTH 8): step 1 on the 8th row, step 8 on the 8th row, the rest blank."
+  },
+  {
+   "say": "PAT-OPS-A, rows QA-PAT-280..284 of docs/qa/catalogue/pattern.md (docs/specs/PAT-OPS.md; new Community OS behaviour): F7 TOOLS lists EXPORT PATTERN, DUPLICATE x2, EXPAND x2 and SHRINK /2 above the rule. By hand, Edit on (Rec), the transport stopped, a project with a 32-step drum pattern on a few tracks (a kick on every beat, a snare on 2 and 4, a hat on the offbeats) and one track of another length (16 steps)."
+  },
+  {
+   "say": "QA-PAT-280 (by ear): F7, Down twice, F1 (EXPAND x2): the list closes, the strip says EXPANDED: 64 STEPS, every track is twice as long (the 16-step track 32), every note on an even row and an empty row after it. Play: the pattern runs at HALF speed (the notes are twice as far apart), nothing else changes; a retrigger or an arpeggio on a step keeps its tick values (the ticks inside a step do not scale). F8 once: the pattern and every length are back as they were."
+  },
+  {
+   "say": "QA-PAT-284 / 282 / 281: F7, Down, F1 (DUPLICATE x2): the strip says DUPLICATED: 64 STEPS, the rows 33..64 repeat rows 1..32 on every track, the 16-step track is 32 long; Play: the bar plays twice. F8. F7, Down three times, F1 (SHRINK /2): SHRUNK: 16 STEPS, the even steps only (a kick on every second beat), the tail is cleared; Play: the pattern is twice as fast. EXPAND x2 then SHRINK /2 gives the pattern as it was. LENGTH 65 (F2) then DUPLICATE or EXPAND: the strip says TOO LONG: 128 STEPS AT MOST and nothing changes (no unit: F8 undoes the earlier edit, not this)."
+  },
+  {
+   "say": "QA-PAT-283 (the transport stopped): Browse (WATCH), F7, Down, F1: the list closes, the strip says TURN EDIT ON, nothing is written."
+  },
+  {
+   "say": "PAT-OPS-B, rows QA-PAT-285..289 (docs/specs/PAT-OPS.md; new Community OS behaviour): the whole pattern on the held F1 (the PATTERN chooser). Patterns 1 and 2 hold different rhythms of different lengths, and pattern 2 has a name (Shift + F6 on Song)."
+  },
+  {
+   "say": "QA-PAT-285 / 286 / 287: hold F1, pad 2, Copy: the strip names COPY: COPY and SHIFT+COPY: PASTE; let go: PATTERN 02 COPIED. Hold F1, pad 3 (a pattern the project lacks, EMPTY), Shift + Copy, let go: PATTERN 03 REPLACED BY 02; pattern 3 has the steps, the track lengths and the name of 2. F8 (Pattern): pattern 3 is gone again (the Song history is cleared too: the strip says SONG HISTORY CLEARED when it had units). Over an existing pattern (pad 1): one F8 brings every step, length and name back."
+  },
+  {
+   "say": "QA-PAT-289 (by ear): Play pattern 1, STEP (Rec), hold F1, pad 2, Copy, pad 1, Shift + Copy: the new pattern plays from the next row: at most one row is half old and half new, no sampler note hangs, the play line does not jump. A track's new length applies from its next row, but the pass in progress ends at the OLD pattern length (the pattern's length is read when a pattern starts): with a longer pattern 2 the pass is cut at the old end and the whole pattern plays from the next pass; with a shorter one the tracks wrap early and the pass keeps its length. F8: pattern 1 is back. Then the latent case (PAT-OPS spec section 8; not fixed): a MIDI track of pattern 1 with a long note, pattern 2 empty on that track, the same paste while the note sounds; watch `amidi -d` and write down whether the note stays on until Stop. Block paste behaves the same way."
+  },
+  {
+   "say": "OS-FILL2, rows QA-PAT-300..309 of docs/qa/catalogue/pattern.md (docs/specs/OS-FILL2.md; new Community OS behaviour): the Fill dialog of F4 has eight rows (SCOPE, WHAT, TYPE, N / EVENTS / DENSITY, MODE, KEY or FX TYPE, FROM, TO). By hand (these are say steps, not scripted shots), Edit on (Rec), the transport stopped, the Note column, a loaded project with a pattern of 64 steps. The dialog keeps its row and its settings between two openings (the steps above leave TYPE on EUCLID), so every check below starts the same way: F4, Up 7 times (the cursor is on SCOPE), then each row is turned to the value named, not by a count of presses. The first check is the panel: the eight rows, the steps line and the count fit the dialog, the captions and values are legible at arm's length, and `C# Dorian` on the KEY row is not cut. The simulator has the pictures."
+  },
+  {
+   "say": "QA-PAT-300 / 301 (by hand, then by ear): F4, Up 7 times (SCOPE). Down (WHAT), turn to VOLUME; Down (TYPE), turn to EVERY N; Down (N), turn to 1; Down (MODE), turn to RAMP. The rows say FROM 127 and TO 0 (a step with no volume under the cursor) and KEY is dim. F1: the strip says FILL: EVERY 1 STEP, VOLUME RAMP 127-0 and the volume column falls from 7F to 00 over the track. With a note on every second step first, play: the notes fade out over the pattern. F8 once: every byte is back."
+  },
+  {
+   "say": "QA-PAT-302 / 303 (by hand): F4, Up 7 times (SCOPE). Down (WHAT), turn to FX 1; Down (TYPE), turn to EVERY N; Down (N), turn to 1; Down (MODE), turn to RANDOM; Down (FX TYPE), turn to Chance (seven places on from Off; the list is the picker's, without None); Down twice (TO), Shift + encoder until it says 100. F1: every step of the FX 1 column carries the type and a random value 0..100, a step that had a note keeps it; play: the notes play by chance. F8: the column is as it was."
+  },
+  {
+   "say": "QA-PAT-304 / 305 (by hand, then by ear): F4, Up 7 times (SCOPE). Down (WHAT), turn to NOTE; Down 4 times (KEY), turn to Dorian, then Shift + encoder until the root says C#: the row says C# Dorian. Up 3 times (TYPE), turn to RANDOM: MODE goes dim, row 4 is DENSITY, FROM..TO is the window of notes. By ear: TYPE RANDOM, KEY Dorian, FROM C-5 and TO C-7 (Shift + encoder is an octave), DENSITY 100, F1: random notes of the scale over two octaves, none twice in a row. F8."
+  },
+  {
+   "say": "QA-PAT-306 / 307 / 308 / 309 (host tests): the arithmetic of the modes, the FX write rules, the rows, the captions and the coarse steps, and the values the dialog opens with are `pattern_fill_test.cpp`, `fill_view_test.cpp` and `pattern_edit_app_test.cpp`; nothing extra on the unit."
+  }
+ ],
+ "finally": [
+  {
+   "run": "_stop"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "~^(LEARN|NAVIGATOR|PATTERN_CHOOSER|LENGTH_CHOOSER|JUMP_CHOOSER|MODULE_PICKER|STEP_POPUP|FILL)$"
+   },
+   "note": "(a leftover overlay is put away: F8 is Back)"
+  },
+  {
+   "keys": [
+    "-vol",
+    "-fx",
+    "-shift"
+   ],
+   "gap": 0.2,
+   "note": "(no key is left held)"
+  }
+ ]
+}

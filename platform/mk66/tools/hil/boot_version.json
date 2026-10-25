@@ -1,0 +1,55 @@
+{
+ "name": "boot_version",
+ "title": "the unit is up: version, app on the Pattern screen, LEDs online, a screen that is not blank, nothing FAILED in the log",
+ "steps": [
+  {
+   "cmd": "version",
+   "expect": [
+    "Track3r o3os, build \\S+",
+    "usb 16D0:0E9F"
+   ]
+  },
+  {
+   "cmd": "stage"
+  },
+  {
+   "cmd": "log 150",
+   "expect": [
+    "audio: outputs open, underruns \\d+ faults \\d+"
+   ],
+   "within": 20,
+   "poll": 1.0,
+   "soft": true,
+   "note": "OS-OUTON: the outputs open once at boot, after the project load (so no click on Play); the first Play, live note or Song Play never waits. SOFT: the boot lines live in the log ring, and about 20 minutes after boot newer lines push 'outputs open' out of it (`log` shows at most the last 48). A failure here on a unit that has been up for a while is NOT a fault: power-cycle the unit (the runner may not send `reset`) and run boot_version again for a conclusive result"
+  },
+  {
+   "cmd": "log 40",
+   "expect_not": [
+    "FAILED",
+    "^(?!.*audio: outputs open).*fault"
+   ],
+   "note": "(the boot log of this run; a line with FAILED or a fault is the thing to look at. The `audio: outputs open ... faults N` line is left out: its counters are the audio path's history, which the open gate tolerates by design (OS-007g), not a fault of this run)"
+  },
+  {
+   "state": {
+    "screen": "PATTERN",
+    "overlay": "NONE"
+   },
+   "within": 15,
+   "poll": 0.5
+  },
+  {
+   "leds": {
+    "online": true
+   }
+  },
+  {
+   "cmd": "cpu",
+   "expect": "\\bunderrun 0 \\("
+  },
+  {
+   "shot": "boot",
+   "non_blank": true
+  }
+ ]
+}

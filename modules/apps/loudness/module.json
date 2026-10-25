@@ -1,0 +1,18 @@
+{
+  "name": "Loudness VU",
+  "id": "loudness",
+  "kind": "app",
+  "abi": "1.10",
+  "capabilities": ["audio_tap"],
+  "description": "Level meters for the master output or the line input: peak (with a hold marker), RMS (300 ms), a clip lamp, dBFS readouts and a 24 s history of the RMS level. Reads the OS's audio tap (ABI 1.4, capability audio_tap); it makes no sound. New Community OS behaviour.",
+  "state_bytes": 768,
+  "params": [
+    {"name": "Source", "min": 1, "max": 2, "default": 2, "type": "int", "learnable": false},
+    {"name": "Hold", "min": 1, "max": 10, "default": 3, "type": "int", "unit": "seconds", "learnable": false}
+  ],
+  "views": [
+    {"name": "Body", "min_size": [480, 288], "preferred_size": [490, 384]}
+  ],
+  "voices": 1,
+  "memory": {"hot_bytes": 0, "sdram_bytes": 0}
+}

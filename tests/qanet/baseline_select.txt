@@ -1,0 +1,10 @@
+# OS-QANET A3 (rule 3, tests/qanet/selection_test.cpp): an operation on a selection acts on the selection. One line per finding:  rule | action | state | reason | ID
+#   rule    R3
+#   action  the registry name and the argument the walk gave it
+#   state   the case of selection_test.cpp it ran in (the selection, the cursor, the document)
+#   reason  a fixed phrase: "... changed outside the selection" (the document outside the span of the entry is not what it was) or what the spec says about the inside and the result is not
+#   ID      the backlog row of a known bug, or `new`: not triaged yet (the maintainer decides, OS-QANET section 10)
+# The test fails on a finding that is not here (or in allow_rules.txt, the R3 lines) and on a line here that no longer occurs: a fixed bug has to leave this file. QANET_WRITE_BASELINE=<path> writes the current findings.
+#
+# No findings are open. Insert and Pull (OS-009:95, OS-PATUX, OS-DELPULL) act from the BLOCK's first row, the cursor's row with no block (maintainer decision 2026-10-22, OS-QAFIX-17), and the rule
+# (selection_ops.cpp, inside_insert, inside_pull, span_from_cursor) expects that; a track whose length does not reach that row is left alone (OS-QAFIX-18).

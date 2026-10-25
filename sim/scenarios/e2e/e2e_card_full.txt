@@ -1,0 +1,37 @@
+# OS-QANET B8 part b: a full card. `card full` makes the simulated card refuse every write that would grow it (platform/host/slow_card.h, CardTiming::full), the way a full FAT card does; reads, renames
+# and deletes still work. The journey: open the project of the fixture card, edit it, fill the card and F4 SAVE. The save must say so on the strip (CARD IS FULL) and the project file that was on the card
+# must be there, byte for byte, with no half-written temporary and no .bak. Then the card has room again (`card full off`), the same F4 saves, and the old file becomes the .bak. The card e2e_card is
+# generated into the build directory (target e2e_card_fixture), as in e2e_card.txt.
+document
+wait 20
+card e2e_card
+tap file
+wait 300
+tap f1
+wait 300
+assert state screen=PATTERN msg=PROJECT_Small_Song_OPENED
+tap pattern
+tap rec
+tap down
+pad 36
+assert model pat.1.0.1.note=37
+mark model edited
+
+# The card is full: F4 fails and says why. The project on the card is untouched (size and digest of the fixture's file) and nothing is left behind; the document in memory is still the edited one.
+card full
+tap file
+tap f4
+wait 400
+assert state msg=~CARD_IS_FULL
+assert file "Projects/Small Song/project.o3pj" sha=fe075d31e2849cf6cb81a0bb157e1d748d13ed9c7c9141d98119b51370dc74df
+assert file "Projects/Small Song/project.o3pj" size=2648
+assert file "Projects/Small Song/project.o3pj.bak" absent
+assert file "Projects/Small Song/_o3save.tmp" absent
+assert model digest=@edited
+
+# Room again: the same key saves, the edited file is the project and the old one is its .bak.
+card full off
+tap f4
+wait 400
+assert state msg=SAVE_SMALL_SONG_DONE
+assert file "Projects/Small Song/project.o3pj.bak" sha=fe075d31e2849cf6cb81a0bb157e1d748d13ed9c7c9141d98119b51370dc74df

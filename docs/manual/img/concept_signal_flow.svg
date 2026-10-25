@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1220" height="640" viewBox="0 0 1220 640" role="img" aria-labelledby="t">
+<title id="t">Signal flow: instruments feed track strips, buses and the master limiter to the outputs. USB audio goes in and out beside them.</title>
+<style>
+.b{fill:#3c3c3c}.x{fill:#4a4a4a;stroke:#262626;stroke-width:2}.g{fill:none;stroke:#7a7a7a;stroke-width:2;stroke-dasharray:6 4}
+.t{font-family:sans-serif;fill:#f4f4f4;text-anchor:middle;font-size:14px}.m{font-size:19px;font-weight:bold}
+.l{fill:#b0b0b0;font-size:13px}.a{fill:none;stroke:#cfcfcf;stroke-width:2.5}.d{stroke-dasharray:7 5;stroke:#b0b0b0}
+.i{fill:#6a4c00;stroke:#ffb000;stroke-width:3}
+</style>
+<defs><marker id="h" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0L9,4.5L0,9z" fill="#cfcfcf"/></marker></defs>
+<rect class="b" width="1220" height="640" rx="20"/>
+<rect class="x" x="30" y="60" width="170" height="110" rx="8"/>
+<text class="t m" x="115" y="86">Instruments</text>
+<text class="t" x="115" y="110">sampler, Amiga,</text>
+<text class="t" x="115" y="129">SD modules</text>
+<text class="t" x="115" y="148">one voice a track</text>
+<rect class="x" x="250" y="40" width="240" height="150" rx="8"/>
+<text class="t m" x="370" y="66">Track strip</text>
+<text class="t" x="370" y="90">one for each track</text>
+<text class="t" x="370" y="109">inserts (reserved)</text>
+<text class="t" x="370" y="128">sends A and B</text>
+<text class="t" x="370" y="147">level, pan, meter</text>
+<rect class="g" x="550" y="30" width="190" height="196" rx="10"/>
+<text class="t l" x="645" y="22" style="text-anchor:middle">Buses</text>
+<rect class="x" x="570" y="60" width="150" height="34" rx="6"/>
+<text class="t" x="645" y="82" style="font-weight:bold">MAIN</text>
+<rect class="x" x="570" y="113" width="150" height="34" rx="6"/>
+<text class="t" x="645" y="135" style="font-weight:bold">CUE</text>
+<rect class="x" x="570" y="166" width="150" height="34" rx="6"/>
+<text class="t" x="645" y="188" style="font-weight:bold">REC</text>
+<rect class="x" x="250" y="250" width="220" height="112" rx="8"/>
+<text class="t m" x="360" y="276">Send effects</text>
+<text class="t" x="360" y="300">SND A: delay</text>
+<text class="t" x="360" y="319">SND B: reverb</text>
+<text class="t" x="360" y="338">returns to MAIN and CUE</text>
+<rect class="x" x="800" y="37" width="210" height="80" rx="8"/>
+<text class="t m" x="905" y="63">Master chain</text>
+<text class="t" x="905" y="87">MASTER LIMITER, always on</text>
+<text class="t" x="905" y="106">then the master level</text>
+<rect class="x" x="1070" y="30" width="130" height="200" rx="8"/>
+<text class="t m" x="1135" y="56">Outputs</text>
+<text class="t" x="1135" y="80">line out and</text>
+<text class="t" x="1135" y="99">headphones</text>
+<text class="t" x="1135" y="118">OUT MODE:</text>
+<text class="t" x="1135" y="137">stereo MAIN, or</text>
+<text class="t" x="1135" y="156">MAIN left and</text>
+<text class="t" x="1135" y="175">CUE right</text>
+<rect class="x" x="550" y="270" width="190" height="84" rx="8"/>
+<text class="t m" x="645" y="296">Sample recorder</text>
+<text class="t" x="645" y="320">the REC bus, or</text>
+<text class="t" x="645" y="339">MAIN as heard</text>
+<rect class="i" x="800" y="270" width="210" height="150" rx="8"/>
+<text class="t m" x="905" y="296">USB capture</text>
+<text class="t" x="905" y="320">to the computer (stems)</text>
+<text class="t" x="905" y="339">tracks after their level</text>
+<text class="t" x="905" y="358">(USB route bit),</text>
+<text class="t" x="905" y="377">master L R,</text>
+<text class="t" x="905" y="396">SND A, SND B</text>
+<rect class="x" x="30" y="400" width="170" height="70" rx="8"/>
+<text class="t m" x="115" y="426">Line in</text>
+<text class="t" x="115" y="450">the input strip</text>
+<rect class="i" x="30" y="500" width="170" height="70" rx="8"/>
+<text class="t m" x="115" y="526">USB return</text>
+<text class="t" x="115" y="550">from the computer</text>
+<path class="a" d="M200,115 L250,115" marker-end="url(#h)"/>
+<path class="a" d="M490,110 L550,110" marker-end="url(#h)"/>
+<text class="t l" x="520" y="100" style="text-anchor:middle">route bits</text>
+<path class="a" d="M370,190 L370,250" marker-end="url(#h)"/>
+<text class="t l" x="378" y="226" style="text-anchor:start">sends</text>
+<path class="a" d="M470,300 L510,300 L510,170 L550,170" marker-end="url(#h)"/>
+<text class="t l" x="478" y="322" style="text-anchor:start">returns</text>
+<path class="a" d="M200,435 L530,435 L530,200 L550,200" marker-end="url(#h)"/>
+<text class="t l" x="380" y="428" style="text-anchor:middle">route bits</text>
+<path class="a" d="M720,77 L800,77" marker-end="url(#h)"/>
+<path class="a" d="M1010,77 L1070,77" marker-end="url(#h)"/>
+<path class="a" d="M720,130 L1070,130" marker-end="url(#h)"/>
+<text class="t l" x="1040" y="147" style="text-anchor:end">cue level</text>
+<path class="a" d="M645,226 L645,270" marker-end="url(#h)"/>
+<text class="t l" x="655" y="264" style="text-anchor:start">REC</text>
+<path class="a d" d="M450,190 L450,238 L775,238 L775,345 L800,345" marker-end="url(#h)"/>
+<text class="t l" x="540" y="256" style="text-anchor:start">post-fader</text>
+<path class="a d" d="M905,117 L905,270" marker-end="url(#h)"/>
+<text class="t l" x="913" y="215" style="text-anchor:start">master</text>
+<path class="a" d="M200,535 L1135,535 L1135,230" marker-end="url(#h)"/>
+<text class="t l" x="668" y="526" style="text-anchor:middle">to the outputs after the limiter, at its own level times the master level</text>
+<text class="t l" x="30" y="612" style="text-anchor:start">The metronome click and a looped take are added last: they are in no meter, take or stem.</text>
+<rect class="i" x="1040" y="596" width="24" height="24" rx="5"/>
+<text class="t l" x="1072" y="614" style="text-anchor:start">USB audio</text>
+</svg>

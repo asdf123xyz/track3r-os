@@ -1,0 +1,16 @@
+# mutant:   M17
+# class:    4
+# twin:     OS-BUG-NEWLIST (a directory handle state that a host folder never shows)
+# expected: B
+# effect:   A finished listing keeps its directory handle open until the next scan starts
+diff --git a/app/src/dir_scan.cpp b/app/src/dir_scan.cpp
+index a84fbbd6..a35d0ba8 100644
+--- a/app/src/dir_scan.cpp
++++ b/app/src/dir_scan.cpp
+@@ -134,3 +134,5 @@ void DirScan::close_dir() noexcept {
+ void DirScan::end(State state, Status status) noexcept {
+-  close_dir();
++  if (state != State::Done) {
++    close_dir();
++  }
+   state_ = state;

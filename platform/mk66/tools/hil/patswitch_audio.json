@@ -1,0 +1,186 @@
+{
+ "name": "patswitch_audio",
+ "title": "OS-PATSWITCH measured on the USB AUDIO capture (QA-PAT-255): holding F1 and a pad switches the playing pattern at once; 0.8 s later the old pattern's stems are digital silence (below -90 dBFS) and the new pattern's sound above -40 dBFS. Project t-v16 with its muted tracks unmuted: pattern 4 = stems 2 and 4, pattern 5 = stem 1 (USB profile 8, stem n = track n)",
+ "needs": [
+  "audio",
+  "card"
+ ],
+ "steps": [
+  {
+   "run": "_load_tv16"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.8
+  },
+  {
+   "state": {
+    "screen": "PATTERN"
+   },
+   "within": 3
+  },
+  {
+   "keys": [
+    "play"
+   ],
+   "gap": 1.0,
+   "if_state": {
+    "playing": "0"
+   }
+  },
+  {
+   "state": {
+    "playing": "1"
+   },
+   "within": 4
+  },
+  {
+   "keys": [
+    "+f1"
+   ],
+   "gap": 1.6,
+   "note": "hold F1 and pad 4: pattern 4 (stems 2 and 4 sound; stem 1 does not)"
+  },
+  {
+   "pad": 3,
+   "gesture": "tap"
+  },
+  {
+   "wait": 0.3
+  },
+  {
+   "keys": [
+    "-f1"
+   ],
+   "gap": 0.3
+  },
+  {
+   "wait": 0.8
+  },
+  {
+   "audio": {
+    "seconds": 3,
+    "channel": 4,
+    "min_rms_db": -40
+   },
+   "note": "pattern 4 plays: stem 4 above -40 dBFS RMS"
+  },
+  {
+   "audio": {
+    "seconds": 3,
+    "channel": 1,
+    "silent": true,
+    "max_peak_db": -90
+   },
+   "note": "stem 1 is silent in pattern 4: below -90 dBFS"
+  },
+  {
+   "keys": [
+    "+f1"
+   ],
+   "gap": 1.6,
+   "note": "QA-PAT-255: pad 5 = pattern 5 (stem 1 only) at once, no stop"
+  },
+  {
+   "pad": 4,
+   "gesture": "tap"
+  },
+  {
+   "wait": 0.3
+  },
+  {
+   "keys": [
+    "-f1"
+   ],
+   "gap": 0.3
+  },
+  {
+   "wait": 0.8
+  },
+  {
+   "audio": {
+    "seconds": 3,
+    "channel": 1,
+    "min_rms_db": -40
+   },
+   "note": "QA-PAT-255: stem 1 (pattern 5) sounds above -40 dBFS RMS"
+  },
+  {
+   "audio": {
+    "seconds": 3,
+    "channel": 4,
+    "silent": true,
+    "max_peak_db": -90
+   },
+   "note": "QA-PAT-255: the old pattern's stem 4 is gone 0.8 s after the pick, no tail hangs: below -90 dBFS"
+  },
+  {
+   "audio": {
+    "seconds": 3,
+    "channel": 2,
+    "silent": true,
+    "max_peak_db": -90
+   },
+   "note": "the old pattern's stem 2 too"
+  },
+  {
+   "keys": [
+    "+f1"
+   ],
+   "gap": 1.6,
+   "note": "back to pattern 4"
+  },
+  {
+   "pad": 3,
+   "gesture": "tap"
+  },
+  {
+   "wait": 0.3
+  },
+  {
+   "keys": [
+    "-f1"
+   ],
+   "gap": 0.3
+  },
+  {
+   "wait": 0.8
+  },
+  {
+   "audio": {
+    "seconds": 3,
+    "channel": 4,
+    "min_rms_db": -40
+   },
+   "note": "stem 4 is back above -40 dBFS RMS"
+  },
+  {
+   "audio": {
+    "seconds": 3,
+    "channel": 1,
+    "silent": true,
+    "max_peak_db": -90
+   },
+   "note": "stem 1 is gone: below -90 dBFS"
+  }
+ ],
+ "finally": [
+  {
+   "keys": [
+    "-f1"
+   ],
+   "gap": 0.2
+  },
+  {
+   "keys": [
+    "play"
+   ],
+   "gap": 0.5,
+   "if_state": {
+    "playing": "1"
+   }
+  }
+ ]
+}

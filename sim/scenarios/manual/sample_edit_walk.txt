@@ -1,0 +1,22 @@
+# OS-MANUAL2 C3: the pictures of the Sample edit chapter's tasks (docs/manual/sample_edit.md, a brief chapter: no "Try it", the pictures sit in the tasks): select a part, normalise it, take it back.
+# The simulator's demo sample draws no waveform, so the selection and the processes show nothing to snap: this scenario checks the keys of the chapter's tasks (the screen stays Sample edit), and the chapter has no walk pictures.
+
+# Select a part. Turn the encoder: a selection appears and the encoder moves its start edge. `Right` picks the end edge; turn the encoder to move it.
+document sound
+wait 30
+tap sampleedit
+wait 20
+tap right
+encoder 20
+wait 20
+assert state screen=~SAMPLE
+
+# Press `F2` (NORM): the range's peak goes to full scale (or the strip says NOTHING TO NORMALISE).
+tap f2
+wait 20
+assert state screen=~SAMPLE
+
+# Press `F8` (UNDO): the sample is as it was.
+tap f8
+wait 20
+assert state screen=~SAMPLE

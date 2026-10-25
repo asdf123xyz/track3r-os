@@ -1,0 +1,125 @@
+# OS-FINALQA (docs/specs/OS-FINALQA.md): the File screen's QA rows, docs/qa/catalogue/file.md. One `snap qa_fil_NNN` per row with a visible result; the goldens are keyed qa_file/qa_fil_NNN.
+# OS-SHIFTROW: with Shift held the key row shows the Shift layer: a label only on a key that does something, "-" elsewhere; Shift + F never falls through to the plain key.
+
+# QA-FIL-001: the File screen with Shift held: 0/4 1/4 2/4 3/4 END - - - (the jumps are File's own).
+tap file
+press shift
+snap qa_fil_001
+release shift
+
+# QA-FIL-013 (OS-NAV3): Shift + Down on the IMPORT page. The simulator has no card, so the list is empty and the page move does nothing; the picture is the page's
+# own (key row IMPORT page, empty-state message), the one the unit's qa_nav3.json compares the key row against after it has paged a real /MOD.
+tap file
+tap f6
+press shift
+tap down
+release shift
+snap qa_fil_013
+
+# QA-FIL-020 (OS-WAVEXP): F7 on the PROJECTS page opens the EXPORT page: key row EXPORT - - SAVE SAVE AS IMPORT PROJECTS -, the rows SONG and PATTERN nn, the card of the file F1 would make
+# (the simulator has no card, so it says so). The IMPORT page was left up by QA-FIL-013: F6 goes back to PROJECTS first.
+tap f6
+tap f7
+snap qa_fil_020
+
+# ... Down chooses the PATTERN row (the encoder would change nn over the patterns that exist); F6 on this page is IMPORT, F7 is PROJECTS.
+tap down
+snap qa_fil_020_pattern
+
+# QA-FIL-082 (OS-FILES-C C2c): three Downs more reach the fifth row, OG PROJECT, marked EXPERIMENTAL; the card is the one F1 would make (the simulator has no card, so it says so and counts nothing). F1 there
+# says why it cannot start (no card write layer); the question and the result strip are the gallery's file_export_og_ask and file_export_og_done (the question needs a project and a card to count on).
+tap down
+tap down
+tap down
+snap qa_fil_082
+tap f1
+snap qa_fil_082_nocard
+wait 3500
+tap f7
+snap qa_fil_020_back
+
+# OS-NAMES: QA-FIL-060, Shift + F6 (NAME) on the PROJECTS page opens the on-screen keyboard over the open project's title: the title reads PROJECT NAME and the entry is empty (the demo project has no title yet).
+document
+tap file
+press shift
+tap f6
+release shift
+snap qa_fil_060
+theme black
+snap qa_fil_060_black
+theme white
+snap qa_fil_060_white
+theme amiga
+# Typed (pads: d e m o) and kept with F8: the header names the project (QA-FIL-062); the folder on the card is not touched.
+pad 26
+pad 14
+pad 42
+pad 20
+snap qa_fil_060_typed
+tap f8
+snap qa_fil_062
+theme black
+snap qa_fil_062_black
+theme white
+snap qa_fil_062_white
+theme amiga
+
+# OS-FILES part B. The page is PROJECTS again after the EXPORT page above.
+# QA-FIL-041: the Shift row of the IMPORT page keeps the jumps only: Shift + F7 is not PURGE there.
+tap f6
+press shift
+snap qa_fil_041
+release shift
+
+# OS-NEWKEEP (docs/specs/OS-NEWKEEP.md): F3 NEW asks which new project. `document new` gives the demo document (ten sample instruments) a project sink that does NEW at once (the simulator has no
+# card). The wait lets the strip's older line (PROJECT NAMED) run out, so the question is the line on the strip; the page is IMPORT after QA-FIL-041: F6 goes back to PROJECTS first.
+document new
+wait 2500
+tap f6
+tap f3
+snap qa_fil_070
+theme black
+snap qa_fil_070_black
+# QA-FIL-099 (OS-KEYROWDLG): the answers are on the keys too: F1 reads KEEP INS and F3 ALL, both inverted; the other keys keep their labels (the dialog line is the strip's, with the long words). The 8-character chip is the widest one:
+# looked at on the white theme as well.
+theme white
+snap qa_fil_099_white
+theme amiga
+snap qa_fil_099
+# Another key takes the question back and the wait runs its text out (QA-FIL-073): the strip is empty, F1 is OPEN again (no card to open from, so it says nothing), the instruments are all there.
+tap f2
+wait 4500
+tap f1
+snap qa_fil_073
+# QA-FIL-101 (OS-KEYROWDLG): the row follows the strip: asked and left alone, the question runs out of the strip and the plain row (OPEN .. NEW) is back in the same pass.
+tap f3
+wait 4500
+snap qa_fil_101
+# F3 then F1: KEEP INSTRUMENTS (QA-FIL-071): the strip ends on NEW PROJECT and, since OS-OPENTOPAT (QA-FIL-097), the screen is Pattern; the instrument list (a held Instr on Wave) still has the ten sample instruments.
+tap f3
+tap f1
+snap qa_fil_071
+action nav.screen 3
+press instr
+wait 700
+snap qa_fil_071_inst
+release instr
+tap file
+# F3 then F3: ALL (QA-FIL-070): the same strip as KEEP's (and the Pattern screen again, QA-FIL-097), and the instrument list is empty.
+wait 2500
+tap f3
+tap f3
+action nav.screen 3
+press instr
+wait 700
+snap qa_fil_070_inst
+release instr
+
+# QA-FIL-112 (OS-QAFIX-RESCAN): F2 RESCAN reads the folder again and, when the scan has ended, the strip tells the count (READ AGAIN: n ITEMS). The card e2e_og is the one with a Projects/ folder.
+document
+card e2e_og
+tap file
+wait 700
+tap f2
+wait 700
+snap qa_fil_112

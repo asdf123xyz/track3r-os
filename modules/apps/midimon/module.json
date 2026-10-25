@@ -1,0 +1,18 @@
+{
+  "name": "MIDI Monitor",
+  "id": "midimon",
+  "kind": "app",
+  "abi": "1.10",
+  "capabilities": ["midi_in"],
+  "description": "Shows the MIDI messages that arrive on DIN and USB: port, channel, type and values, a channel activity strip, counters for the messages lost and the SysEx dropped, and a filter by channel and type. New Community OS behaviour; it only listens.",
+  "state_bytes": 512,
+  "params": [
+    {"name": "Channel", "min": 0, "max": 16, "default": 0, "type": "int", "learnable": false},
+    {"name": "Type", "min": 0, "max": 3, "default": 0, "type": "int", "learnable": false}
+  ],
+  "views": [
+    {"name": "Body", "min_size": [480, 288], "preferred_size": [490, 384]}
+  ],
+  "voices": 1,
+  "memory": {"hot_bytes": 0, "sdram_bytes": 0}
+}

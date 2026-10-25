@@ -1,0 +1,70 @@
+# OS-FINALQA (docs/specs/OS-FINALQA.md): the common page of a module app, docs/qa/catalogue/module_app.md. One `snap qa_app_NNN` per row with a visible result; the goldens are keyed qa_module_app/qa_app_NNN.
+# The card carries the shipped apps (`apps on`, sim/include/o3os/sim/sim_apps.h). The cursor is on the apps in the order of the list: chords, humanize, loudness, midimon (3), morph, mutate, rhythmgen, scope, smfexport, tapcalc, tuner.
+# MIDI Monitor (ABI 1.9) is the page used here: it declares labels, so the page is the common one. The OS's own parameter column (Shift + Up / Down, Shift + encoder, Shift + Delete) belongs to an app built below ABI 1.10 that
+# declares a parameter: only Pads is one, and it has no manifest, so it is not on the simulator's card (QA-APP-005..007 are host-tested).
+document
+wait 20
+card e2e_card
+apps on
+action nav.screen 12
+wait 20
+tap f2
+# (the RESCAN count on the strip runs out first)
+wait 2500
+assert state screen=MODULES
+
+# QA-APP-003: a screen button leaves the app and opens its screen. Song first, then back to MODULES and the app, then Pattern.
+tap down 3
+tap f1
+wait 100
+assert state screen=APP
+tap song
+wait 50
+assert state screen=SONG
+snap qa_app_003_song
+action nav.screen 12
+wait 20
+tap f1
+wait 100
+assert state screen=APP
+tap pattern
+wait 50
+assert state screen=PATTERN
+snap qa_app_003_pattern
+
+# QA-APP-004: Shift + Config opens the help page of the app page (HELP: MODULE APP) over the app; F8 closes it and the app is still the screen.
+action nav.screen 12
+wait 20
+tap f1
+wait 100
+assert state screen=APP
+press shift
+tap config
+release shift
+wait 50
+assert state screen=APP overlay=HELP
+snap qa_app_004
+tap f8
+wait 50
+assert state screen=APP overlay=NONE
+snap qa_app_004_closed
+
+tap f8
+wait 50
+assert state screen=MODULES
+
+# QA-APP-002: an app opened from Pattern F7 TOOLS goes back to Pattern with F8 (the cursor and the block untouched), not to MODULES. Rhythm Gen: nine presses of Down from the top of the TOOLS list; the first launch asks.
+action nav.screen 0
+wait 20
+tap f7
+wait 20
+tap down 8
+tap f1
+wait 50
+tap f1
+wait 100
+assert state screen=APP
+tap f8
+wait 50
+assert state screen=PATTERN
+snap qa_app_002_tools_f8

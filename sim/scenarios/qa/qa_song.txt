@@ -1,0 +1,376 @@
+# OS-FINALQA (docs/specs/OS-FINALQA.md): the Song screen's QA rows, docs/qa/catalogue/song.md. One `snap qa_sng_NNN` per row with a visible result; the goldens are keyed qa_song/qa_sng_NNN.
+# OS-SHIFTROW: with Shift held the key row shows the Shift layer: a label only on a key that does something, "-" elsewhere; Shift + F never falls through to the plain key.
+
+# QA-SNG-001: the Song screen with Shift held: 0/4 1/4 2/4 3/4 END - - REDO.
+tap song
+press shift
+snap qa_sng_001
+release shift
+
+# QA-SNG-002 (OS-SHIFTROW): Shift + F2 jumps the order list's cursor to a quarter of the list.
+document
+tap song
+press shift
+tap f2
+release shift
+snap qa_sng_002
+
+# QA-SNG-003 (OS-SHIFTROW): Shift + Insert adds a slot after the cursor holding a COPY of the pattern, the info line says SHIFT+INS DUP.
+press shift
+tap insert
+release shift
+snap qa_sng_003
+
+# OS-NAMES: QA-SNG-010, Shift + F6 (NAME) on the Song screen opens the on-screen keyboard over the name of the pattern in the slot under the cursor: the title reads PATTERN NAME (the demo's pattern has no name yet).
+document
+tap song
+press shift
+tap f6
+release shift
+snap qa_sng_010
+theme black
+snap qa_sng_010_black
+theme white
+snap qa_sng_010_white
+theme amiga
+# Typed over the selection (pads: i n t r o) and kept with F8: the order row now carries the name (QA-SNG-011) and so does the strip's PAT field.
+pad 19
+pad 41
+pad 16
+pad 15
+pad 20
+tap f8
+snap qa_sng_011
+theme black
+snap qa_sng_011_black
+theme white
+snap qa_sng_011_white
+theme amiga
+
+# OS-SONGPADS: QA-SNG-040, Shift + F7 (PADS) switches the pads between TRACKS and SLOTS: the strip says PADS: SLOTS, again PADS: TRACKS. (The Shift row of QA-SNG-001 reads PADS on F7.)
+document
+tap pattern
+wait 3000
+tap song
+press shift
+tap f7
+release shift
+snap qa_sng_040
+
+# OS-SONGMAP (docs/specs/SONG-UX.md section 1): the track map as an editable grid. Four slots over the patterns 1..4 (DUP PAT makes each a copy of the demo pattern).
+document
+tap pattern
+wait 3000
+tap song
+press shift
+tap insert 3
+release shift
+tap up 3
+
+# QA-SNG-020: Right on PAT enters the map at track 1: the PAT block is drawn as unselected, the TRACKS caption is bright and the cell is the cursor's.
+tap right
+snap qa_sng_020
+
+# QA-SNG-021: Right walks the tracks (no wrap, clamped at the last), Left walks back and returns to PAT; the info line names the track.
+tap right 3
+snap qa_sng_021
+tap right 20
+tap left 20
+tap right
+
+# QA-SNG-022: Shift + Right / Down select slots x tracks (3 slots x 3 tracks), drawn on a band, the cursor on its last cell.
+press shift
+tap right 2
+tap down 2
+release shift
+snap qa_sng_022
+
+# QA-SNG-023: Copy takes the rectangle's cells into the song clip.
+tap copy
+snap qa_sng_023
+
+# QA-SNG-028: Delete over slots 1..3 x tracks 1..3 clears those tracks of patterns 2, 3 and 4, once per pattern (none is held by a slot outside the rectangle, so there is no sharing question). QA-SNG-066 (OS-AUDIT-69): three patterns, so Delete first asks CLEAR 3 PATTERNS?: F1 YES; F1 then clears.
+tap left 2
+tap down
+tap up 2
+press shift
+tap right 2
+tap down 2
+release shift
+tap delete
+snap qa_sng_066
+tap f1
+snap qa_sng_028
+
+# QA-SNG-025: Shift + Copy over the selection tiles the clip to fill it: the three cleared patterns are written again.
+press shift
+tap copy
+release shift
+snap qa_sng_025
+
+# QA-SNG-024: Shift + Copy with no selection lands the clip's top-left on the cursor's cell and drops what runs past the last slot (one slot is left of the three rows).
+tap left
+tap delete
+press shift
+tap copy
+release shift
+snap qa_sng_024
+
+# QA-SNG-029: F6 TOOLS opens the dialog over the cursor's cell: OP and AMOUNT, the scope, F1 APPLY and F8 BACK on the key row.
+tap f6
+snap qa_sng_029
+
+# QA-SNG-030: TRANSPOSE by +5 semitones: one undo unit, the strip says TRANSPOSED.
+tap down
+encoder +5
+tap f1
+snap qa_sng_030
+
+# QA-SNG-031: INSTRUMENT: the OP row turned once, the TO row shows the instrument every note will get.
+tap f6
+encoder +1
+tap down
+encoder +3
+snap qa_sng_031
+tap f1
+
+# QA-SNG-032: CLEAR: the WHAT row (NOTES, VOLUME, FX 1, FX 2, ALL); F8 BACK leaves without writing.
+tap f6
+encoder +1
+tap down
+snap qa_sng_032
+tap f8
+
+# QA-SNG-033: TOOLS on PAT acts on the cursor slot's tracks, all of them: the scope line says TRACKS 1-12.
+tap left 20
+tap f6
+snap qa_sng_033
+tap f8
+
+# QA-SNG-034: F5 UNIQUE with no selection gives a slot that shares its pattern a copy of its own: ADD SLOT makes slot 4 hold pattern 4 again, UNIQUE copies it for slot 4.
+tap down
+tap insert
+tap f5
+snap qa_sng_034
+
+# QA-SNG-035: F5 UNIQUE over a selection makes one copy for each pattern held inside and outside it, the selected slots that shared it keep sharing the copy (slots 4 and 5 of three that hold pattern 5).
+tap insert 2
+tap up
+press shift
+tap up
+release shift
+tap f5
+snap qa_sng_035
+
+# QA-SNG-036: the question: an edit that would also change a slot outside the rectangle asks first; nothing is written, the key row marks F1 ALL and F2 UNIQUE.
+tap down
+tap insert
+tap right
+tap delete
+snap qa_sng_036
+
+# QA-SNG-037: F2 UNIQUE makes the copy and clears the copy only (one undo unit: F8 takes both back).
+tap f2
+snap qa_sng_037
+
+# QA-SNG-038: any other key takes the question back and acts as usual (Down moves the cursor); nothing was written.
+tap up
+tap delete
+tap down
+snap qa_sng_038
+
+# OS-BUG-SONGMAPCUR: QA-SNG-047, the map draws a cell for every active track while the cursor is in it. 16 active tracks over the demo pattern, which uses the first 12: the cursor on track 16 (the Arrangement page: its map ends at the edge of the screen) sits at the end of a map 16 cells wide, tracks 13 to 15 are faint ticks.
+document tracks 16
+tap pattern
+wait 3000
+tap song
+tap song
+tap right 16
+snap qa_sng_047
+tap song
+
+# OS-SONGSHARE S1 (docs/specs/OS-SONGSHARE.md): the shared-pattern mark. The list is 1 1 2 3 3: ADD SLOT repeats the pattern, DUP PAT makes patterns 2 and 3 (copies); the cursor goes up to slot 3.
+document
+tap pattern
+wait 3000
+tap song
+tap insert
+press shift
+tap insert
+tap insert
+release shift
+tap insert
+tap up
+
+# QA-SNG-050: a pattern that two or more slots hold has a one-character mark in the gap after NAME (slots 0, 1, 3 and 4; slot 2 holds pattern 2 alone and has none); the slots of the cursor's pattern (3 and 4) wear a second ink; the info line says PATTERN 03 IN 2 SLOTS.
+snap qa_sng_050
+
+# QA-SNG-051: the cursor on a slot whose pattern no other slot holds (slot 2): no mark on its row, no second ink anywhere, and the info line is the plain one again (SHIFT+INS DUP).
+tap up
+snap qa_sng_051
+
+# QA-SNG-052: the Arrangement page keeps the second ink of the PAT tiles and the count on its info line (the cursor back on slot 0, pattern 1, held by slots 0 and 1).
+tap up 2
+tap song
+snap qa_sng_052
+tap song
+
+# OS-SONGSHARE S2 (docs/specs/OS-SONGSHARE.md): CUT on Shift + Delete. Four slots over the patterns 1..4 (DUP PAT makes each a copy of the demo pattern), the cursor on slot 0.
+document
+tap pattern
+wait 3000
+tap song
+press shift
+tap insert 3
+release shift
+tap up 3
+tap down
+
+# QA-SNG-053: Shift + Delete on PAT cuts the cursor's slot (slot 1, pattern 2): it goes into the slot clipboard and out of the list in one undo unit, the cursor on the slot above, the strip says CUT 1 SLOT.
+press shift
+tap delete
+release shift
+snap qa_sng_053
+
+# QA-SNG-054: in the map Shift + Delete is the cells' cut: the rectangle (slots 0, tracks 1-3) goes into the song clip and is cleared by Delete's rules (the patterns are not shared: no question).
+tap right
+press shift
+tap right 2
+release shift
+press shift
+tap delete
+release shift
+snap qa_sng_054
+
+# QA-SNG-055: cutting every slot is refused, as Delete refuses it: the strip says SONG NEEDS A SLOT, the list and the clipboard stay.
+tap left 5
+press shift
+tap down 2
+release shift
+wait 3000
+press shift
+tap delete
+release shift
+snap qa_sng_055
+
+# OS-SONGSHARE S3 (docs/specs/OS-SONGSHARE.md): MOVE, Copy held + Up / Down. Five slots over the patterns 1..5 (DUP PAT makes each a copy of the demo pattern), the cursor on slot 1.
+document
+tap pattern
+wait 3000
+tap song
+press shift
+tap insert 4
+release shift
+tap up 3
+
+# QA-SNG-056: Copy held + Down twice moves the cursor's slot (pattern 2) two positions down and the cursor follows: the list reads 1 3 4 2 5. Copy itself does not copy (no COPIED on the strip).
+press copy
+tap down 2
+release copy
+snap qa_sng_056
+
+# QA-SNG-057: a selected range moves as a block (slots 2 and 3, patterns 4 and 2, go up one position: the list reads 1 4 2 3 5) and the range follows.
+press shift
+tap up
+release shift
+press copy
+tap up
+release copy
+snap qa_sng_057
+
+# OS-SONGSHARE S4 (docs/specs/OS-SONGSHARE.md): NEXT USE, Note / Shift + Note. The list is 1 1 2 3 3 (as QA-SNG-050), the cursor on slot 3.
+document
+tap pattern
+wait 3000
+tap song
+tap insert
+press shift
+tap insert
+tap insert
+release shift
+tap insert
+tap up
+
+# QA-SNG-058: Note goes to the next slot that holds the cursor's pattern (slot 3 to slot 4, pattern 3): the strip says SLOT 04 (2 OF 2); again it wraps to slot 3, and Shift + Note goes back.
+tap note
+snap qa_sng_058
+tap note
+press shift
+tap note
+release shift
+tap up 2
+wait 3000
+
+# QA-SNG-058 (the same row): a pattern that one slot holds says ONLY IN THIS SLOT and the cursor stays (slot 2, pattern 2).
+tap note
+snap qa_sng_058_only
+
+# OS-SONGSHARE S5 (docs/specs/OS-SONGSHARE.md): EXPORT WAV, the fourth OP of F6 TOOLS. Two slots are selected on PAT (Shift + Down): the OP row reads EXPORT WAV, there is no value row, the scope line names the slots and
+# ALL TRACKS. (The dialog keeps its OP between openings: it was left on CLEAR by QA-SNG-032, so one detent. No card in the simulator: F1 would say NO CARD WRITE LAYER.)
+# QA-SNG-059: the dialog over a range of slots.
+press shift
+tap down
+release shift
+tap f6
+encoder +1
+snap qa_sng_059
+tap f8
+
+# QA-SNG-060 (OS-SONGPEEK): Song held shows Song until the key is let go, then the screen it came from is back. Held from the Mixer: Song is up at 400 ms (the hold), the release returns to the Mixer; a tap of Song (at the release) is Song as before.
+wait 3000
+document
+tap master
+assert state screen=MIXER
+press song
+wait 100
+assert state screen=MIXER
+wait 400
+assert state screen=SONG
+snap qa_sng_060
+release song
+wait 5
+assert state screen=MIXER
+snap qa_sng_060_back
+tap song
+assert state screen=SONG
+snap qa_sng_061
+
+# QA-SNG-062 (OS-SONG1): F7 is TEMPO: the BPM field takes the accent and the strip reads the tempo keys; the encoder turns it 2 BPM, Shift + encoder 0.3 BPM.
+tap f7
+encoder +2
+press shift
+encoder +3
+release shift
+snap qa_sng_062
+
+# QA-SNG-064 / QA-SNG-065 (E-SONG-07): slot edits while the song plays keep the playhead. A song of four slots plays from slot 1 (the cursor's); a slot added above the playing one moves the
+# play marker down one with it (order 2), and the pattern that follows is still the old next slot (order 3, 4.5 s on: the slot that was 2 is now 3). Then a jump is queued to the last slot and
+# that slot is deleted: the strip says QUEUED SLOT DELETED and the song carries on in its order.
+document
+audio on
+wait 20
+tap song
+tap f3
+encoder 1
+tap f3
+encoder 1
+tap f3
+encoder 1
+tap up 2
+tap play
+wait 100
+assert state playing=1 order=1
+tap up
+tap f3
+assert model order.len=5
+assert state order=2 play_pattern=2
+wait 20
+snap qa_sng_064
+tap down 3
+tap rec
+wait 20
+tap f4
+assert model order.len=4
+snap qa_sng_065
+wait 4500
+assert state order=3

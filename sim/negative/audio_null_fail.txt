@@ -1,0 +1,11 @@
+# OS-E2E-2: two renders of different notes do not null.
+document sound
+audio on
+wait 30
+render a 150
+pad 12 hold 100
+wait 49
+render b 150
+pad 14 hold 100
+wait 49
+assert audio a null=b,-40

@@ -1,0 +1,14 @@
+# mutant:   M08
+# class:    2
+# twin:     OS-BUG-NEWLIST (a listing is not refreshed after a change elsewhere)
+# expected: B
+# effect:   A card that is put back (CARD READY) no longer throws the listing away: a browser that said NO SD CARD while the card was out keeps saying it
+diff --git a/app/src/app.cpp b/app/src/app.cpp
+index 981f6194..23921185 100644
+--- a/app/src/app.cpp
++++ b/app/src/app.cpp
+@@ -1615,3 +1615,3 @@ void App::card_changed(CardEvent event) noexcept {
+   }
+-  if (event != CardEvent::Reading) {
++  if (event == CardEvent::Removed) {
+     if (saves_ != nullptr) {

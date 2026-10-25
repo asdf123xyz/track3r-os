@@ -1,0 +1,563 @@
+{
+ "name": "qa_file_import",
+ "title": "OS-FILES part A, rows QA-FIL-003..011 of docs/qa/catalogue/file.md: the File screen's IMPORT page opens a MOD, an S3M and an OctaMED module of the card as a new unsaved project (docs/specs/OS-FILES-IMPORT.md). The maintainer's test set at the card root (/MOD/kc_dancinonamiga.mod, /S3M/simpsons16.s3m, a file of /MED; PC copy build-sdtest/, git-ignored, never committed). The by-ear steps (`say`) compare the unit's playback with a desktop player and are the first listening check of the OS-COREFX tracker FX.",
+ "steps": [
+  {
+   "say": "OS-FILES part A, rows QA-FIL-003..008 of docs/qa/catalogue/file.md (docs/specs/OS-FILES-IMPORT.md): the File screen's IMPORT page opens a module of the card as a NEW UNSAVED project. The card holds the maintainer's test set at its root (/MOD /S3M /MED; PC copy build-sdtest/, see its SOURCES.txt; git-ignored, never committed). Start from a clean project. An import is new work on no card, so every later import (and F3 NEW) asks first until the project is saved: the steps press F1 twice for the second and later imports. A large MED (the biggest of the test set) is the timing check of the import: while it runs the strip says IMPORTING and the screen must stay responsive (no frame of the pass is held for a visible stall); note the seconds from F1 to IMPORTED. The listening rows are by ear: the importers are oracle-tested against libopenmpt, the OS-COREFX tracker FX are checked by ear against a desktop player (OpenMPT / MilkyTracker) playing the same file."
+  },
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.2
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "~^(LEARN|NAVIGATOR|PATTERN_CHOOSER|LENGTH_CHOOSER|JUMP_CHOOSER|MODULE_PICKER|STEP_POPUP)$"
+   }
+  },
+  {
+   "keys": [
+    "file"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "screen": "FILE"
+   },
+   "within": 4
+  },
+  {
+   "keys": [
+    "f6"
+   ],
+   "gap": 0.5,
+   "note": "QA-FIL-003: IMPORT (the second page of File)"
+  },
+  {
+   "wait": 2.0
+  },
+  {
+   "shot": "qa_fil_003",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-FIL-003: the key row reads IMPORT RESCAN UP SAVE SAVE AS PROJECTS FX AUTO REPORT (F1 reads ENTER on a folder); the list is the card's root: the folders (MOD, S3M, MED...) and any module file there (the simulator's picture is gallery/file_import)"
+  },
+  {
+   "say": "QA-FIL-004: move the cursor to the folder MOD and press F1 (ENTER): the list shows the module files of /MOD with MOD in the TYPE column (no .txt, no hidden file). F3 UP goes back to the root; at the root the strip says ALREADY AT THE ROOT. Go into /MOD again and put the cursor on kc_dancinonamiga.mod."
+  },
+  {
+   "keys": [
+    "up"
+   ],
+   "gap": 0.12,
+   "repeat": 40,
+   "note": "(the cursor to the first entry)"
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.15,
+   "until": {
+    "sel": "~(?i)^MOD$"
+   },
+   "max": 60,
+   "if_state": {
+    "sel": "~(?i)^(?!MOD$)"
+   },
+   "note": "select the MOD folder by name (OS-HILNAV: the state line's sel; a count of Down presses breaks when the card holds one more file)"
+  },
+  {
+   "state": {
+    "sel": "~(?i)^MOD$"
+   },
+   "within": 2
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.5,
+   "note": "ENTER /MOD (or whichever folder the cursor is on)"
+  },
+  {
+   "wait": 1.0
+  },
+  {
+   "shot": "qa_fil_004",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-FIL-004: the files of /MOD, TYPE MOD; the DIR field of the strip says MOD"
+  },
+  {
+   "say": "QA-FIL-005: with FX AUTO (F7 reads FX AUTO) press F1 on kc_dancinonamiga.mod: the strip says IMPORTING, then IMPORTED KC_DANCINONAMIGA.MOD (with : F8 REPORT when something was dropped or approximated). The project is new and unsaved (no folder), its sample instruments are the module's samples."
+  },
+  {
+   "keys": [
+    "up"
+   ],
+   "gap": 0.12,
+   "repeat": 40,
+   "note": "(the cursor to the first entry)"
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.15,
+   "until": {
+    "sel": "~(?i)^kc_dancinonamiga\\.mod$"
+   },
+   "max": 60,
+   "if_state": {
+    "sel": "~(?i)^(?!kc_dancinonamiga\\.mod$)"
+   },
+   "note": "select kc_dancinonamiga.mod by name (OS-HILNAV: the state line's sel; a count of Down presses breaks when the card holds one more file)"
+  },
+  {
+   "state": {
+    "sel": "~(?i)^kc_dancinonamiga\\.mod$"
+   },
+   "within": 2
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.5,
+   "note": "QA-FIL-005: IMPORT kc_dancinonamiga.mod, engine AUTO (the Amiga engine window for a MOD)"
+  },
+  {
+   "state": {
+    "msg": "~^IMPORTED_KC_DANCINONAMIGA\\.MOD"
+   },
+   "within": 40
+  },
+  {
+   "shot": "qa_fil_005",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-FIL-005: the strip says IMPORTED KC_DANCINONAMIGA.MOD"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.5,
+   "note": "QA-FIL-009: the report page"
+  },
+  {
+   "wait": 1.0
+  },
+  {
+   "shot": "qa_fil_009",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-FIL-009: the report: FORMAT MOD, 4 CHANNELS; COMMANDS AMIGA ENGINE; the song, the samples (MADE / LOADED / NO ROOM), EFFECTS approximated and dropped, and the groups not kept by name (the simulator's picture is gallery/file_import_report)"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.4,
+   "note": "back to the list"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "screen": "PATTERN"
+   },
+   "within": 3
+  },
+  {
+   "run": "_play"
+  },
+  {
+   "say": "QA-FIL-005 by ear: the module plays with its own samples and tempo, the notes follow the pattern (compare with the same file in OpenMPT or MilkyTracker). The sound is the Amiga engine (FX AUTO sent the MOD's commands to the engine window: portamento, vibrato, arpeggio, volume slides, sample offset). Let it run through the first patterns, then stop."
+  },
+  {
+   "voices": {
+    "min_in_use": 1
+   },
+   "soft": true
+  },
+  {
+   "run": "_stop"
+  },
+  {
+   "keys": [
+    "file"
+   ],
+   "gap": 0.5
+  },
+  {
+   "say": "QA-FIL-007: the page is as it was left (IMPORT, /MOD). Press F7 until it reads FX MODRN (each press says IMPORT COMMANDS FOR THE ... ENGINE), then F1 on the same kc_dancinonamiga.mod: the import left an unsaved project, so the first F1 only asks (UNSAVED CHANGES: F1 AGAIN TO DISCARD THEM) and the second imports. The report (F8) now says COMMANDS MODERN ENGINE (CORE FX): the same song written as the OG / core FX, which plays differently (that is the comparison the engine key is for)."
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.4
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.4
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "shot": "qa_fil_007",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-FIL-007: the key reads FX MODRN"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.5
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.5,
+   "note": "the second press: discard the unsaved import (the question was asked by the first)"
+  },
+  {
+   "state": {
+    "msg": "~^IMPORTED_KC_DANCINONAMIGA\\.MOD"
+   },
+   "within": 40
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.5
+  },
+  {
+   "wait": 1.0
+  },
+  {
+   "shot": "qa_fil_007b",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-FIL-007: the report says MODERN ENGINE (CORE FX)"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.4
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.4,
+   "note": "back to FX AUTO"
+  },
+  {
+   "say": "QA-FIL-006: F3 UP, then enter /S3M and import simpsons16.s3m: IMPORTED SIMPSONS16.S3M; its report says FORMAT S3M and COMMANDS MODERN ENGINE (an S3M's commands are the OG / core FX with FX AUTO). Play it by ear against a desktop player."
+  },
+  {
+   "keys": [
+    "f3"
+   ],
+   "gap": 0.5
+  },
+  {
+   "wait": 1.0
+  },
+  {
+   "say": "Cursor on S3M, F1 to enter it, cursor on simpsons16.s3m."
+  },
+  {
+   "keys": [
+    "up"
+   ],
+   "gap": 0.12,
+   "repeat": 40,
+   "note": "(the cursor to the first entry)"
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.15,
+   "until": {
+    "sel": "~(?i)^S3M$"
+   },
+   "max": 60,
+   "if_state": {
+    "sel": "~(?i)^(?!S3M$)"
+   },
+   "note": "select the S3M folder by name (OS-HILNAV: the state line's sel; a count of Down presses breaks when the card holds one more file)"
+  },
+  {
+   "state": {
+    "sel": "~(?i)^S3M$"
+   },
+   "within": 2
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.5,
+   "note": "ENTER /S3M"
+  },
+  {
+   "wait": 1.0
+  },
+  {
+   "keys": [
+    "up"
+   ],
+   "gap": 0.12,
+   "repeat": 40,
+   "note": "(the cursor to the first entry)"
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.15,
+   "until": {
+    "sel": "~(?i)^simpsons16\\.s3m$"
+   },
+   "max": 60,
+   "if_state": {
+    "sel": "~(?i)^(?!simpsons16\\.s3m$)"
+   },
+   "note": "select simpsons16.s3m by name (OS-HILNAV: the state line's sel; a count of Down presses breaks when the card holds one more file)"
+  },
+  {
+   "state": {
+    "sel": "~(?i)^simpsons16\\.s3m$"
+   },
+   "within": 2
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.5,
+   "note": "QA-FIL-006: IMPORT simpsons16.s3m"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.5,
+   "note": "the second press: discard the unsaved import (the question was asked by the first)"
+  },
+  {
+   "state": {
+    "msg": "~^IMPORTED_SIMPSONS16\\.S3M"
+   },
+   "within": 40
+  },
+  {
+   "shot": "qa_fil_006",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-FIL-006: the strip says IMPORTED SIMPSONS16.S3M"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.5
+  },
+  {
+   "run": "_play"
+  },
+  {
+   "say": "By ear: the S3M plays at its own sample rates (each instrument at its C2SPD) on the Modern engine."
+  },
+  {
+   "voices": {
+    "min_in_use": 1
+   },
+   "soft": true
+  },
+  {
+   "run": "_stop"
+  },
+  {
+   "keys": [
+    "file"
+   ],
+   "gap": 0.5
+  },
+  {
+   "say": "QA-FIL-006: F3 UP, enter /MED and import any .med / .mmd file (an OctaMED module): IMPORTED <NAME> and its report says FORMAT OCTAMED."
+  },
+  {
+   "keys": [
+    "f3"
+   ],
+   "gap": 0.5
+  },
+  {
+   "wait": 1.0
+  },
+  {
+   "say": "Cursor on MED, F1, cursor on a module, F1."
+  },
+  {
+   "keys": [
+    "up"
+   ],
+   "gap": 0.12,
+   "repeat": 40,
+   "note": "(the cursor to the first entry)"
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.15,
+   "until": {
+    "sel": "~(?i)^MED$"
+   },
+   "max": 60,
+   "if_state": {
+    "sel": "~(?i)^(?!MED$)"
+   },
+   "note": "select the MED folder by name (OS-HILNAV: the state line's sel; a count of Down presses breaks when the card holds one more file)"
+  },
+  {
+   "state": {
+    "sel": "~(?i)^MED$"
+   },
+   "within": 2
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.5,
+   "note": "ENTER /MED"
+  },
+  {
+   "wait": 1.0
+  },
+  {
+   "keys": [
+    "up"
+   ],
+   "gap": 0.12,
+   "repeat": 40,
+   "note": "(the first module of /MED)"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.5,
+   "note": "QA-FIL-006: IMPORT an OctaMED module"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.5,
+   "note": "the second press: discard the unsaved import (the question was asked by the first)"
+  },
+  {
+   "state": {
+    "msg": "~^IMPORTED_"
+   },
+   "within": 40
+  },
+  {
+   "shot": "qa_fil_006b",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-FIL-006: the strip says IMPORTED <NAME>"
+  },
+  {
+   "say": "QA-FIL-008: make a change (the Pattern screen: put a note in), go back to File > IMPORT and press F1 on a module: the strip says UNSAVED CHANGES: F1 AGAIN TO DISCARD THEM and nothing happens; a cursor move takes the question back; F1 twice imports."
+  },
+  {
+   "wait": 1.0
+  },
+  {
+   "say": "QA-FIL-012 (OS-OPENGUARD): the project has changes no save has taken (the import above, or a note put in on Pattern). On File > PROJECTS (F6 from the IMPORT page) put the cursor on a project folder and press F1: the strip says UNSAVED CHANGES: F1 AGAIN TO DISCARD THEM and nothing opens; a cursor move (Down), another key or leaving the screen takes the question back; F1 twice opens it. After a SAVE (clean project) one F1 opens at once."
+  },
+  {
+   "keys": [
+    "f6"
+   ],
+   "gap": 0.5,
+   "note": "QA-FIL-012: back to the PROJECTS page (skip if already there)"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.5,
+   "note": "QA-FIL-012: the first press only asks"
+  },
+  {
+   "state": {
+    "msg": "~^UNSAVED_CHANGES"
+   },
+   "within": 3
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.5,
+   "note": "QA-FIL-012: a cursor move takes the question back"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.5,
+   "note": "QA-FIL-012: asks again (the second press of the pair is the next one)"
+  },
+  {
+   "state": {
+    "msg": "~^UNSAVED_CHANGES"
+   },
+   "within": 3
+  },
+  {
+   "wait": 1.0
+  }
+ ],
+ "finally": [
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.2
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.3
+  }
+ ]
+}

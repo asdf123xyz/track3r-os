@@ -1,0 +1,35 @@
+# OS-MANUAL2 C5: the walk-through of the Config chapter's "Try it" (docs/manual/config.md). Each `snap walk_<n>` is the picture of step n, `config_walk_<n>.png` in docs/manual/img/
+# (manifest: docs/manual/images.txt; tools/manual_images.py renders it, ctest o3sim_manual_images keeps the committed pictures in step). A new step or a changed key means a changed picture: edit the
+# chapter's step and this line together. Nothing here is written to the card: the USB value is only pending. No engine is needed.
+
+# Step 1. Press `Config`. The Config screen opens.
+tap config
+wait 20
+assert state screen=CONFIG
+
+# Step 2. Press `F6` (PATTERN). The eight rows of the PATTERN page show, the cursor on the first.
+tap f6
+wait 20
+snap walk_2
+
+# Step 3. Press `Down` four times (the cursor is on METRO) and turn the encoder one click right: the row reads Main.
+tap down 4
+encoder 1
+wait 20
+
+# Step 4. Turn the encoder two clicks left: the row reads Off.
+encoder -2
+wait 20
+snap walk_4
+
+# Step 5. Press `F5` (USB) and turn the encoder one click left: USB AUDIO reads Off with a star, and the info line says it is not applied yet.
+tap f5
+encoder -1
+wait 20
+snap walk_5
+
+# Step 6. Press `F1` (MIDI), then `F5` again: the pending Off is gone, USB AUDIO reads On with no star.
+tap f1
+tap f5
+wait 20
+snap walk_6

@@ -1,0 +1,65 @@
+{
+ "name": "qa_lfolive",
+ "title": "OS-BUG-WTLFO / OS-LFOLIVE, rows QA-INS-087..096 of docs/qa/catalogue/instrument.md: the six LFOs run with the transport stopped and keep their phase at Play; the LFO fields (SOURCE, shape, speed, amount) are heard live; the WT-position artefact check; CPU of the LFOs (docs/specs/OS-LFOLIVE.md section 5). Edits the loaded project in RAM only (nothing is saved).",
+ "steps": [
+  {
+   "say": "OS-BUG-WTLFO and OS-LFOLIVE, rows QA-INS-087..096 of docs/qa/catalogue/instrument.md (docs/specs/OS-LFOLIVE.md). Edits the loaded project in RAM only (nothing is saved). New Community OS behaviour: the LFOs run with the transport stopped (what the official firmware does when stopped is an open research question, OS-007m), and the LFO fields are live."
+  },
+  {
+   "run": "_load_tv16"
+  },
+  {
+   "say": "QA-INS-087 (WT POSITION LFO, stopped): a wavetable instrument (8 windows, WT SIZE 2048), Params, F4 MOD page, destination WT Position: SOURCE LFO, SHAPE Saw, SPEED 12 steps, AMOUNT 100 %. Transport stopped. Hold a pad for 6 s with the 8-channel capture running: the window sweeps up the stack and wraps every 12 steps at the project tempo (1.4 s at 127 BPM); it must not stand still"
+  },
+  {
+   "say": "QA-INS-088 (GRAIN POSITION LFO, stopped): a granular instrument, destination Gran Position, SOURCE LFO, Saw, 4 steps, 100 %. Transport stopped, hold a pad: the grain's position sweeps and wraps (it was frozen at 0)"
+  },
+  {
+   "say": "QA-INS-089 (the other four, stopped): a sustained sample; Volume, Panning, Finetune, and Cutoff (filter on) each as an LFO, one at a time, 4 steps, 100 %. Hold a pad with the transport stopped: tremolo, left-right movement, vibrato, filter sweep"
+  },
+  {
+   "say": "QA-INS-090 (the start): hold a pad on an instrument with an LFO (stopped, mid-sweep), press Play: the pad's LFO continues, no jump to the start of its period. Then play a pattern with the LFO and compare with 0.5.0: the notes sweep as before"
+  },
+  {
+   "say": "QA-INS-091 ((b), the artefact): the instrument of QA-INS-087; SOURCE Off, Envelope, LFO and back, several takes stopped and running, 8-channel USB capture (RMS and spectral centroid per 100 ms). Every 100 ms must be one of the 8 windows; if a take has the -50..-63 dBFS sound, read `diag inst` (win W/N) and `diag voices` at that moment and report them with the take"
+  },
+  {
+   "cmd": "inst",
+   "note": "(the descriptor's window: ' win W/N' for a wavetable)"
+  },
+  {
+   "cmd": "voices"
+  },
+  {
+   "say": "QA-INS-092..095 (the fields live): an LFO on any destination, a pad held or a pattern playing, MOD page. Turn LFO SHAPE (Saw, Square, Random), LFO SPEED, LFO AMOUNT 0 to 100 %, then SOURCE through Off, Envelope, LFO: each change is heard within a block, with no wait for the pad to be released or the transport to stop"
+  },
+  {
+   "say": "QA-INS-216 (OS-LFOSINE, docs/specs/OS-LFOSINE.md): Sine behaves as the other shapes. An instrument with an LFO on the cutoff (filter on, a noise or saw sample looped), SHAPE Sine, SPEED 4 steps, AMOUNT 100 %, a pad held: a smooth sweep, no step or zipper at the 16-sample control rate; then the same on Volume (tremolo), Pan (autopan), Fine Tune (vibrato) and WT Position. Turn SPEED and AMOUNT, and flip SHAPE between Triangle, Sine and Random while it sounds: the change is heard within a block. The five old shapes sound as they did"
+  },
+  {
+   "say": "QA-INS-217 (OS-LFOSINE): save a project that has a Sine LFO, load it again (File): the shape is Sine; load a project saved by an earlier build: every LFO shape is as before (by hand)"
+  },
+  {
+   "say": "OS-LFOSINE CPU (docs/specs/OS-LFOSINE.md section 6): the reference project t-v16 plus the six LFO destinations on Sine (4 steps, 100 %) against the same with Triangle; each: `diag cpu reset`, play 60 s, `diag cpu`. Expect the Sine run within about 0.1 % of the Triangle run (one quintic per evaluation, 15 cycles); the figures go in the report"
+  },
+  {
+   "say": "QA-INS-096 (CPU, OS-LFOLIVE section 5): the reference project t-v16 plus the TB-303 line, 60 s. Run 1 with the MOD sources of the sampler instruments in use Off or Envelope, run 2 with the six LFO destinations on (Saw, 4 steps, 100 %). Each: `diag cpu reset`, `diag cpu perf off`, play 60 s, `diag cpu`, `diag bench worst`. Then, in run 2, turn LFO SPEED for 10 s"
+  },
+  {
+   "cmd": "cpu reset"
+  },
+  {
+   "cmd": "cpu perf off"
+  },
+  {
+   "cmd": "cpu",
+   "expect": [
+    "underrun 0"
+   ],
+   "note": "(the figures go in the report: render max and mean before and after)"
+  },
+  {
+   "say": "Report: the render max / mean of the two runs, the underruns, FLASH / SRAM_U / SRAM_L deltas from the map, and anything heard that is not in the rows above"
+  }
+ ]
+}

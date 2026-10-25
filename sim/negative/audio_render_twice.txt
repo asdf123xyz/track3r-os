@@ -1,0 +1,6 @@
+# OS-E2E-2: a render name is used once.
+document sound
+audio on
+render n 10
+wait 10
+render n 10

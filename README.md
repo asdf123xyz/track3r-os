@@ -1,0 +1,174 @@
+<p align="center">
+  <img src="ui/assets/boot_logo.png" alt="track3r-os logo" width="300">
+</p>
+
+<h1 align="center">track3r-os</h1>
+
+<p align="center"><b>A new operating system for the Polyend Tracker, written from scratch by the community.</b></p>
+
+<p align="center">
+  <a href="https://github.com/trak3r-os/track3r-os/actions/workflows/ci.yml"><img src="https://github.com/trak3r-os/track3r-os/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg" alt="License: GPL-3.0-or-later"></a>
+  <a href="module/sdk/LICENSE"><img src="https://img.shields.io/badge/module%20SDK-MIT-green.svg" alt="Module SDK: MIT"></a>
+  <img src="https://img.shields.io/badge/C%2B%2B-17-00599C.svg" alt="C++17">
+  <img src="https://img.shields.io/badge/target-MK66%20Cortex--M4F-lightgrey.svg" alt="Target: MK66 Cortex-M4F">
+  <img src="https://img.shields.io/badge/status-pre--release-orange.svg" alt="Status: pre-release">
+</p>
+
+<p align="center">
+  <img src="docs/img/readme/pattern_typical.png" alt="The Pattern screen" width="720">
+</p>
+
+> **Unofficial.** track3r-os is unofficial community firmware for the Polyend Tracker. It is not affiliated with or endorsed by Polyend. "Polyend" and "Tracker" are used only to describe hardware compatibility. Installing third-party firmware is at your own risk; keep the official firmware at hand so you can go back.
+
+## What is it?
+
+track3r-os replaces the software that runs on the Tracker. You keep the hardware you know: the pads, the encoder, the screen and the keys. On top of it you get a tracker that keeps growing:
+- **Your old projects open.** Projects saved by the original firmware still load.
+- **It speaks the classic formats.** It imports MOD, S3M and MED songs.
+- **You can add to it from the SD card.** New instruments, effects and small apps load as modules.
+- **It is open.** Anyone can read the code, build it and improve it.
+
+It is a **pre-release**: it runs on real hardware and is tested on a unit, but some parts are still being built. The list of what's done and what's next is in [docs/roadmap/BACKLOG.md](docs/roadmap/BACKLOG.md).
+
+## Screens
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/img/readme/song_typical.png" alt="Song" width="400"><br><sub><b>Song</b>: arrange your patterns</sub></td>
+    <td align="center"><img src="docs/img/readme/params_env.png" alt="Instrument" width="400"><br><sub><b>Instrument</b>: envelopes, filter, LFO</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/img/readme/wave_wavetable.png" alt="Wavetable" width="400"><br><sub><b>Wave</b>: samples, slices and wavetables</sub></td>
+    <td align="center"><img src="docs/img/readme/sampleedit_typical.png" alt="Sample editor" width="400"><br><sub><b>Sample edit</b>: cut, shape, convert</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/img/readme/mixer_typical.png" alt="Mixer" width="400"><br><sub><b>Mixer</b>: levels, sends, master limiter</sub></td>
+    <td align="center"><img src="docs/img/readme/perform_typical.png" alt="Perform" width="400"><br><sub><b>Perform</b>: scenes and live effects</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/img/readme/record_recording.png" alt="Record" width="400"><br><sub><b>Record</b>: sample from line in, mic, radio or the mix</sub></td>
+    <td align="center"><img src="docs/img/readme/file_export_stems.png" alt="Export" width="400"><br><sub><b>File</b>: export WAV, one file per track</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/img/readme/modules_app.png" alt="An app running" width="400"><br><sub><b>Apps</b>: small tools that run on the device</sub></td>
+    <td align="center">
+      <img src="docs/img/readme/theme_black.png" alt="Black theme" width="196">
+      <img src="docs/img/readme/theme_white.png" alt="White theme" width="196"><br><sub><b>Themes</b>: Amiga, Black and White</sub>
+    </td>
+  </tr>
+</table>
+
+## Features
+
+### Make patterns
+- **12 tracks.** Each step holds a note, an instrument, a volume and **two effects**. Patterns run up to 128 steps, and the song can chain up to 255 positions.
+- **More than 60 effects:** the ones the official manual documents, plus classic tracker effects (arpeggio, slides, retrigger, tremor, channel and global volume, panning), chords, arpeggios, swing, gate length, glide, overdrive and bit depth.
+- **Three ways to record:**
+  - **WATCH** just follows the song.
+  - **STEP** writes where the cursor is, with the song still playing.
+  - **LIVE** writes where the music is, with a count-in, a metronome, quantize and microtiming.
+- **Pads that play the way you want:** notes in a scale, piano layout, isomorphic layout, or one pad per track.
+- **Pattern tools:** fill dialogs (including Euclidean rhythms), block select, copy and paste, and a **TOOLS** menu with export and the editing apps.
+- **Undo and redo** for every edit, and names for tracks, patterns and the project.
+
+### Shape sounds
+- **64 instruments**, each one of three kinds:
+  - **sample instruments**, with one shot, loop, slices, beat slices, wavetable and granular playback, on a modern engine or an Amiga-style one;
+  - **MIDI instruments**, which play your other gear;
+  - **module instruments**, loaded from the card.
+- **Built-in synth modules:** a TB-303-style bass line, an FM synth and a chip-tune voice.
+- **Per instrument:** filter, envelopes, LFO, glide, overdrive and bit depth.
+- **Samples in any common format and rate:** WAV, AIFF and IFF 8SVX, at any sample rate, always in tune. On a stereo file you choose left, right or both.
+
+### Mix and perform
+- **Mixer:** levels, mute and solo, a delay send and a reverb send per track, and a master limiter.
+- **Perform screen:** scenes you can store and recall, plus live effects.
+- **Record screen:** sample from line in, the microphone, the FM radio or the Tracker's own output (resampling).
+
+### Files and compatibility
+- **Projects:** open, save, save as and new, with a list of recent projects. Deleting is safe: a deleted project is only hidden, so you can get it back from a computer.
+- **Projects of the original firmware open**, so your old work comes with you.
+- **Import MOD, S3M and MED songs**, with a report of what was kept and what changed.
+- **Export to WAV:** the song, one pattern or a selection, or **stems** (one file per track, plus delay, reverb and the full mix), ready for your DAW.
+
+### Modules and apps
+- **Extend the Tracker from the SD card** with `.tmod` modules: instruments, effects, file importers and **apps**.
+- **Apps included:** tap tempo and BPM calculator, MIDI monitor, loudness meter, rhythm generator (Euclidean, polyrhythms, probability), chord progressions, humanize, mutate and morph.
+- **Every app edit is undoable**, and apps can never touch your files.
+- **Write your own:** the module SDK is MIT-licensed and documented in [docs/guides/app-modules.md](docs/guides/app-modules.md).
+
+### Connections
+- **USB MIDI and USB audio**, including multitrack audio to your computer.
+- **MIDI DIN** in and out.
+- **MIDI clock** in and out.
+- **MIDI learn** for parameters.
+
+### Under the hood
+- **A headless simulator** draws every screen. The screenshots on this page come from it, and so do the tests of the user interface.
+- **More than 3,000 automated test cases**, run on a computer, in an emulator (QEMU) and on the real hardware.
+- **CPU headroom is measured on the unit** before a feature is merged.
+
+## Get started
+
+- **Install:** read the [install guide](docs/manual/install.md) first. It covers installing from the official firmware, updating, and going back.
+- **Learn it:** the [user manual](docs/manual/index.md) is being written, one chapter per screen.
+
+## Build it yourself
+
+You need CMake 3.20 or newer and a C++17 compiler. For the device you also need the **Arm GNU Toolchain 15.3.Rel1**, and QEMU (`qemu-system-arm`) for the emulator tests. Details are in [docs/toolchain.md](docs/toolchain.md).
+
+```sh
+# Host build and tests
+cmake -S . -B build-host
+cmake --build build-host -j4
+ctest --test-dir build-host -j4
+
+# Everything (host, emulator, device image), the way CI runs it
+export ARM_GNU_ROOT=/path/to/arm-gnu-toolchain-15.3.rel1-x86_64-arm-none-eabi
+tools/ci.sh host
+tools/ci.sh qemu
+tools/ci.sh mk66        # builds the device image, platform/mk66/o3os.hex
+```
+
+If you don't have the toolchain yet, `tools/ci.sh toolchain` downloads it, checks its signature and installs it into `.toolchains/`.
+
+<details>
+<summary>Repository layout</summary>
+
+| Path | What |
+|---|---|
+| `app/` | screens, actions and key bindings |
+| `audio/` | audio engine, voices, effects |
+| `core/`, `model/`, `seq/` | events and actions; the project model, editor and undo; the sequencer |
+| `formats/` | the native project format, original-firmware projects, MOD/S3M/MED |
+| `module/`, `modules/` | the module host and SDK; built-in and example modules |
+| `platform/` | the MK66 board, QEMU, the update path, hardware-in-the-loop tools |
+| `sim/` | the headless simulator and its scenarios |
+| `ui/`, `eve/` | widgets, themes and assets; the FT812 display driver |
+| `midi/`, `usb/`, `hal/` | MIDI, the USB device stack, hardware interfaces |
+| `tests/` | host tests |
+| `docs/` | specs, ADRs, file formats, UI map, QA catalogue, guides, user manual |
+
+</details>
+
+## Documentation
+
+- [Install guide](docs/manual/install.md) and [user manual](docs/manual/index.md)
+- [Writing modules and apps](docs/guides/app-modules.md), [module SDK](docs/guides/module-sdk.md)
+- [File formats](docs/formats/), [design decisions (ADRs)](docs/adr/), [feature specs](docs/specs/)
+- [QA catalogue](docs/qa/catalogue/README.md): every function, its key, the expected result and its test
+
+## Contributing
+
+Read [CLAUDE.md](CLAUDE.md). It is the working agreement for people and AI agents alike: hard rules, risk levels, tests and branches. In short:
+- one branch per change, starting from `dev`;
+- tests for pure logic;
+- no change to a saved file format without a version bump and a round-trip test;
+- no code or assets taken from the official firmware; its on-screen labels and file formats are used for compatibility, and every claim about its behaviour must be marked as observed (with its evidence), documented in the official manual, or an open research question.
+
+## Licence
+
+**GPL-3.0-or-later** (see [LICENSE](LICENSE)). The module SDK in `module/sdk/` is **MIT**, so modules can use any licence. Third-party components and their licences are listed in [THIRD_PARTY.md](THIRD_PARTY.md). Every binary release names the source revision it was built from.
+
+Authors: see [AUTHORS](AUTHORS).

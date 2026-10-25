@@ -1,0 +1,936 @@
+{
+ "name": "qa_wavexp",
+ "title": "OS-WAVEXP slices A and B, rows QA-FIL-020..025, QA-FIL-050..057, QA-PAT-180 and QA-PAT-185..189 of docs/qa/catalogue: the WAV export of the song, a pattern, its stems and the Pattern's selection from the File screen's EXPORT page and the Pattern TOOLS list on the test card (the page, the progress overlay and its captured keys, the numbering, the transport stopping, a cancel that leaves no file, a set of stems cancelled at a file, the selection's tools entry); the files are listened to on a PC by hand",
+ "needs": [
+  "card"
+ ],
+ "steps": [
+  {
+   "say": "OS-WAVEXP slice A, rows QA-FIL-020..025 and QA-PAT-180 of docs/qa/catalogue: the WAV export of the song and of a pattern from the File screen's EXPORT page, on the card in the unit (the card is checked first; it WRITES Export/<project>/ on the card and nothing else). Run it with the t-v16 project on the card. Listen to the files on a PC afterwards (QA-FIL-021). The runs of this scenario make _0001 to _0003 and cancel a fourth: a card that already holds Export/t-v16-copy numbers on from its last file; the checks read the numbers from the strip."
+  },
+  {
+   "card": {}
+  },
+  {
+   "run": "_load_tv16"
+  },
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.2,
+   "note": "(Shift released, in case a former run left it down)"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "NAVIGATOR"
+   },
+   "note": "(a leftover Navigator is closed)"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "~^(LEARN|PATTERN_CHOOSER|LENGTH_CHOOSER|JUMP_CHOOSER|MODULE_PICKER|STEP_POPUP|FILL|PLAY_MODE|TOOLS|EXPORT_PROGRESS)$"
+   },
+   "note": "(a leftover overlay is put away: F8 is Back, or CANCEL on an export)"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.4
+  },
+  {
+   "state": {
+    "screen": "PATTERN"
+   },
+   "within": 3
+  },
+  {
+   "run": "_stop"
+  },
+  {
+   "cmd": "cpu reset",
+   "note": "(the counters start from zero: an export must not leave an underrun behind in the live render that resumes)"
+  },
+  {
+   "say": "QA-FIL-020: File, F7 EXPORT opens the EXPORT page. The key row reads EXPORT - - SAVE SAVE AS IMPORT PROJECTS -; five rows, SONG, PATTERN nn (nn is the Pattern screen's pattern), SONG STEMS, PATT STEMS nn and OG PROJECT (this scenario presses F1 on the first four only); the card shows the file F1 would make."
+  },
+  {
+   "keys": [
+    "file"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "screen": "FILE"
+   },
+   "within": 4
+  },
+  {
+   "keys": [
+    "f6",
+    "f6"
+   ],
+   "gap": 0.4,
+   "note": "(the File screen keeps its page when it is left: F6 twice ends on PROJECTS from EXPORT or PROJECTS, so that the F7 below is EXPORT, not PROJECTS back)"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.6,
+   "note": "QA-FIL-020: EXPORT"
+  },
+  {
+   "wait": 1.0
+  },
+  {
+   "shot": "qa_fil_020",
+   "compare": {
+    "sim_scenario": "sim/scenarios/qa/qa_file.txt",
+    "snap": "qa_fil_020",
+    "regions": [
+     "0,458,800,22"
+    ],
+    "tol": 24,
+    "aa": 1,
+    "max_bad": 0.005
+   },
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-FIL-020: the key row is the page's (the simulator's picture is the same row); the card shows the next free file name of the test card"
+  },
+  {
+   "keys": [
+    "up"
+   ],
+   "repeat": 6,
+   "gap": 0.2,
+   "note": "the EXPORT page keeps the row it was left on (a former run ends on the last row): Up stops at the first row, SONG"
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.4,
+   "note": "the PATTERN row (one Down from SONG)"
+  },
+  {
+   "enc": 1,
+   "gap": 0.4,
+   "note": "the encoder: the next pattern that exists (the number moves, and the file name with it)"
+  },
+  {
+   "enc": -1,
+   "gap": 0.4
+  },
+  {
+   "shot": "qa_fil_020_pattern",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-FIL-020: the PATTERN row; the file name is Export/<project>/<project>_P<n>_NNNN.WAV"
+  },
+  {
+   "say": "QA-FIL-021 / 022: F1 on the PATTERN row. The transport is stopped, the progress overlay comes up (title, file, PASS 1 OF 2 then PASS 2 OF 2, a bar), the strip's badge says EXPORTING. The first pattern may be a few seconds long: a long one takes about as long as it plays, twice (the measuring pass and the writing pass)."
+  },
+  {
+   "state": {
+    "screen": "FILE",
+    "overlay": "~^(NONE|NOTIFY)$",
+    "sel": "-"
+   },
+   "within": 3,
+   "note": "start guard, before F1: the File screen on its EXPORT page with no overlay over it (sel is - there: the PROJECTS and IMPORT pages name the entry under the cursor, so a wrong page fails here as a wrong start, not later as an export that did not come up); the EXPORT row has no field in the state line (follow-up), the ogexp status check after F1 stays for it"
+  },
+  {
+   "cmd": "ogexp status",
+   "expect_not": "ogexp: RUNNING",
+   "note": "start guard, before F1: no OG PROJECT export is running (a leftover job refuses the next export or is read as this one's progress); the row under the cursor is checked after F1, the state line has no field for it"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "overlay": "EXPORT_PROGRESS"
+   },
+   "within": 3
+  },
+  {
+   "shot": "qa_fil_022",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-FIL-022: the dialog EXPORTING A PATTERN, the file name, the pass, the bar; the key row F8 CANCEL; the strip says EXPORTING"
+  },
+  {
+   "keys": [
+    "play",
+    "pattern",
+    "song",
+    "f1",
+    "f2",
+    "f7",
+    "up",
+    "down",
+    "left",
+    "right",
+    "rec"
+   ],
+   "gap": 0.25,
+   "note": "QA-FIL-022: every other key does nothing under the overlay"
+  },
+  {
+   "pad": 5,
+   "gesture": "tap"
+  },
+  {
+   "enc": 3
+  },
+  {
+   "state": {
+    "screen": "FILE",
+    "overlay": "EXPORT_PROGRESS",
+    "playing": "0",
+    "seq": "0"
+   },
+   "within": 3,
+   "note": "QA-FIL-022: still the File screen under the overlay, nothing started, the transport stopped"
+  },
+  {
+   "cmd": "ogexp status",
+   "expect_not": "ogexp: RUNNING",
+   "note": "QA-FIL-021: the OG PROJECT export is not running: this press was meant for another row (the EXPORT page has five rows since OS-FILES-C C2c, OG PROJECT the last, and the page keeps the row it was left on); if it is running, this step fails and the finally cancels it"
+  },
+  {
+   "state": {
+    "msg": "~^SAVED_EXPORT/.+_P[0-9]+_[0-9]{4}\\.WAV$",
+    "overlay": "NONE"
+   },
+   "within": 300,
+   "poll": 2.0,
+   "note": "QA-FIL-021: SAVED EXPORT/<PROJECT>/<PROJECT>_P<n>_NNNN.WAV on the strip, the overlay gone"
+  },
+  {
+   "shot": "qa_fil_021_done",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-FIL-021: the EXPORT page again; the card now shows the NEXT number"
+  },
+  {
+   "cmd": "ls Export/t-v16-copy",
+   "expect": [
+    "(?i)_P[0-9]+_[0-9]{4}\\.wav"
+   ],
+   "expect_not": [
+    "(?i)_o3save\\.tmp"
+   ],
+   "show": true,
+   "note": "QA-FIL-021: the file is on the card, and no temporary file"
+  },
+  {
+   "say": "QA-FIL-021: copy Export/t-v16-copy/*.wav to a PC and play it: it must have the pattern's pitch and speed, the delay and reverb tails, and end without a click."
+  },
+  {
+   "state": {
+    "screen": "FILE",
+    "overlay": "~^(NONE|NOTIFY)$",
+    "sel": "-"
+   },
+   "within": 3,
+   "note": "start guard, before F1: the File screen on its EXPORT page (sel is -), no overlay"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.5,
+   "note": "QA-FIL-021: the same export again makes the next number, never over the first"
+  },
+  {
+   "state": {
+    "overlay": "EXPORT_PROGRESS"
+   },
+   "within": 3
+  },
+  {
+   "state": {
+    "msg": "~^SAVED_EXPORT/.+_P[0-9]+_[0-9]{4}\\.WAV$",
+    "overlay": "NONE"
+   },
+   "within": 300,
+   "poll": 2.0,
+   "snap": "second"
+  },
+  {
+   "cmd": "ls Export/t-v16-copy",
+   "expect": [
+    "(?i)_P[0-9]+_0002\\.wav",
+    "(?i)_P[0-9]+_0001\\.wav"
+   ],
+   "soft": true,
+   "show": true,
+   "note": "QA-FIL-021: _0002 beside _0001 on a card that had none before (a card with older exports numbers on)"
+  },
+  {
+   "say": "QA-FIL-025: the pattern plays, then F1 on the EXPORT page: the transport stops first and stays stopped."
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.4
+  },
+  {
+   "keys": [
+    "play"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "playing": "1",
+    "seq": "1"
+   },
+   "within": 3
+  },
+  {
+   "keys": [
+    "file"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "screen": "FILE",
+    "overlay": "~^(NONE|NOTIFY)$",
+    "sel": "-"
+   },
+   "within": 3,
+   "note": "start guard, before F1: the File screen on its EXPORT page (sel is -), no overlay"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.3,
+   "note": "QA-FIL-025: the transport is stopped before the render starts"
+  },
+  {
+   "state": {
+    "overlay": "EXPORT_PROGRESS"
+   },
+   "within": 3
+  },
+  {
+   "state": {
+    "playing": "0",
+    "seq": "0"
+   },
+   "within": 5,
+   "note": "QA-FIL-025: the badge and the sequencer say stopped"
+  },
+  {
+   "state": {
+    "msg": "~^SAVED_EXPORT/",
+    "overlay": "NONE",
+    "playing": "0",
+    "seq": "0"
+   },
+   "within": 300,
+   "poll": 2.0,
+   "note": "QA-FIL-025: it ends, and the transport stays stopped"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.4
+  },
+  {
+   "keys": [
+    "play"
+   ],
+   "gap": 0.5,
+   "note": "the live audio and the play line are back: Play starts the pattern again"
+  },
+  {
+   "state": {
+    "playing": "1",
+    "seq": "1"
+   },
+   "within": 3
+  },
+  {
+   "mix": {
+    "min_tracks": 1,
+    "within": 5
+   },
+   "soft": true,
+   "note": "the live render is running again: a track meter sounds"
+  },
+  {
+   "run": "_stop"
+  },
+  {
+   "say": "QA-FIL-023: F8 in the middle of an export. The strip says EXPORT CANCELLED, the overlay goes, no file is made under the final name and no temporary file is left."
+  },
+  {
+   "keys": [
+    "file"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "screen": "FILE",
+    "overlay": "~^(NONE|NOTIFY)$",
+    "sel": "-"
+   },
+   "within": 3,
+   "note": "start guard, before F1: the File screen on its EXPORT page (sel is -), no overlay"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.3
+  },
+  {
+   "state": {
+    "overlay": "EXPORT_PROGRESS"
+   },
+   "within": 3
+  },
+  {
+   "wait": 4.0,
+   "note": "(inside the first pass or the second of a short pattern: either is a cancel in the middle)"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "EXPORT_PROGRESS"
+   }
+  },
+  {
+   "state": {
+    "msg": "~^(EXPORT_CANCELLED|SAVED_EXPORT/)",
+    "overlay": "NONE"
+   },
+   "within": 15,
+   "note": "QA-FIL-023: EXPORT CANCELLED (a pattern short enough to end first says SAVED: choose a longer one and run again)"
+  },
+  {
+   "cmd": "ls Export/t-v16-copy",
+   "expect_not": [
+    "(?i)_o3save\\.tmp"
+   ],
+   "show": true,
+   "note": "QA-FIL-023: no temporary file, and no file of the cancelled number"
+  },
+  {
+   "shot": "qa_fil_023",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-FIL-023: the EXPORT page, the strip says EXPORT CANCELLED"
+  },
+  {
+   "say": "QA-FIL-024 BY HAND: pull the card (or fill it) in the middle of an export: the strip says EXPORT FAILED: <why>, the overlay goes, no file under the final name. On a write-protected card the strip says CARD IS WRITE PROTECTED and nothing starts."
+  },
+  {
+   "say": "QA-FIL-063 BY HAND (OS-EXPNOTE): from a computer send a MIDI note-on on channel 10 (note 48) and no note-off, then F1 on the EXPORT page: the export runs, and when it ends the strip says SAVED ... and then, as its own line, STOPPED MIDI CH10 C-4; the file holds no trace of the note. Repeat with a pad held down (STOPPED PAD <note>), also a pad on a MIDI instrument (the external synth's note stops when the export starts) and with three notes held (the oldest named, then +2). Play keys during the export: they are not in the file and do not sound after it. Send the late note-off: nothing happens and the next pad plays normally. Record the hold and the strip text in the session report."
+  },
+  {
+   "say": "QA-PAT-180: Pattern F7 TOOLS / EXPORT PATTERN is the same export from the Pattern screen (the action export.pattern). F7 opens the TOOLS list with the cursor on EXPORT PATTERN, the OS's own entry above a rule; the tool apps (if any are on the card) are below it. F1 closes the list and the progress overlay comes up over Pattern, as in QA-FIL-021 / 022, for the pattern in view."
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.4
+  },
+  {
+   "state": {
+    "screen": "PATTERN",
+    "overlay": "NONE"
+   },
+   "within": 3
+  },
+  {
+   "run": "_stop"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.5,
+   "note": "QA-PAT-180: F7 TOOLS"
+  },
+  {
+   "state": {
+    "overlay": "TOOLS"
+   },
+   "within": 3
+  },
+  {
+   "shot": "qa_pat_180",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-PAT-180: the TOOLS list, EXPORT PATTERN first with the cursor on it, a rule below it (and the tool apps under the rule when the card has them)"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.5,
+   "note": "QA-PAT-180: F1 on EXPORT PATTERN"
+  },
+  {
+   "state": {
+    "overlay": "EXPORT_PROGRESS"
+   },
+   "within": 3,
+   "note": "QA-PAT-180: the list is gone, the progress overlay is up over Pattern"
+  },
+  {
+   "state": {
+    "msg": "~^SAVED_EXPORT/.+_P[0-9]+_[0-9]{4}\\.WAV$",
+    "overlay": "NONE"
+   },
+   "within": 300,
+   "poll": 2.0,
+   "note": "QA-PAT-180: SAVED EXPORT/<PROJECT>/<PROJECT>_P<n>_NNNN.WAV on the strip, the overlay gone"
+  },
+  {
+   "cmd": "ls Export/t-v16-copy",
+   "expect": [
+    "(?i)_P[0-9]+_[0-9]{4}\\.wav"
+   ],
+   "expect_not": [
+    "(?i)_o3save\\.tmp"
+   ],
+   "show": true,
+   "note": "QA-PAT-180: the file is on the card, and no temporary file"
+  },
+  {
+   "say": "QA-FIL-025, by hand: with a MIDI instrument on a pad (an external synth on the MIDI out), hold the pad, start an export from the File page with the other hand is not possible (the overlay captures pads), so start it with the pad released, and release a pad pressed JUST before F1: the external note ends when the export ends (the release waits in the live queue and is sent when the engine is back). With CLOCK IN on and a master clocking the unit, the transport does not start by itself when the export ends and the loop locks again within a second."
+  },
+  {
+   "say": "OS-WAVEXP slice B, rows QA-FIL-050..057 and QA-PAT-185..189 of docs/qa/catalogue: STEMS from the File screen's EXPORT page (SONG STEMS, PATT STEMS nn) and EXPORT SELECTION from Pattern F7 TOOLS, on the TEST CARD (it WRITES Export/<project>/ and nothing else). Run it with the t-v16 project on the card, after the slice A steps above (the transport is stopped, the Pattern screen). A set is one file per audio track that plays a note in the pattern (T01..T12), the delay and the reverb when an instrument sends to them, and the MIX, all in Export/<project>/ as <project>_P<n>_S0001_T01.wav ... _MIX.wav (the project part cut to 13 characters). The sets of this scenario make S0001, S0002 and a cancelled S0003: a card with older exports numbers on, and the checks read the numbers from the strip."
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.4
+  },
+  {
+   "state": {
+    "screen": "PATTERN",
+    "overlay": "NONE"
+   },
+   "within": 3
+  },
+  {
+   "run": "_stop"
+  },
+  {
+   "say": "QA-FIL-050: File, F7 EXPORT, then Up to the first row and Down three times: the rows are SONG, PATTERN nn, SONG STEMS, PATT STEMS nn and (OS-FILES-C C2c, never pressed here) OG PROJECT; the encoder on PATT STEMS changes nn, on SONG STEMS it does nothing; the card shows Export/<project>/<project>_P<n>_S0001_*.WAV (the star stands for the labels T01.., DELAY, REVERB, MIX)."
+  },
+  {
+   "keys": [
+    "file"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "screen": "FILE"
+   },
+   "within": 4
+  },
+  {
+   "keys": [
+    "f6",
+    "f6"
+   ],
+   "gap": 0.4,
+   "note": "(the File screen keeps its page when it is left: the EXPORT page of the steps above is still open, and F7 there is PROJECTS, back. F6 twice ends on the PROJECTS page from any page: from EXPORT or PROJECTS: -> IMPORT -> PROJECTS; from IMPORT it would end on IMPORT, where F7 is the import engine; the File page is not in the state line)"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.6,
+   "note": "EXPORT, whichever page the scenario started on"
+  },
+  {
+   "keys": [
+    "up"
+   ],
+   "repeat": 6,
+   "gap": 0.2,
+   "note": "the EXPORT page keeps the row it was left on: Up stops at the first row, SONG, whatever row that was (counting from the top, not from the last row, which is OG PROJECT since OS-FILES-C C2c)"
+  },
+  {
+   "keys": [
+    "down",
+    "down",
+    "down"
+   ],
+   "gap": 0.4,
+   "note": "QA-FIL-050: the PATT STEMS row (the fourth of five: SONG, PATTERN nn, SONG STEMS, PATT STEMS nn, OG PROJECT; the OG row is never pressed here)"
+  },
+  {
+   "wait": 1.0
+  },
+  {
+   "shot": "qa_fil_050",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-FIL-050: five rows, PATT STEMS (the fourth) under the cursor, the set's name on the card (golden gallery/file_export_stems for the picture)"
+  },
+  {
+   "say": "QA-FIL-051 / 052: F1 on PATT STEMS. The transport is stopped, the progress overlay says EXPORTING A PATTERN'S STEMS with FILE n OF m and the part being written (T01, T02, ..., MIX), the bar covers the whole set and never falls, F8 CANCEL is the only key. A set of m files is m + 1 passes: the first file measures the MIX's length (FILE 1 OF m measuring the length), the others write at once."
+  },
+  {
+   "state": {
+    "screen": "FILE",
+    "overlay": "~^(NONE|NOTIFY)$",
+    "sel": "-"
+   },
+   "within": 3,
+   "note": "start guard, before F1: the File screen on its EXPORT page with no overlay over it (sel is - there: the PROJECTS and IMPORT pages name the entry under the cursor, so a wrong page fails here as a wrong start, not later as an export that did not come up); the EXPORT row has no field in the state line (follow-up), the ogexp status check after F1 stays for it"
+  },
+  {
+   "cmd": "ogexp status",
+   "expect_not": "ogexp: RUNNING",
+   "note": "start guard, before F1: no OG PROJECT export is running (a leftover job refuses the next export or is read as this one's progress); the row under the cursor is checked after F1, the state line has no field for it"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "overlay": "EXPORT_PROGRESS"
+   },
+   "within": 3
+  },
+  {
+   "wait": 3.0
+  },
+  {
+   "cmd": "ogexp status",
+   "expect_not": "ogexp: RUNNING",
+   "note": "QA-FIL-051: the OG PROJECT export is not running: this press was meant for another row (the EXPORT page has five rows since OS-FILES-C C2c, OG PROJECT the last, and the page keeps the row it was left on); if it is running, this step fails and the finally cancels it"
+  },
+  {
+   "shot": "qa_fil_052",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-FIL-052: the dialog EXPORTING A PATTERN'S STEMS, the file pattern, FILE n OF m and the part, the bar; the strip says EXPORTING"
+  },
+  {
+   "state": {
+    "msg": "~^SAVED_[0-9]+_STEMS_",
+    "overlay": "NONE"
+   },
+   "within": 900,
+   "poll": 2.0,
+   "note": "QA-FIL-051: SAVED n STEMS EXPORT/<PROJECT>/<PROJECT>_P<n>_S0001_*.WAV on the strip, the overlay gone"
+  },
+  {
+   "cmd": "ls Export/t-v16-copy",
+   "expect": [
+    "(?i)_P[0-9]+_S0001_T01\\.wav",
+    "(?i)_P[0-9]+_S0001_MIX\\.wav"
+   ],
+   "expect_not": [
+    "(?i)_o3save\\.tmp"
+   ],
+   "show": true,
+   "note": "QA-FIL-051: the files of the set are on the card, the MIX last, and no temporary file"
+  },
+  {
+   "say": "QA-FIL-051, QA-FIL-056 BY HAND: copy Export/t-v16-copy/*_S0001_*.wav to a PC. (1) Every file has the same length to the frame (the length of the MIX: a DAW lines them up at the start of the pattern). (2) A T file is that one track alone, sends off: solo the same track on the unit and listen. (3) The DELAY and REVERB files are the effects' returns only (no dry sound). (4) A track with no note in the pattern, a MIDI track and a bus nothing sends to have no file. (5) Load the T, DELAY and REVERB files into a DAW and sum them: they equal the MIX while the limiter is idle (a loud mix limited as a whole is not the sum of stems limited one by one)."
+  },
+  {
+   "state": {
+    "screen": "FILE",
+    "overlay": "~^(NONE|NOTIFY)$",
+    "sel": "-"
+   },
+   "within": 3,
+   "note": "start guard, before F1: the File screen on its EXPORT page (sel is -), no overlay"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.5,
+   "note": "QA-FIL-051: the same set again makes the next number, never over the first"
+  },
+  {
+   "state": {
+    "overlay": "EXPORT_PROGRESS"
+   },
+   "within": 3
+  },
+  {
+   "wait": 3.0,
+   "note": "(the OG export, had this been its row, would be running by now)"
+  },
+  {
+   "cmd": "ogexp status",
+   "expect_not": "ogexp: RUNNING",
+   "note": "QA-FIL-051: the OG PROJECT export is not running: this press was meant for another row (the EXPORT page has five rows since OS-FILES-C C2c, OG PROJECT the last, and the page keeps the row it was left on); if it is running, this step fails and the finally cancels it"
+  },
+  {
+   "state": {
+    "msg": "~^SAVED_[0-9]+_STEMS_",
+    "overlay": "NONE"
+   },
+   "within": 900,
+   "poll": 2.0
+  },
+  {
+   "cmd": "ls Export/t-v16-copy",
+   "expect": [
+    "(?i)_S0002_MIX\\.wav",
+    "(?i)_S0001_MIX\\.wav"
+   ],
+   "soft": true,
+   "show": true,
+   "note": "QA-FIL-051: S0002 beside S0001 on a card that had none before (a card with older sets numbers on)"
+  },
+  {
+   "say": "QA-FIL-053: F8 during a set. The strip says CANCELLED: n OF m STEMS SAVED; the files already finished stay, the file being written is not on the card, no _o3save.tmp is left, the live audio comes back with no click, and the mixer is as the project has it (a muted track stays muted, a solo stays). Press F8 about ten seconds in, then again at the start of the next set and in its last file."
+  },
+  {
+   "state": {
+    "screen": "FILE",
+    "overlay": "~^(NONE|NOTIFY)$",
+    "sel": "-"
+   },
+   "within": 3,
+   "note": "start guard, before F1: the File screen on its EXPORT page (sel is -), no overlay"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.4
+  },
+  {
+   "state": {
+    "overlay": "EXPORT_PROGRESS"
+   },
+   "within": 3
+  },
+  {
+   "wait": 10.0,
+   "note": "(inside a file of the set: a short pattern may be through its first files by now)"
+  },
+  {
+   "cmd": "ogexp status",
+   "expect_not": "ogexp: RUNNING",
+   "note": "QA-FIL-053: the OG PROJECT export is not running: this press was meant for another row (the EXPORT page has five rows since OS-FILES-C C2c, OG PROJECT the last, and the page keeps the row it was left on); if it is running, this step fails and the finally cancels it"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "EXPORT_PROGRESS"
+   }
+  },
+  {
+   "state": {
+    "msg": "~^(CANCELLED:_[0-9]+_OF_[0-9]+_STEMS_SAVED|SAVED_[0-9]+_STEMS_)",
+    "overlay": "NONE"
+   },
+   "within": 30,
+   "note": "QA-FIL-053: CANCELLED: n OF m STEMS SAVED (a pattern short enough to end first says SAVED: choose a longer one and run again)"
+  },
+  {
+   "cmd": "ls Export/t-v16-copy",
+   "expect_not": [
+    "(?i)_o3save\\.tmp"
+   ],
+   "show": true,
+   "note": "QA-FIL-053: no temporary file; the files of S0003 are the finished ones only"
+  },
+  {
+   "shot": "qa_fil_053",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-FIL-053: the EXPORT page, the strip says CANCELLED: n OF m STEMS SAVED"
+  },
+  {
+   "say": "QA-FIL-054 BY HAND: fill the card (or pull it) in the middle of a set: the strip says EXPORT FAILED: <why> (n OF m) with n the files already saved, the overlay goes, the files before the failing one stay, no partial file and no _o3save.tmp. The next set takes the next number."
+  },
+  {
+   "say": "QA-FIL-057: the mixer after an export. Mute one track and solo another in the Mixer, run a set (or cancel one), and look at the Mixer: the mute and the solo are as they were, and the live playback of the pattern sounds as before the export (the unit sets the mutes, the solo and the three master mutes for each file and puts the project's values back after every file)."
+  },
+  {
+   "say": "QA-PAT-185: Pattern, Shift + Down (a block), F7 TOOLS. The list shows EXPORT PATTERN, DUPLICATE x2, EXPAND x2 and SHRINK /2, and under them EXPORT SELECTION, then the rule; the cursor opens on EXPORT PATTERN. Without a block (Delete, or leave and come back) the list has the same four entries and no EXPORT SELECTION."
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.4
+  },
+  {
+   "state": {
+    "screen": "PATTERN",
+    "overlay": "NONE"
+   },
+   "within": 3
+  },
+  {
+   "run": "_stop"
+  },
+  {
+   "keys": [
+    "+shift",
+    "down",
+    "down",
+    "down",
+    "-shift"
+   ],
+   "gap": 0.3,
+   "note": "QA-PAT-185: a block of four rows on the cursor's track"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "overlay": "TOOLS"
+   },
+   "within": 3
+  },
+  {
+   "shot": "qa_pat_185",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-PAT-185: the TOOLS list with EXPORT PATTERN, DUPLICATE x2, EXPAND x2, SHRINK /2 and EXPORT SELECTION above the rule (golden qa_pat_185)"
+  },
+  {
+   "say": "QA-PAT-186 / 187 / 188: F1 on EXPORT SELECTION (Down four times, past DUPLICATE x2, EXPAND x2 and SHRINK /2, then F1). The progress overlay says EXPORTING THE SELECTION; it ends with SAVED EXPORT/<PROJECT>/<PROJECT>_SEL0001.WAV; the file is the block's tracks only, from the block's first row to the end of its last row, with a sharp start (nothing of the rows before it) and its tail cut at the first silence (no long silence appended). Listen to it on a PC. A block of one row, one that starts on the pattern's last row, and one that runs past the end all export (the rows are cut to the pattern); a second selection is _SEL0002."
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.3,
+   "repeat": 4,
+   "note": "the cursor on EXPORT SELECTION (below EXPORT PATTERN, DUPLICATE x2, EXPAND x2, SHRINK /2: PAT-OPS-A)"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "overlay": "EXPORT_PROGRESS"
+   },
+   "within": 3
+  },
+  {
+   "state": {
+    "msg": "~^SAVED_EXPORT/.+_SEL[0-9]{4}\\.WAV$",
+    "overlay": "NONE"
+   },
+   "within": 300,
+   "poll": 2.0,
+   "note": "QA-PAT-186: SAVED EXPORT/<PROJECT>/<PROJECT>_SEL0001.WAV on the strip, the overlay gone"
+  },
+  {
+   "cmd": "ls Export/t-v16-copy",
+   "expect": [
+    "(?i)_SEL[0-9]{4}\\.wav"
+   ],
+   "expect_not": [
+    "(?i)_o3save\\.tmp"
+   ],
+   "show": true,
+   "note": "QA-PAT-187: the selection's file is on the card, and no temporary file"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.5,
+   "note": "QA-PAT-189: the block is still there after the export: the entry is still listed"
+  },
+  {
+   "state": {
+    "overlay": "TOOLS"
+   },
+   "within": 3
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.4
+  },
+  {
+   "state": {
+    "overlay": "NONE"
+   },
+   "within": 3
+  },
+  {
+   "say": "QA-PAT-185 (the other way): Shift is released and the block is dropped (Delete clears its steps in Edit; in Browse the block goes when the cursor leaves it by an arrow without Shift): F7 then lists EXPORT PATTERN, DUPLICATE x2, EXPAND x2 and SHRINK /2 and no EXPORT SELECTION."
+  }
+ ],
+ "finally": [
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.2
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "EXPORT_PROGRESS"
+   }
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.3
+  }
+ ]
+}

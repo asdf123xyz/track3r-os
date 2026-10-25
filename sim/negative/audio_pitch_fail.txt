@@ -1,0 +1,8 @@
+# OS-E2E-2: a pitch that is not the note's is exit 2 (a failed measurement), with the measured and the wanted value.
+document sound
+audio on
+wait 30
+render n 150
+pad 12 hold 100
+wait 49
+assert audio n pitch=500+-5c

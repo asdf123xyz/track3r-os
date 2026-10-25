@@ -1,0 +1,15 @@
+{
+  "name": "Example App",
+  "id": "example_app",
+  "kind": "app",
+  "description": "An app: it owns the body of an OS page, receives the buttons, pads and encoder, and draws a view. A square the encoder moves and the last button, with one parameter.",
+  "state_bytes": 32,
+  "params": [
+    {"name": "Size", "min": 8, "max": 64, "default": 24, "type": "int"}
+  ],
+  "views": [
+    {"name": "Body", "min_size": [200, 120], "preferred_size": [500, 384]}
+  ],
+  "voices": 1,
+  "memory": {"hot_bytes": 0, "sdram_bytes": 0}
+}

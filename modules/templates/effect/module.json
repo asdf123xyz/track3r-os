@@ -1,0 +1,17 @@
+{
+  "name": "Example Effect",
+  "id": "example_effect",
+  "kind": "effect",
+  "description": "A one-pole low-pass with a dry/wet mix and a bypass, and a view of its response: the smallest effect that uses every part of the SDK. (This OS version loads effects but does not run them yet: the engine's graph has no effect slot.)",
+  "state_bytes": 48,
+  "params": [
+    {"name": "Cutoff", "min": 20, "max": 20000, "default": 2000, "curve": "log", "unit": "hz", "mod": true},
+    {"name": "Mix", "min": 0, "max": 100, "default": 100, "unit": "percent"},
+    {"name": "Bypass", "min": 0, "max": 1, "default": 0, "type": "bool"}
+  ],
+  "views": [
+    {"name": "Response", "min_size": [120, 80], "preferred_size": [380, 140]}
+  ],
+  "voices": 1,
+  "memory": {"hot_bytes": 200, "sdram_bytes": 0}
+}

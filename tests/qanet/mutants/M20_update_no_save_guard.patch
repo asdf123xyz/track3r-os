@@ -1,0 +1,14 @@
+# mutant:   M20
+# class:    1
+# twin:     OS-BUG-SLDOVER (a destructive action asks nothing)
+# expected: A1
+# effect:   the firmware update no longer refuses while the project has unsaved changes: the restart throws them away with no word
+diff --git a/app/src/firmware_actions.cpp b/app/src/firmware_actions.cpp
+index 20bc9391..f4753bc7 100644
+--- a/app/src/firmware_actions.cpp
++++ b/app/src/firmware_actions.cpp
+@@ -77,3 +77,3 @@ const char* blocked(ActionContext& ctx) noexcept {
+   }
+-  if (ctx.saves != nullptr && ctx.model.project != nullptr && ctx.saves->dirty(*ctx.model.project)) {
++  if (false && ctx.saves != nullptr && ctx.model.project != nullptr && ctx.saves->dirty(*ctx.model.project)) {
+     return "SAVE THE PROJECT FIRST";

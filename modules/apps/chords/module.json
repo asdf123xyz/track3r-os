@@ -1,0 +1,24 @@
+{
+  "name": "Chords",
+  "id": "chords",
+  "kind": "app",
+  "abi": "1.10",
+  "capabilities": ["read_project", "edit_project"],
+  "description": "A chord progression into the Pattern's block. Pick a key, a scale and one of eight progressions; CHORD FX writes each chord's root with the Chord FX 14 (a MIDI instrument plays the whole chord), SPREAD puts one chord tone on each track of the block (it sounds on every instrument). F1 APPLY writes one undo unit. Opened from Pattern F7 TOOLS. New Community OS behaviour.",
+  "state_bytes": 256,
+  "params": [
+    {"name": "Key", "min": 0, "max": 11, "default": 0, "type": "int", "learnable": false},
+    {"name": "Scale", "min": 0, "max": 1, "default": 0, "type": "int", "learnable": false},
+    {"name": "Prog", "min": 0, "max": 7, "default": 0, "type": "int", "learnable": false},
+    {"name": "Rate", "min": 0, "max": 128, "default": 0, "type": "int", "learnable": false},
+    {"name": "Octave", "min": 2, "max": 6, "default": 4, "type": "int", "learnable": false},
+    {"name": "Sevenths", "min": 0, "max": 1, "default": 0, "type": "int", "learnable": false},
+    {"name": "Instr", "min": 0, "max": 64, "default": 0, "type": "int", "learnable": false},
+    {"name": "Mode", "min": 0, "max": 2, "default": 0, "type": "int", "learnable": false}
+  ],
+  "views": [
+    {"name": "Body", "min_size": [480, 288], "preferred_size": [800, 384]}
+  ],
+  "voices": 1,
+  "memory": {"hot_bytes": 0, "sdram_bytes": 0}
+}

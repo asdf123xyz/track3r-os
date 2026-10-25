@@ -1,0 +1,42 @@
+# OS-E2E-2: a parameter swept while a note sounds does not zipper. The deep user's gesture: hold a pad, turn the encoder. `encoder <n> x<k> every <ms>` turns it k times, a turn each <ms> of simulated time, and the
+# clock runs on between them, so the engine renders the sweep as it would hear it: a step in a gain or a coefficient would show as a spectral-flux spike at every turn (`zipper=0`) and a click in the second difference
+# (`clicks=0`), and the level must really move (the numbers below). A pad held for 600 ms in a window of 700.
+document sound
+audio on
+wait 30
+tap params
+
+# The filter's cutoff: instrument 1 (the sine), FILTER page F3, FILTER on (low-pass), cursor on CUTOFF (100 %). Down by 60 detents of 1 %, one every 5 ms from 100 ms in, through the tone's own 441 Hz.
+tap f3
+encoder 1
+assert model inst.1.filter=1
+tap down 2
+assert model inst.1.cutoff=1
+render cutoff 700
+pad 12 down
+wait 100
+encoder -1 x60 every 5
+wait 200
+pad 12 up
+wait 102
+assert audio cutoff in=20-600 sound zipper=0 clicks=0
+# The tone was open at the start, closed down to a third of its level at the end: the sweep did something.
+assert audio cutoff in=20-90 peak=-6.02+-0.1
+assert audio cutoff in=500-600 peak<-12
+
+# The volume: the filter off again (FILTER page, two rows up from CUTOFF), then the VOICE page (F2), VOLUME is its first row: 30 detents down, one every 10 ms, 50 to 20: 14.4 dB.
+tap up 2
+encoder -1
+assert model inst.1.filter=0
+tap f2
+assert model inst.1.volume=50
+render volume 700
+pad 12 down
+wait 100
+encoder -1 x30 every 10
+wait 280
+pad 12 up
+wait 288
+assert audio volume in=20-600 sound zipper=0 clicks=0
+assert audio volume in=20-90 peak=-6.02+-0.1
+assert audio volume in=500-600 peak=-20.4+-0.5

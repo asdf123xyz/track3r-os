@@ -1,0 +1,29 @@
+# OS-E2E-9: a Scream Tracker 3 module played in the simulator and compared with libopenmpt (tests/e2e_openmpt_ref.py, ctest e2e_ref_openmpt_s3m). The same session as e2e_ref_mod: put a card
+# in, File > IMPORT, F1 on the module, Play. An S3M is imported for the Modern engine (FX AUTO: its commands become the core tracker FX the sampler voices run), so no engine step is needed.
+# The card e2e_ref_s3m is GENERATED (tools/e2e_ref_cards.py: 32 frames of sine at C2SPD 11025, 344.5 Hz at C-4, six cases of two rows at speed 6 and 125 BPM: a tick of 20 ms). The render `song`
+# is what the test compares with libopenmpt, tick by tick: the pitch to 1.5 cents and the level to 3 % plus 2 % of the note's.
+document
+wait 20
+card e2e_ref_s3m
+audio on
+wait 20
+tap file
+wait 50
+tap f6
+wait 100
+assert state screen=FILE sel=ref.s3m
+tap f1
+wait 800
+assert state msg=~IMPORTED_REF.S3M
+assert model tempo=12500
+assert model order.len=1
+assert model pat.1.0.0.note=61
+assert model inst.1.name=sine
+
+# Play from the first row: 12 rows of 120 ms, 1,440 ms.
+render song 1480
+tap play
+assert state playing=1
+wait 1480
+assert audio song sound clicks=0
+tap play

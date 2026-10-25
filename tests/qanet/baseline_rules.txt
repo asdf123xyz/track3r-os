@@ -1,0 +1,11 @@
+# OS-QANET A1: the findings of rules_test.cpp that are known, one line each:  rule | action | context | reason | ID
+#   rule     R1 = a change of the document with neither a question first nor an undo unit, or an undo history lowered by an action that is not File NEW / OPEN / undo / redo (rules.h)
+#   action   the registry name and the argument of the binding; "> F3" is an answer key pressed on the question that the action left up
+#   context  the context of the binding, its gestures, and the state it ran in [action_states.cpp]
+#   ID       the backlog row of a known bug, or `new`: not triaged yet (the maintainer decides, OS-QANET section 10)
+# The test fails on a finding that is not here and on a line here that no longer occurs: a fixed bug has to leave this file. A behaviour that is a decision goes to allow_rules.txt with a reason.
+# QANET_WRITE_BASELINE=<path> writes the current findings in this format (the IDs of lines that exist are kept).
+
+
+# Mixer STEMS Delete and Shift+Delete are destructive and ask first (the undo policy of 2026-10-22, docs/specs/OS-UNDOGRP.md D11; the walk's demo document has no stem map, so the rule is proved by the self-test of rules_test.cpp, not by a run). The rest of the Mixer (levels, mutes, solos, a reset of one level) is exempt: no undo, no question.
+

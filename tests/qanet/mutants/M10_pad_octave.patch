@@ -1,0 +1,14 @@
+# mutant:   M10
+# class:    3
+# twin:     OS-BUG-SLICEPITCH (the pad path plays another pitch than the Pattern path)
+# expected: C
+# effect:   The Pattern screen's pad plays one octave below the note it writes into the step
+diff --git a/app/src/pattern_actions.cpp b/app/src/pattern_actions.cpp
+index fd3ccfb1..f0433877 100644
+--- a/app/src/pattern_actions.cpp
++++ b/app/src/pattern_actions.cpp
+@@ -206,3 +206,3 @@ bool pad_preview(ActionContext& ctx, core::ActionArg arg) noexcept {
+   if (ctx.preview != nullptr) {
+-    ctx.preview->pad_down(static_cast<unsigned>(arg), static_cast<unsigned>(ctx.view.pattern.track()), static_cast<unsigned>(ctx.view.instrument), note);
++    ctx.preview->pad_down(static_cast<unsigned>(arg), static_cast<unsigned>(ctx.view.pattern.track()), static_cast<unsigned>(ctx.view.instrument), note > 12u ? note - 12u : note);
+   }

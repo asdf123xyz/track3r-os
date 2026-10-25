@@ -1,0 +1,3 @@
+# Not a valid scenario: the action is not in the registry. o3sim must refuse it with exit 2 and a line number.
+snap fine
+action no.such 1

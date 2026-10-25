@@ -1,0 +1,63 @@
+{
+ "name": "limiter_no_clip",
+ "title": "OS-LIMIT: t-v16 plays 20 s with every track unmuted; the master never reaches full scale and stays loud",
+ "steps": [
+  {
+   "run": "_load_tv16"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "screen": "PATTERN"
+   },
+   "within": 3
+  },
+  {
+   "cmd": "mix",
+   "note": "clip counters before the run (they count since boot; 0 after the install reboot)"
+  },
+  {
+   "run": "_play_song"
+  },
+  {
+   "wait": 20.0
+  },
+  {
+   "mix": {
+    "min_tracks": 3,
+    "channels": {
+     "MAIN L": {
+      "min_rms_db": -30
+     },
+     "MAIN R": {
+      "min_rms_db": -30
+     },
+     "MST L": {
+      "max_clip": 0
+     },
+     "MST R": {
+      "max_clip": 0
+     }
+    }
+   }
+  },
+  {
+   "cmd": "cpu",
+   "expect": [
+    "underrun 0",
+    "over-budget 0"
+   ],
+   "note": "the limiter's cost shows in the master stage"
+  }
+ ],
+ "finally": [
+  {
+   "run": "_stop"
+  }
+ ]
+}

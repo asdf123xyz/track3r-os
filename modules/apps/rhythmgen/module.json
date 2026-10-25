@@ -1,0 +1,40 @@
+{
+  "name": "Rhythm Gen",
+  "id": "rhythmgen",
+  "kind": "app",
+  "abi": "1.10",
+  "capabilities": ["read_project", "edit_project", "play_notes"],
+  "description": "Polyrhythm generator for the Pattern's block: up to four lanes (one per track of the block), each a Euclidean cycle (hits, length, rotate) with a note and a hit probability; different lengths on different lanes make the polyrhythm. F1 APPLY writes the notes (one undo unit), F2 VARY draws a new variation. Opened from Pattern F7 TOOLS. New Community OS behaviour.",
+  "state_bytes": 384,
+  "params": [
+    {"name": "L1 Hits", "min": 0, "max": 65, "default": 0, "type": "int", "learnable": false},
+    {"name": "L1 Length", "min": 0, "max": 64, "default": 0, "type": "int", "learnable": false},
+    {"name": "L1 Rotate", "min": 0, "max": 63, "default": 0, "type": "int", "learnable": false},
+    {"name": "L1 Note", "min": 0, "max": 128, "default": 0, "type": "int", "learnable": false},
+    {"name": "L1 Prob", "min": 0, "max": 100, "default": 100, "type": "int", "learnable": false},
+    {"name": "L2 Hits", "min": 0, "max": 65, "default": 0, "type": "int", "learnable": false},
+    {"name": "L2 Length", "min": 0, "max": 64, "default": 0, "type": "int", "learnable": false},
+    {"name": "L2 Rotate", "min": 0, "max": 63, "default": 0, "type": "int", "learnable": false},
+    {"name": "L2 Note", "min": 0, "max": 128, "default": 0, "type": "int", "learnable": false},
+    {"name": "L2 Prob", "min": 0, "max": 100, "default": 100, "type": "int", "learnable": false},
+    {"name": "L3 Hits", "min": 0, "max": 65, "default": 0, "type": "int", "learnable": false},
+    {"name": "L3 Length", "min": 0, "max": 64, "default": 0, "type": "int", "learnable": false},
+    {"name": "L3 Rotate", "min": 0, "max": 63, "default": 0, "type": "int", "learnable": false},
+    {"name": "L3 Note", "min": 0, "max": 128, "default": 0, "type": "int", "learnable": false},
+    {"name": "L3 Prob", "min": 0, "max": 100, "default": 100, "type": "int", "learnable": false},
+    {"name": "L4 Hits", "min": 0, "max": 65, "default": 0, "type": "int", "learnable": false},
+    {"name": "L4 Length", "min": 0, "max": 64, "default": 0, "type": "int", "learnable": false},
+    {"name": "L4 Rotate", "min": 0, "max": 63, "default": 0, "type": "int", "learnable": false},
+    {"name": "L4 Note", "min": 0, "max": 128, "default": 0, "type": "int", "learnable": false},
+    {"name": "L4 Prob", "min": 0, "max": 100, "default": 100, "type": "int", "learnable": false},
+    {"name": "Instr", "min": 0, "max": 64, "default": 0, "type": "int", "learnable": false},
+    {"name": "Vol", "min": 0, "max": 128, "default": 0, "type": "int", "learnable": false},
+    {"name": "Mode", "min": 0, "max": 1, "default": 1, "type": "int", "learnable": false},
+    {"name": "Seed", "min": 0, "max": 9999, "default": 0, "type": "int", "learnable": false}
+  ],
+  "views": [
+    {"name": "Body", "min_size": [480, 288], "preferred_size": [800, 384]}
+  ],
+  "voices": 1,
+  "memory": {"hot_bytes": 0, "sdram_bytes": 0}
+}

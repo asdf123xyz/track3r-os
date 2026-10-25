@@ -1,0 +1,17 @@
+# mutant:   M21
+# class:    3
+# twin:     OS-BUG-SLICEPITCH (a pad pressed just after an edit plays the old descriptor)
+# expected: C
+# effect:   the block takes the staged descriptor after the pad notes have started: a pad pressed in the block of an edit plays the old sound
+diff --git a/audio/src/engine.cpp b/audio/src/engine.cpp
+index 1acbac9f..2611ca2d 100644
+--- a/audio/src/engine.cpp
++++ b/audio/src/engine.cpp
+@@ -362,3 +362,2 @@ void Engine::play_block() noexcept {
+   voices_->set_gate(graph_.quiet_tracks() & ~gate_off_);
+-  voices_->begin_block();  // takes the staged descriptor (OS-BUG-SLICEPITCH): it must run before Graph::drain (graph.cpp, render), which SLICEPITCH relies on
+   if (modules_ != nullptr) {
+@@ -372,2 +371,3 @@ void Engine::play_block() noexcept {
+   }
++  voices_->begin_block();  // takes the staged descriptor (OS-BUG-SLICEPITCH): it must run before Graph::drain (graph.cpp, render), which SLICEPITCH relies on
+   std::uint32_t cursor = 0;

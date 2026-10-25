@@ -1,0 +1,14 @@
+# mutant:   M04
+# class:    1
+# twin:     OS-BUG-SLDOVER (the undo history does not give the document back)
+# expected: B
+# effect:   The undo of a single-step write re-applies the new step instead of restoring the old one
+diff --git a/model/src/editor.cpp b/model/src/editor.cpp
+index 5785f71d..dc166f35 100644
+--- a/model/src/editor.cpp
++++ b/model/src/editor.cpp
+@@ -1039,3 +1039,3 @@ bool Editor::replay(std::uint8_t op, std::size_t payload, std::size_t len, bool
+       Step steps[kMaxPatternLength];
+-      if (undo) {
++      if (undo && count > 1) {
+         r.skip(count * kStepBytes);

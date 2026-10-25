@@ -1,0 +1,14 @@
+# mutant:   M11
+# class:    3
+# twin:     OS-BUG-SLICEPITCH (MIDI in and the Pattern path disagree)
+# expected: C
+# effect:   A key of the MIDI keyboard sounds one semitone above the note it writes into the step
+diff --git a/app/src/app.cpp b/app/src/app.cpp
+index 981f6194..57b8ddc1 100644
+--- a/app/src/app.cpp
++++ b/app/src/app.cpp
+@@ -900,3 +900,3 @@ unsigned App::poll_midi_notes(midi::CcInput& in) noexcept {
+         }
+-        preview_->midi_note(true, track, instrument, key, velocity, m.channel);
++        preview_->midi_note(true, track, instrument, static_cast<std::uint8_t>(key + 1u), velocity, m.channel);
+         ++played;

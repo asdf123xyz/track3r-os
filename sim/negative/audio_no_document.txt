@@ -1,0 +1,2 @@
+# OS-E2E-2: the engine plays a document: `audio on` before a `document` is refused.
+audio on

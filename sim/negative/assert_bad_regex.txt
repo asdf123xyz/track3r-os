@@ -1,0 +1,2 @@
+# OS-E2E-1a: a regular expression that does not compile is a scenario error, at parse time.
+assert state screen=~(PATTERN

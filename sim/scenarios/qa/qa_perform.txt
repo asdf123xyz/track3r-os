@@ -1,0 +1,8 @@
+# OS-FINALQA (docs/specs/OS-FINALQA.md): the Perform screen's QA rows, docs/qa/catalogue/perform.md. One `snap qa_prf_NNN` per row with a visible result; the goldens are keyed qa_perform/qa_prf_NNN.
+# OS-SHIFTROW: with Shift held the key row shows the Shift layer: a label only on a key that does something, "-" elsewhere; Shift + F never falls through to the plain key.
+
+# QA-PRF-001: the Perform screen with Shift held: STORE 1 STORE 2 STORE 3 - - - - - (the marks under the keys stay).
+tap performance
+press shift
+snap qa_prf_001
+release shift

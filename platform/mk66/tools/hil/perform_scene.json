@@ -1,0 +1,86 @@
+{
+ "name": "perform_scene",
+ "title": "the Perform screen: a pad held while the pattern plays does not break the audio, and leaving the screen ends the effect",
+ "steps": [
+  {
+   "run": "_load_tv16"
+  },
+  {
+   "run": "_play"
+  },
+  {
+   "wait": 2.0
+  },
+  {
+   "keys": [
+    "performance"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "screen": "PERFORM"
+   },
+   "within": 3
+  },
+  {
+   "mix": {
+    "channels": {
+     "MAIN L": {
+      "min_rms_db": -50
+     }
+    },
+    "snap": "before",
+    "within": 4
+   }
+  },
+  {
+   "pad": 0,
+   "gesture": "down"
+  },
+  {
+   "wait": 1.0
+  },
+  {
+   "mix": {
+    "channels": {
+     "MAIN L": {
+      "min_rms_db": -60,
+      "max_clip": 0
+     }
+    }
+   }
+  },
+  {
+   "pad": 0,
+   "gesture": "up"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "screen": "PATTERN"
+   },
+   "within": 3
+  }
+ ],
+ "finally": [
+  {
+   "pad": 0,
+   "gesture": "up"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.3
+  },
+  {
+   "run": "_stop"
+  }
+ ]
+}

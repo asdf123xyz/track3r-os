@@ -1,0 +1,90 @@
+{
+ "name": "mixer_volume_meter",
+ "title": "the Mixer's master level reaches the meter (the param-ring regression)",
+ "steps": [
+  {
+   "run": "_load_tv16"
+  },
+  {
+   "run": "_play"
+  },
+  {
+   "wait": 3.0
+  },
+  {
+   "mix": {
+    "channels": {
+     "MAIN L": {
+      "min_rms_db": -50
+     }
+    },
+    "snap": "before",
+    "within": 5
+   }
+  },
+  {
+   "note": "Master opens the MIXER page; the cursor starts on T1 LEVEL; 12 tracks and the buses IN, SND A, SND B, CUE put MASTER 16 columns to the right",
+   "keys": [
+    "master"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "screen": "MIXER"
+   },
+   "within": 3
+  },
+  {
+   "keys": [
+    "right"
+   ],
+   "repeat": 16,
+   "gap": 0.15
+  },
+  {
+   "enc": -64
+  },
+  {
+   "enc": -64
+  },
+  {
+   "enc": -64
+  },
+  {
+   "wait": 1.5
+  },
+  {
+   "mix": {
+    "drop": {
+     "channel": "MAIN L",
+     "field": "rms",
+     "from": "before",
+     "min_db": 6.0
+    },
+    "within": 8
+   }
+  }
+ ],
+ "finally": [
+  {
+   "keys": [
+    "delete"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "screen": "MIXER"
+   },
+   "note": "Delete is the default value of what the cursor is on: the master level back"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.3
+  },
+  {
+   "run": "_stop"
+  }
+ ]
+}

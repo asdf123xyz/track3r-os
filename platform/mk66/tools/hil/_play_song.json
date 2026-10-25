@@ -1,0 +1,37 @@
+{
+ "steps": [
+  {
+   "note": "play the whole song (Song screen, F2 PLAY SNG) so that several tracks sound, then back to Pattern",
+   "keys": [
+    "song"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "screen": "SONG"
+   },
+   "within": 3
+  },
+  {
+   "keys": [
+    "f2"
+   ],
+   "gap": 0.2
+  },
+  {
+   "state": {
+    "playing": "1",
+    "seq": "1"
+   },
+   "within": 8,
+   "poll": 0.3
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.5
+  }
+ ]
+}

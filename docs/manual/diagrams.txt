@@ -1,0 +1,104 @@
+# Manual diagrams (OS-MANUALDIAG). Read by tools/manual_diagrams.py, which writes the SVGs to img/; they are committed and never edited by hand.
+# The format, and what `--check` fails on, is in the docstring of tools/manual_diagrams.py. The keys of a chord diagram are not written here:
+# each `bind` line names a row of app/src/bindings.cpp (context, action, argument) and the diagram takes the keys from it, so a diagram cannot
+# drift from the firmware. The boot chords come from platform/mk66/src/app_main.cpp, the Power hold from core/power_hold.h.
+# Each stanza says the chapter it goes in; --check fails unless that chapter shows it with this alt text.
+# A figure is a small crop of the panel (`region`), marks at most four keys (MAX_KEYS in the script; the keys that share a label, like the four arrows of a
+# block, count once), and a chapter keeps one chord figure plus those that say `extra = <why>`. A figure of a Shift row (Shift + F1..F8 only) needs
+# `why = <...>`: the unit labels its Shift row itself, and panel.md says once that Shift relabels F1 to F8.
+
+# ---- At power-up and the Power button ------------------------------------------------------------------------------------------------
+
+[chord_power_hold.svg]
+kind = chord
+chapter = getting_started.md
+region = power
+alt = Panel: the Power button on the rear panel is ringed. Hold it for {hold_s} seconds.
+caption = Hold Power for {hold_s} s, until the line across the top of the screen is full. Let go sooner to stay on.
+source = power-hold
+
+# ---- Keys on every screen ------------------------------------------------------------------------------------------------------------
+
+[chord_learn.svg]
+kind = chord
+chapter = panel.md
+region = nav
+alt = Panel: Vol and Fx are marked. Press both together to open Learn.
+caption = Press Vol and Fx together to open Learn.
+bind = Global learn.toggle
+
+[chord_navigator.svg]
+kind = chord
+chapter = panel.md
+region = nav+edit
+extra = Shift is a hold and Pattern a press, on two blocks of the panel; no label says that this opens the Navigator.
+alt = Panel: Shift is ringed and Pattern is marked. Hold Shift, then press Pattern to open the Navigator.
+caption = Hold Shift, then press Pattern. The Navigator opens.
+bind = Global navigator.open
+
+[chord_boot.svg]
+kind = chord
+chapter = panel.md
+region = edit+soft
+extra = The keys are held while the unit powers up, before any screen or key label exists; one figure for both chords.
+alt = Panel: Shift, F1, F7 (DISK) and F8 (TEST) are ringed. Hold Shift and F1 with F7 or F8 while you turn the unit on.
+caption = At power-up: hold Shift and F1 with F7 until the strip shows USB DISK, or with F8 for the INPUT TEST screen.
+source = boot-chords
+
+# ---- Pattern -------------------------------------------------------------------------------------------------------------------------
+
+[chord_live_rec.svg]
+kind = chord
+chapter = pattern.md
+region = edit
+alt = Panel: Shift is ringed and Rec is marked. Hold Shift, then press Rec to turn LIVE on or off.
+caption = Pattern: hold Shift, then press Rec to turn LIVE on or off.
+bind = Global pattern.rec_free
+
+[chord_pattern_block.svg]
+kind = chord
+chapter = pattern.md
+region = edit
+extra = Four arrows with one meaning: the figure shows that any of them works and that Shift stays held to make the block bigger.
+alt = Panel: Shift is ringed and the four arrow keys are marked. Hold Shift, then press an arrow to select a block.
+caption = Pattern: hold Shift, then press an arrow to select a block. Keep both held to make it bigger.
+bind = Pattern select.extend -1 | BLOCK
+bind = Pattern select.extend 1 | BLOCK
+bind = Pattern select.extend -10 | BLOCK
+bind = Pattern select.extend 10 | BLOCK
+
+[chord_pattern_zoom.svg]
+kind = chord
+chapter = pattern.md
+region = nav+edit
+extra = The one chord of Pattern that holds a column key (Note) and presses three others; no label on the unit shows it.
+alt = Panel: Note is ringed. Instr is marked ZOOM, and Left and Right are marked TRACK. Hold Note, then press one of them.
+caption = Pattern: hold Note, then press Instr to change the zoom, or Left or Right to move one whole track.
+bind = Pattern pattern.zoom | ZOOM
+bind = Pattern cursor.track -1 | TRACK
+bind = Pattern cursor.track 1 | TRACK
+
+# ---- The screens ---------------------------------------------------------------------------------------------------------------------
+# The screen buttons come from the nav.screen rows of Global in app/src/bindings.cpp and the screen names from app/src/screens/registry.cpp.
+
+[map_screens.svg]
+kind = map
+chapter = panel.md
+alt = Screen map: the eleven screen buttons with the screen each opens, and how to reach Modules, the Input test and an app page.
+
+# ---- The signal flow -----------------------------------------------------------------------------------------------------------------
+# Drawn from the engine's graph, not generated from a table: FLOW_CODE in tools/manual_diagrams.py names, for every box, a symbol of one of the files
+# below, and --check fails when one is gone (or when this list and the boxes' files differ). What the boxes say, and where it is written:
+#   the order of one block: engine.h (the header comment) and graph.h (the header comment: strip pass, buses, master chain, USB return, monitoring)
+#   a track's strip: graph.cpp finish_track (CUE and REC taps, the meter, the stem tap after the level), graph_params.h route:: (the route bits)
+#   the sends and their returns: graph.h SendFxFn, graph_params.h RetRouteA / RetRouteB (MAIN and CUE)
+#   the master chain: graph.h MasterStage::Limiter (ALWAYS ON); app_main.cpp installs the limiter and no other master stage (checked)
+#   the outputs: graph.cpp run_levels (OUT MODE: graph_params.h OutMode::MainLCueR), the USB return added there after the master level
+#   USB capture: taps.h StemTap (post-fader tracks with the route bit, master pair, the two sends); the click and the loop: graph.cpp mix_extras
+
+[concept_signal_flow.svg]
+kind = flow
+chapter = mixer.md
+alt = Signal flow: instruments feed track strips, buses and the master limiter to the outputs. USB audio goes in and out beside them.
+follows = audio/include/o3os/audio/engine.h audio/include/o3os/audio/graph.h audio/include/o3os/audio/graph_params.h audio/include/o3os/audio/taps.h
+follows = audio/src/graph.cpp platform/mk66/src/app_main.cpp

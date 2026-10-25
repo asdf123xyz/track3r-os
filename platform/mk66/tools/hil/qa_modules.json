@@ -1,0 +1,899 @@
+{
+ "name": "qa_modules",
+ "title": "OS-FINALQA, Modules (OS-TAPCALC, OS-H1, OS-H2a and OS-H2b, new Community OS behaviour): the Tap Calc, MIDI Monitor, Loudness VU, Scope Spectrum and Tuner apps from /modules/apps of a test card: the first-launch question (QA-MOD-009 needs a fresh `reset` before the run: the confirm is remembered per boot), tap tempo, the 2 s reset, manual BPM, the Hz page, Delete, setting the project's tempo with F2 and undoing it; the MIDI Monitor against messages sent from the PC with amidi. The tempo is read from the shots (the app's text is not in the state line). Nothing is written to the card",
+ "needs": [
+  "card"
+ ],
+ "steps": [
+  {
+   "say": "OS-TAPCALC rows QA-MOD-002..008, OS-H1 rows QA-MOD-009..016 of docs/qa/catalogue/modules.md (ADR 0014 slice H1, new Community OS behaviour). Precondition: a TEST card with tapcalc.tmod and midimon.tmod in /modules/apps (the packed files of o3m_tapcalc_tmod and o3m_midimon_tmod: build-os-*/modules/*.tmod), the project loaded (its tempo is what PROJECT shows). The cursor walks to each app by its name (`sel=` of `diag state`, OS-SMALLFIX6), so other apps on the card do not matter. The pads are tapped by the runner over the console, so its timing jitters by tens of ms: the BPM reads within a few percent of the requested one. MIDI in comes from the PC: `amidi -p hw:1,0,0 -S \"90 3C 64\"` (USB; hw:1,0,0 is the Tracker's USB MIDI port on that PC: `amidi -l` says). The F7 + F8 exit chord steps are sent as a burst (one back-to-back run of console commands, inside the firmware's 40 ms chord window). QA-MOD-009 is boot-state dependent: Tap Calc asks its first-launch confirm once per boot, so run `o3console reset` (and wait for the unit) just before this scenario; a second run on the same boot starts Tap Calc at the first F1 and the question steps fail. Nothing is written to the card"
+  },
+  {
+   "keys": [
+    "+f7",
+    "+f8",
+    "-f8",
+    "-f7"
+   ],
+   "burst": true,
+   "gap": 0.1,
+   "if_state": {
+    "screen": "APP"
+   },
+   "note": "leave a leftover app first"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.6,
+   "note": "a known screen first"
+  },
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.2,
+   "note": "(Shift released, in case a former run left it down)"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.3,
+   "note": "(a leftover Navigator is closed: F7 is CLOSE, F8 would GO since OS-NAV2)",
+   "if_state": {
+    "overlay": "NAVIGATOR"
+   }
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.3,
+   "note": "(a leftover overlay is put away: F8 is Back)",
+   "if_state": {
+    "overlay": "~^(LEARN|PATTERN_CHOOSER|LENGTH_CHOOSER|JUMP_CHOOSER|MODULE_PICKER|STEP_POPUP)$"
+   }
+  },
+  {
+   "keys": [
+    "+shift",
+    "+pattern",
+    "-pattern",
+    "-shift"
+   ],
+   "gap": 0.5,
+   "note": "the Navigator"
+  },
+  {
+   "state": {
+    "overlay": "NAVIGATOR"
+   },
+   "within": 3
+  },
+  {
+   "keys": [
+    "right"
+   ],
+   "gap": 0.3,
+   "repeat": 3,
+   "note": "the Navigator is chosen with arrows (no Shift+F5 last cell): MODULES is row 3, column 4"
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.3,
+   "repeat": 2
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.6,
+   "note": "GO"
+  },
+  {
+   "state": {
+    "screen": "MODULES",
+    "overlay": "NONE"
+   },
+   "within": 3
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "until": {
+    "sel": "~^tapcalc$"
+   },
+   "max": 16,
+   "gap": 0.4,
+   "note": "Down to Tap Calc until the state line names it (sel=tapcalc, OS-SMALLFIX6): the apps before it on the card do not matter"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.6,
+   "note": "QA-MOD-009: F1 on an app that edits the project: the first launch only asks (needs a fresh reset before the run: the confirm is remembered per boot)"
+  },
+  {
+   "state": {
+    "screen": "MODULES",
+    "msg": "~F1.AGAIN"
+   },
+   "within": 3,
+   "soft": true,
+   "note": "QA-MOD-009: the strip says EDITS THE PROJECT (UNDOABLE): F1 AGAIN and the app did not start"
+  },
+  {
+   "shot": "tapcalc_confirm",
+   "non_blank": true,
+   "note": "QA-MOD-009: still the MODULES list, the strip carries the question"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.6,
+   "note": "QA-MOD-009: the second F1 starts it"
+  },
+  {
+   "shot": "tapcalc_open",
+   "non_blank": true,
+   "note": "QA-MOD-002: the app's page: 120.0 BPM (the manual default), TAPS 0 MANUAL, the table in ms, the PROJECT line with the project's tempo, three hint lines; the parameter AVERAGE on the left"
+  },
+  {
+   "pad": 0,
+   "note": "QA-MOD-003: tap 1 of 9, 500 ms apart"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "pad": 1,
+   "note": "QA-MOD-003: tap 2 of 9, 500 ms apart"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "pad": 2,
+   "note": "QA-MOD-003: tap 3 of 9, 500 ms apart"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "pad": 3,
+   "note": "QA-MOD-003: tap 4 of 9, 500 ms apart"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "pad": 4,
+   "note": "QA-MOD-003: tap 5 of 9, 500 ms apart"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "pad": 5,
+   "note": "QA-MOD-003: tap 6 of 9, 500 ms apart"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "pad": 6,
+   "note": "QA-MOD-003: tap 7 of 9, 500 ms apart"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "pad": 7,
+   "note": "QA-MOD-003: tap 8 of 9, 500 ms apart"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "pad": 8,
+   "note": "QA-MOD-003: tap 9 of 9, 500 ms apart"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "shot": "tapcalc_tapped",
+   "non_blank": true,
+   "note": "QA-MOD-003: TAPS 9, TAP, BPM about 120.0 (within a few percent: the runner's timing jitters), the tempo in orange while the last tap is under 2 s old; 1/4 near 500.0 ms"
+  },
+  {
+   "wait": 2.6
+  },
+  {
+   "shot": "tapcalc_idle",
+   "non_blank": true,
+   "note": "QA-MOD-003: 2.6 s later the tempo is kept but no longer orange"
+  },
+  {
+   "pad": 3,
+   "note": "QA-MOD-004: one tap after a pause of more than 2 s starts a new series"
+  },
+  {
+   "wait": 0.4
+  },
+  {
+   "shot": "tapcalc_reset",
+   "non_blank": true,
+   "note": "QA-MOD-004: TAPS 1, the shown BPM unchanged (one tap is no interval)"
+  },
+  {
+   "enc": 3,
+   "note": "QA-MOD-005: the encoder, +3 detents = +3.0 BPM, MANUAL"
+  },
+  {
+   "keys": [
+    "up"
+   ],
+   "gap": 0.3,
+   "note": "QA-MOD-005: Up = +0.1"
+  },
+  {
+   "shot": "tapcalc_manual",
+   "non_blank": true,
+   "note": "QA-MOD-005: TAPS 0, MANUAL, the BPM moved by 3.1 from the tapped one; the table follows"
+  },
+  {
+   "keys": [
+    "right"
+   ],
+   "gap": 0.4,
+   "note": "QA-MOD-006: Right = the other page"
+  },
+  {
+   "shot": "tapcalc_hz",
+   "non_blank": true,
+   "note": "QA-MOD-006: page 2/2, HZ: the same notes as LFO rates (1/4 at 120.0 BPM = 2.00 Hz)"
+  },
+  {
+   "keys": [
+    "left"
+   ],
+   "gap": 0.4
+  },
+  {
+   "keys": [
+    "delete"
+   ],
+   "gap": 0.4,
+   "note": "QA-MOD-007: Delete forgets the taps"
+  },
+  {
+   "shot": "tapcalc_forgot",
+   "non_blank": true,
+   "note": "QA-MOD-007: TAPS 0 MANUAL, the tempo shown stays"
+  },
+  {
+   "enc": -10,
+   "note": "a round tempo to set: about 10 BPM below the last one"
+  },
+  {
+   "keys": [
+    "f2"
+   ],
+   "gap": 0.6,
+   "note": "QA-MOD-008: F2 sets the project's tempo to the BPM shown"
+  },
+  {
+   "shot": "tapcalc_set",
+   "non_blank": true,
+   "note": "QA-MOD-008: for 2.5 s `SET <bpm> BPM (UNDO TO TAKE BACK)` right of the PROJECT line, and PROJECT shows the new tempo"
+  },
+  {
+   "say": "QA-MOD-008, by hand (Tap Calc holds edit_project: its first F1 per boot only asks, a second F1 starts it, QA-MOD-009): leave the app (F7 + F8 follows), open the Pattern screen (Pattern key) and read the tempo in the info/status line: it is the one the app set. Press F8 (UNDO) once: the old tempo is back. Then come back to MODULES. Also try to set a tempo below 40.0 BPM (Shift is not needed: encoder down to 20.0, F2): the page must say `NOT SET: THE PROJECT TAKES 40 - 800 BPM` and the project keeps its tempo. Record both in the report"
+  },
+  {
+   "keys": [
+    "+f7",
+    "+f8",
+    "-f8",
+    "-f7"
+   ],
+   "burst": true,
+   "gap": 0.1,
+   "note": "the exit chord F7 + F8 (the app is handed the two presses, then the page closes)"
+  },
+  {
+   "state": {
+    "screen": "MODULES"
+   },
+   "within": 3,
+   "soft": true
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.6,
+   "note": "QA-MOD-009: Tap Calc again: confirmed for the boot, it starts at once"
+  },
+  {
+   "shot": "tapcalc_again",
+   "non_blank": true,
+   "note": "QA-MOD-009: the page, no question this time"
+  },
+  {
+   "keys": [
+    "+f7",
+    "+f8",
+    "-f8",
+    "-f7"
+   ],
+   "gap": 0.1,
+   "burst": true
+  },
+  {
+   "state": {
+    "screen": "MODULES"
+   },
+   "within": 3,
+   "soft": true
+  },
+  {
+   "keys": [
+    "up"
+   ],
+   "until": {
+    "sel": "~^midimon$"
+   },
+   "max": 16,
+   "gap": 0.3,
+   "note": "the cursor up from Tap Calc to MIDI Monitor, until sel=midimon"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.6,
+   "note": "QA-MOD-010: MIDI Monitor starts with no question (it only listens)"
+  },
+  {
+   "shot": "midimon_open",
+   "non_blank": true,
+   "note": "QA-MOD-010: MIDI MONITOR, IN 0 LOST 0 SYSEX 0, CH ALL ALL, 16 dark cells, WAITING FOR MIDI ON DIN OR USB, two hint lines; CHANNEL and TYPE on the left"
+  },
+  {
+   "say": "QA-MOD-011: from the PC run `amidi -p hw:1,0,0 -S \"90 3C 64\"` then `amidi -p hw:1,0,0 -S \"80 3C 00\"` (one command each, a second apart). The next shot must show `USB 01 NOTE OFF C4   60 V  0` above `USB 01 NOTE ON  C4   60 V100`, IN 2, channel cell 1 lit if the shot is within 0.3 s. The note must also SOUND on the unit as without the app (track/instrument on the cursor). Wait 3 s after the commands, then the runner continues"
+  },
+  {
+   "wait": 3
+  },
+  {
+   "shot": "midimon_notes",
+   "non_blank": true,
+   "note": "QA-MOD-011: the two note lines, IN 2"
+  },
+  {
+   "say": "QA-MOD-012: from the PC run, one at a time, `amidi -p hw:1,0,0 -S \"B0 07 7F\"`, `-S \"C2 05\"`, `-S \"E0 00 40\"`, `-S \"D0 21\"`. The next shot: `USB 01 CC         7 = 127`, `USB 03 PROGRAM    5`, `USB 01 PITCH    +0`, `USB 01 CH AT     33` (newest first, six lines of the eight visible are these and the notes). QA-MOD-013: then `amidi -p hw:1,0,0 -S \"90 3C 64\"` and at once `-S \"99 24 64\"` and watch the strip: the cells of channels 1 and 10 light together and go dark after about 0.3 s"
+  },
+  {
+   "wait": 4
+  },
+  {
+   "shot": "midimon_kinds",
+   "non_blank": true,
+   "note": "QA-MOD-012: the controller, program, pitch bend and pressure lines"
+  },
+  {
+   "say": "QA-MOD-016: from the PC run `amidi -p hw:1,0,0 -S \"F0 7E 7F 06 01 F7\"`: SYSEX goes to 1 and no line appears. Then QA-MOD-015: press Insert (the key row of the unit), send a note: PAUSED, the list does not move but IN grows; Insert again resumes; Delete empties the list and zeroes IN"
+  },
+  {
+   "wait": 4
+  },
+  {
+   "shot": "midimon_sysex_pause",
+   "non_blank": true,
+   "note": "QA-MOD-015, QA-MOD-016: SYSEX 1, the pause/clear state as left by the person"
+  },
+  {
+   "say": "QA-MOD-014: Shift + Down to the CHANNEL row, Shift + encoder to 3; from the PC send `amidi -p hw:1,0,0 -S \"90 3C 64\"` and `-S \"92 3C 64\"`: only the channel 3 line is listed, IN counts both. Then Shift + Down to TYPE, Shift + encoder to 2, send a note and `-S \"B2 07 7F\"`: only the controller is listed; the filter reads `CH 3  CONTROL`"
+  },
+  {
+   "wait": 4
+  },
+  {
+   "shot": "midimon_filter",
+   "non_blank": true,
+   "note": "QA-MOD-014: CH 3 CONTROL in the top right, one controller line"
+  },
+  {
+   "keys": [
+    "+f7",
+    "+f8",
+    "-f8",
+    "-f7"
+   ],
+   "burst": true,
+   "gap": 0.1,
+   "note": "the exit chord F7 + F8: back to MODULES, the MIDI ring is switched off"
+  },
+  {
+   "state": {
+    "screen": "MODULES"
+   },
+   "within": 3,
+   "soft": true
+  },
+  {
+   "say": "OS-H2a rows QA-MOD-017..023 of docs/qa/catalogue/modules.md (ADR 0014 slice H2a, ABI 1.4, new Community OS behaviour: the audio tap and the Loudness VU app). Precondition: loudness.tmod too in /modules/apps of the test card (the packed file of o3m_loudness_tmod: build-os-*/modules/loudness.tmod), and a project loaded that plays several tracks (a song). The runner uses PLAY on the app page; if the transport does not start from there, start the song from the Song screen first and come back to MODULES with the Navigator. QA-MOD-019 needs a signal on the line input (a tone from the PC into the Tracker's line in, or any music), QA-MOD-020 needs it loud enough to reach full scale. Nothing is written to the card"
+  },
+  {
+   "cmd": "cpu reset",
+   "note": "the tap's cost counters (and the cpu ones) start from zero for QA-MOD-023"
+  },
+  {
+   "keys": [
+    "up"
+   ],
+   "until": {
+    "sel": "~^loudness$"
+   },
+   "max": 16,
+   "gap": 0.3,
+   "note": "the cursor from MIDI Monitor up to Loudness VU, until sel=loudness"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.6,
+   "note": "QA-MOD-017: Loudness VU starts with no question (it only listens)"
+  },
+  {
+   "shot": "loudness_open",
+   "non_blank": true,
+   "note": "QA-MOD-017: LOUDNESS VU, SOURCE MASTER, PEAK and RMS empty with -INF, the 0 / -6 / -12 ... scale, HOLD -INF MAX -INF, a dark clip lamp, CLIPS 0, an empty RMS HISTORY frame, two hint lines; SOURCE (2) and HOLD (3) on the left"
+  },
+  {
+   "keys": [
+    "play"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "playing": "0"
+   },
+   "note": "QA-MOD-018: start the song with the app page up"
+  },
+  {
+   "state": {
+    "playing": "1"
+   },
+   "within": 4,
+   "poll": 0.3,
+   "soft": true,
+   "note": "(if the transport did not start from here, start the song from the Song screen and reopen the app)"
+  },
+  {
+   "wait": 6
+  },
+  {
+   "shot": "loudness_play",
+   "non_blank": true,
+   "note": "QA-MOD-018: PEAK and RMS bars moving with the song, readouts in dBFS (a normal mix reads roughly -30 to -3), the white hold marker on PEAK, HOLD and MAX filled, the history line drawing from the right edge"
+  },
+  {
+   "cmd": "cpu",
+   "expect": [
+    "tap: master, \\d+ blocks, write cycles last \\d+ mean \\d+ max \\d+ \\(max [\\d.]+ us\\)",
+    "underrun 0"
+   ],
+   "expect_not": [
+    "max (3[6-9]\\d\\d|[4-9]\\d\\d\\d|\\d{5,}) \\("
+   ],
+   "show": true,
+   "soft": true,
+   "note": "QA-MOD-023 (Loudness VU: LEVELS ONLY, the render stores no samples since OS-BUG-TAPWRITE): the tap work of a block as the render timed it. SOFT (reported, not failing) until the next image gives figures: the max is a wall-clock max and this run plays the song, so an interrupt inside the window shows as max. A max of 3600 cycles (20 us) or more is reported as a soft failure (ADR 0014). The mean is judged against `diag bench kernels` k_mono_mix + k_meter + about 150, not against 360. Note the three figures in the report; image int.6 (samples stored) read mean 1765, max 6077"
+  },
+  {
+   "say": "QA-MOD-019: Shift + Down to the SOURCE row, Shift + encoder to 1: the top right reads SOURCE INPUT and the bars follow the line input (feed it a tone or music), not the song. QA-MOD-021: Shift + Down to HOLD, Shift + encoder to 1, then watch the hold marker let go about a second after a hit. Back to SOURCE 2 for the next part"
+  },
+  {
+   "wait": 8
+  },
+  {
+   "shot": "loudness_input",
+   "non_blank": true,
+   "note": "QA-MOD-019: SOURCE INPUT, the bars on the line input's level"
+  },
+  {
+   "say": "QA-MOD-020: with SOURCE 1 (or 2) drive the source to full scale (the line input hot, or the master over 0 dBFS): the clip lamp left of CLIPS lights orange for 2 s after each frame with a full-scale sample, CLIPS counts them and is orange. Then press Delete: CLIPS 0, HOLD / MAX -INF, the history empties"
+  },
+  {
+   "wait": 6
+  },
+  {
+   "shot": "loudness_clip",
+   "non_blank": true,
+   "note": "QA-MOD-020: the clip lamp lit, CLIPS n in orange (taken while the signal clips)"
+  },
+  {
+   "keys": [
+    "+f7",
+    "+f8",
+    "-f8",
+    "-f7"
+   ],
+   "burst": true,
+   "gap": 0.1,
+   "note": "the exit chord F7 + F8: back to MODULES; the render stops writing the tap at its next block"
+  },
+  {
+   "state": {
+    "screen": "MODULES"
+   },
+   "within": 3,
+   "soft": true
+  },
+  {
+   "cmd": "cpu",
+   "expect": [
+    "tap: off, \\d+ blocks"
+   ],
+   "show": true,
+   "note": "QA-MOD-022: the source is off again after the app stopped"
+  },
+  {
+   "keys": [
+    "play"
+   ],
+   "gap": 0.2,
+   "if_state": {
+    "playing": "1"
+   },
+   "note": "stop the song"
+  },
+  {
+   "say": "OS-H2b rows QA-MOD-024..033 of docs/qa/catalogue/modules.md (ADR 0014 slice H2b, ABI 1.4, new Community OS behaviour: the Tuner and the Scope Spectrum apps, both on the audio tap). Precondition: scope.tmod and tuner.tmod (the packed files of o3m_scope_tmod and o3m_tuner_tmod: build-os-*/modules/scope.tmod and tuner.tmod) copied into /modules/apps of the test card AFTER the earlier part of this scenario. Then F2 RESCAN on MODULES below. The apps are reached by name: the cursor goes to the top of the list and Down until `sel=` of `diag state` names the app (OS-SMALLFIX6). MIDI comes from the PC: `amidi -p hw:1,0,0 -S \"90 45 64\"` plays MIDI note 69 (440 Hz on an instrument tuned to concert pitch, A4 for the tuner) on the current instrument and `-S \"80 45 00\"` stops it: select the Sine or the Chip module on the current instrument first, so that the pitch is exact (a sample plays its own pitch). The tuner and the scope read the MASTER output (SOURCE 2) for these steps. QA-MOD-027 and QA-MOD-032 need a tone from the PC into the Tracker's line input. Nothing is written to the card"
+  },
+  {
+   "keys": [
+    "f2"
+   ],
+   "gap": 1.0,
+   "note": "RESCAN on MODULES: the list now has Scope Spectrum and Tuner"
+  },
+  {
+   "keys": [
+    "up"
+   ],
+   "repeat": 12,
+   "gap": 0.15,
+   "note": "to the top of the list"
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "until": {
+    "sel": "~^scope$"
+   },
+   "max": 16,
+   "gap": 0.3,
+   "note": "the cursor on Scope Spectrum, until sel=scope"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.6,
+   "note": "QA-MOD-028: Scope Spectrum starts with no question (it only listens)"
+  },
+  {
+   "shot": "scope_open",
+   "non_blank": true,
+   "note": "QA-MOD-028: SCOPE, SOURCE MASTER, the plot area with eight time divisions and a centre line; with nothing playing a flat line and `SPAN 11.6 MS   FREE RUN`; VIEW (1), SOURCE (2), TIMEBASE (3) on the left"
+  },
+  {
+   "cmd": "cpu reset",
+   "note": "QA-MOD-023 (Scope Spectrum reads samples with tap_latest, so the render stores them): the tap's cost counters start from zero again"
+  },
+  {
+   "wait": 10
+  },
+  {
+   "cmd": "cpu",
+   "expect": [
+    "tap: master, \\d+ blocks, write cycles last \\d+ mean \\d+ max \\d+ \\(max [\\d.]+ us\\)",
+    "underrun 0"
+   ],
+   "show": true,
+   "soft": true,
+   "note": "QA-MOD-023, samples stored: reported, not judged (image int.6 read mean 1765, max 6077). The gap to the Loudness VU run is the cost of the 32 SDRAM stores a block. Note the three figures in the report"
+  },
+  {
+   "say": "QA-MOD-028: play a held note from the PC: `amidi -p hw:1,0,0 -S \"90 45 64\"`. The trace becomes a steady sine of about five periods across the 11.6 ms span, standing still from frame to frame (the rising zero crossing sits one eighth from the left edge) and the label reads `SPAN 11.6 MS   TRIGGER RISING 0`. Silence or noise reads `FREE RUN`"
+  },
+  {
+   "wait": 3
+  },
+  {
+   "shot": "scope_tone",
+   "non_blank": true,
+   "note": "QA-MOD-028: a stable waveform with the trigger label"
+  },
+  {
+   "say": "QA-MOD-029: Shift + Down to the TIMEBASE row, Shift + encoder 1 to 5 one detent at a time: the label reads SPAN 2.9, 5.8, 11.6, 23.2 and 34.8 MS and the number of periods across the plot follows (the last shows about fifteen); the trace stays steady at every timebase"
+  },
+  {
+   "wait": 6
+  },
+  {
+   "shot": "scope_timebase",
+   "non_blank": true,
+   "note": "QA-MOD-029: the span label and the trace as left by the person"
+  },
+  {
+   "say": "QA-MOD-030: Shift + Down to the VIEW row, Shift + encoder to 2 with the note still held: the title reads SPECTRUM, 48 bars from 40 Hz to 20 kHz stand over a -12 ... -60 dB scale with 100, 1K, 10K and 20K under it; one bar at about 440 Hz (the 19th from the left) is tallest, the rest low (a pure tone: only its Hann sidelobes); under the plot `PEAK 431 HZ  -n DB` (the loudest bin: the bin centre, 43 Hz resolution)"
+  },
+  {
+   "wait": 4
+  },
+  {
+   "shot": "spectrum_tone",
+   "non_blank": true,
+   "note": "QA-MOD-030: the tone's bar, the PEAK readout, the scales"
+  },
+  {
+   "say": "QA-MOD-031: stop the note: `amidi -p hw:1,0,0 -S \"80 45 00\"`. The bar falls about 60 dB a second (gone in about a second) and the thin peak-hold line over it falls slower, 12 dB a second (about five seconds from the top of the scale)"
+  },
+  {
+   "wait": 1
+  },
+  {
+   "shot": "spectrum_fall",
+   "non_blank": true,
+   "note": "QA-MOD-031: the bar nearly gone, the hold line still up and falling"
+  },
+  {
+   "say": "QA-MOD-032: Shift + Down to the SOURCE row, Shift + encoder to 1 (SOURCE INPUT) and feed a tone from the PC into the line input; the spectrum and, with VIEW 1, the scope follow the line input, not the song; back to 2 afterwards"
+  },
+  {
+   "wait": 6
+  },
+  {
+   "shot": "spectrum_input",
+   "non_blank": true,
+   "note": "QA-MOD-032: SOURCE INPUT, the line input's spectrum"
+  },
+  {
+   "keys": [
+    "+f7",
+    "+f8",
+    "-f8",
+    "-f7"
+   ],
+   "burst": true,
+   "gap": 0.1,
+   "note": "the exit chord F7 + F8: back to MODULES, the render stops writing the tap"
+  },
+  {
+   "state": {
+    "screen": "MODULES"
+   },
+   "within": 3,
+   "soft": true
+  },
+  {
+   "keys": [
+    "up"
+   ],
+   "repeat": 12,
+   "gap": 0.15,
+   "note": "to the top of the list"
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "until": {
+    "sel": "~^tuner$"
+   },
+   "max": 16,
+   "gap": 0.3,
+   "note": "the cursor on Tuner, until sel=tuner"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.6,
+   "note": "QA-MOD-024: Tuner starts with no question (it only listens)"
+  },
+  {
+   "wait": 3
+  },
+  {
+   "shot": "tuner_open",
+   "non_blank": true,
+   "note": "QA-MOD-024: TUNER, `A4 440 HZ   INPUT` at the top right, NO SIGNAL in place of the note, the needle scale -50 ... +50 with no needle, `FREQ --`, `CENTS --`, CONFIDENCE 0 %, two hint lines; A4 (440) and SOURCE (1) on the left"
+  },
+  {
+   "say": "QA-MOD-025: Shift + Down to the SOURCE row, Shift + encoder to 2 (`A4 440 HZ   MASTER`), then play the held note from the PC: `amidi -p hw:1,0,0 -S \"90 45 64\"`. Within about a second the note name `A4` shows large, `FREQ 440.0 HZ` (within a few tenths), `CENTS` within a few of 0 and the needle at the middle in the in-tune colour; the name and the needle stay put while the note is held (no flipping, the cents move by a cent or two at most)"
+  },
+  {
+   "wait": 5
+  },
+  {
+   "shot": "tuner_note",
+   "non_blank": true,
+   "note": "QA-MOD-025: A4, FREQ 440.0 HZ, the needle in the middle, CONFIDENCE high (90 % or more)"
+  },
+  {
+   "say": "QA-MOD-026: with the note held, Shift + Up to the A4 row, Shift + encoder to 432: the same 440 Hz tone now reads A4 with CENTS +32 (it is 32 cents sharp of an A4 of 432) and the needle moves right and turns orange; the top right reads `A4 432 HZ`. The range is 415 to 466 (the encoder stops there). Put it back to 440"
+  },
+  {
+   "wait": 4
+  },
+  {
+   "shot": "tuner_432",
+   "non_blank": true,
+   "note": "QA-MOD-026: A4 432 at the top right, CENTS +32, the needle right of centre in orange"
+  },
+  {
+   "say": "QA-MOD-027: stop the note: `amidi -p hw:1,0,0 -S \"80 45 00\"`. After about a second the note is replaced by NO SIGNAL, FREQ -- and CENTS --, the needle disappears. Then SOURCE 1 (INPUT) with a tone from the PC into the line input: the tuner reads it (440 Hz from the PC reads A4); with white noise or music with no clear pitch, or with nothing connected, it stays at NO SIGNAL (it never invents a note from noise)"
+  },
+  {
+   "wait": 3
+  },
+  {
+   "shot": "tuner_nosignal",
+   "non_blank": true,
+   "note": "QA-MOD-027: NO SIGNAL, FREQ --, CENTS --, no needle"
+  },
+  {
+   "keys": [
+    "+f7",
+    "+f8",
+    "-f8",
+    "-f7"
+   ],
+   "burst": true,
+   "gap": 0.1,
+   "note": "the exit chord F7 + F8: back to MODULES, the render stops writing the tap"
+  },
+  {
+   "state": {
+    "screen": "MODULES"
+   },
+   "within": 3,
+   "soft": true
+  },
+  {
+   "cmd": "cpu",
+   "expect": [
+    "tap: off, \\d+ blocks",
+    "underrun 0"
+   ],
+   "show": true,
+   "note": "QA-MOD-033: the tap is off again after the app stopped, and the render did not underrun while the apps ran. Open each of the two apps for 30 s with a held note and check that MODULES lists neither as quarantined (a view_draw over its 4 ms is blanked and the app is quarantined for the boot): the per-frame microseconds of the two apps are not shown by any console command yet, so their figure on the unit is still owed"
+  },
+  {
+   "say": "OS-MODPITCH rows QA-MOD-099..106 of docs/qa/catalogue/modules.md (ABI 1.8, new Community OS behaviour; needs the MOD-ABI image). By ear, a note held on a track, on TB-303, then Chip, then FM. Nothing here is scripted: play the pattern and compare with the same pattern on a sampler instrument."
+  },
+  {
+   "say": "QA-MOD-100: a note held for several steps; a step with Slide up 16 and no note, later Slide down 32 and no note. Expected: one semitone up after one step, then it stays; the next goes to two semitones below the note; no new envelope, no click."
+  },
+  {
+   "say": "QA-MOD-101: Glide 10 on a note a fifth above the previous. Expected: a legato slide over 200 ms, ONE envelope (no restart); after a gap the new note starts normally and still glides; the first note of the track is plain. On FM an octave Glide: listen for zipper (the pitch is a staircase of one block)."
+  },
+  {
+   "say": "QA-MOD-102: Slide and Glide on one track; the same note again; a plain note. Expected: Slide wins; the repeated note is a tie; the plain note retriggers at its own pitch."
+  },
+  {
+   "say": "QA-MOD-103: Chord 4 in one column and Arp 7 in the other on TB-303: the tones play one after another, retriggered. Arp alone: one note. Chord alone: the root."
+  },
+  {
+   "say": "QA-MOD-104: with an old card copy of a module of ABI 1.7 or below (if one is on the card), the same pattern has no slide and no legato."
+  },
+  {
+   "say": "QA-MOD-105 / 106: open the Instrument page of TB-303, Chip and FM: the key row says SOUND/MODS, TONE/ENV/PITCH/ARP, OP1..OP4; Chip Wave and Duty and FM Algorithm show names. Check the page names are legible on the key tile. QA-MOD-107: on TB-303 (two pages) F1 and F2 carry names and F3, F4, F5 are blank (no dimmed 17-24 / 25-32); a blank key does nothing."
+  },
+  {
+   "cmd": "cpu reset",
+   "note": "MOD-ABI cost: start the measure, then play the Slide / Glide pattern with 1 and then 8 instances ramping"
+  },
+  {
+   "say": "Then `diag cpu` and `diag mod`: min / mean / max per instance of TB-303, FM and Chip with a held Slide against the same without. Accept under 1 % of the block; write the numbers into docs/architecture/cpu-budget.md (OS-MODPITCH section)."
+  },
+  {
+   "say": "OS-SNDMOD S1 and S3 rows QA-MOD-140..148 (new Community OS behaviour; needs the OS-SNDMOD image). By ear and by eye on the Instrument page; nothing is scripted."
+  },
+  {
+   "say": "QA-MOD-140: Chip with Attack 10 ms; a pattern with a note and its off on the same step (a one-tick note). Expected: no stuck voice: `diag mod` shows the Chip idle right after, no cost between notes."
+  },
+  {
+   "say": "QA-MOD-141: Chip Wave row, Learn, move a CC: the four waves switch over the CC's travel; the same for Duty."
+  },
+  {
+   "say": "QA-MOD-142: Chip Wave = NOISE LONG, then NOISE SHORT, WAVE view: a random-looking high/low run from the first cell (no flat stretch at the left); the two differ."
+  },
+  {
+   "say": "QA-MOD-143: FM Op1 page, Algorithm 1..8: the value text and the ALGORITHM view title (`ALG n  <label>`) read the same; the four Level rows show a bare number, no percent sign."
+  },
+  {
+   "say": "QA-MOD-144: TB-303 page 2 is `MODS`: Legato Slide, Tune, Transpose, Acc Thresh, Filter Track, Acc Decay. Load a project saved before OS-SNDMOD (nine values): it sounds as before and the new rows read 0, 0, 100, 0, 200."
+  },
+  {
+   "say": "QA-MOD-145: TB-303 with a tuner (or the Tuner app on a second instrument): Tune +100 is one semitone up on the next note; Transpose +12 / -12 an octave up / down; both back to 0 is the old pitch."
+  },
+  {
+   "say": "QA-MOD-146: TB-303 Acc Thresh 90 with notes of velocity 89 / 90 / 100 / 127: 90 and up accent; at 127 only 127 does; at the default 100 a note without a velocity (96) is plain."
+  },
+  {
+   "say": "QA-MOD-147: TB-303 Filter Track 0 / 50 / 100 on a line over two octaves (notes 36..60): the high notes open and the low ones close as it rises; no click on a slide. On a slide note the filter factor jumps at once while the pitch glides: with Filter Track 100 and a slide from note 36 to 60, listen for a click at the start of the glide (by ear, unit only)."
+  },
+  {
+   "say": "QA-MOD-148: TB-303 Acc Decay 30 / 200 / 2000 ms on accented notes (velocity 127): short blip, the old sound, a long sweep; plain notes keep Decay."
+  },
+  {
+   "say": "OS-SNDMOD S2 rows QA-MOD-149, 133 (new Community OS behaviour). FM only; by ear and by eye."
+  },
+  {
+   "say": "QA-MOD-149: FM Op1 page, Algorithm 9..16 with a held note: each label reads and each diagram matches it; each sounds; a project from before (algorithm 1..8) is unchanged."
+  },
+  {
+   "say": "QA-MOD-150: FM Detune -1200..1200 on an operator (octave down / up at the ends); algorithm 5, operator 2 Detune +600: the inharmonic bell; old values (within +-100) sound the same."
+  },
+  {
+   "say": "OS-SNDMOD S6 rows QA-MOD-151..156: the built-in sounds by ear, one module at a time. Write what you hear against each Expected."
+  },
+  {
+   "say": "QA-MOD-151: TB-303 on a held note: Waveform 0 / 0.5 / 1, then Cutoff, Resonance, Env Mod and Decay one at a time: saw into square, dull to bright, a peak at the cutoff, how far and how long each note opens the filter."
+  },
+  {
+   "say": "QA-MOD-152: TB-303 line with velocity 96 and 127 notes, then overlapping notes: the 127 notes are louder and open the filter further with the short decay; with Legato Slide on the second note glides over Slide ms with one envelope, off it retriggers."
+  },
+  {
+   "say": "QA-MOD-153: Chip held note: Pulse Duty 12.5 / 25 / 50 / 75 %, Triangle, Noise Long (hiss that follows the pitch), Noise Short (metallic buzz); Raw Edges on (aliasing) and Vol Steps on (a 16-step staircase envelope)."
+  },
+  {
+   "say": "QA-MOD-154: Chip: Attack 100 ms, Sustain 0, Release 500 ms (fades in, ends by itself); Arp 1 +4, Arp 2 +7 at 12 Hz; Sweep +12 over 120 ms (starts an octave up, glides to the note); Vib Depth 50 cents with Vib Delay 300 ms (fades in)."
+  },
+  {
+   "say": "QA-MOD-155: FM at the starting values over three octaves: an electric piano (bell-like tine over a soft body); algorithm 8 with Feedback 0 to 7 adds harmonics to a buzz; sweep a modulator's Level on a held note: brighter or duller with no zipper noise."
+  },
+  {
+   "say": "QA-MOD-156: FM held note, Algorithm 1 to 8 at the starting patch: each sounds different; 8 is four plain sines; 7 and 1 are the brightest; a project from before OS-SNDMOD plays the algorithm it had."
+  },
+  {
+   "cmd": "cpu reset",
+   "note": "OS-SNDMOD CPU arm (S3): a TB-303 on each of eight tracks (eight instruments, the instance limit), the pattern playing, first at the defaults, then with Filter Track 100, Acc Thresh 1, Acc Decay 30, Tune +100, Transpose +24"
+  },
+  {
+   "say": "Then `diag cpu` and `diag mod`: min / mean / max per instance for the two runs. Expected equal within noise (the parameters add no per-sample work; the state block is 32 B larger, 400 to 432 B, so eight TB-303s take 3,456 B of the 4,096 B SRAM_U arena and still fit, with 640 B left for other module states instead of 896 B: `diag mod` should show every instance in SRAM_U). Write the numbers into docs/architecture/cpu-budget.md."
+  }
+ ],
+ "finally": [
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "NAVIGATOR"
+   }
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.4
+  }
+ ]
+}

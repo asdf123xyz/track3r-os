@@ -1,0 +1,9 @@
+{
+ "name": "learn_close",
+ "title": "setup for MANUAL.md: close the Learn overlay (F8) and show the page: the bound CC moves VOLUME of instrument 1 with the pickup",
+ "steps": [
+  {"keys": ["f8"], "gap": 0.4, "if_state": {"overlay": "LEARN"}},
+  {"state": {"overlay": "~^(NONE|NOTIFY)$"}, "within": 3},
+  {"shot": "learn_closed", "non_blank": true}
+ ]
+}

@@ -1,0 +1,103 @@
+# OS-002d: the generated parameter page (Instrument PARAMS) and MIDI Learn. The page is made from the descriptor tables: the encoder edits the
+# row under the cursor, Shift + encoder is the coarse step, Delete the default, F2..F5 the pages (F1 is ENGINE, the picker of the SD modules), F8 undo. A MIDI control change is `midicc <channel>
+# <cc> <value>`: with the Learn overlay up it binds the cc to the row under the cursor, otherwise it moves what is bound (pickup: no jumps).
+
+# No project yet: the defaults, and the page says so; an edit says why it did nothing.
+tap params
+snap no_project
+tap down
+encoder 3
+snap no_project_edit
+wait 2500
+
+# The demo document (ten instruments, two bindings: CC 74 on instrument 1's cutoff, CC 71 on its resonance) and the VOICE page.
+document bindings
+snap voice
+assert model inst.1.name=KICK
+assert model inst.1.panning=26
+encoder -12
+snap voice_volume
+assert model inst.1.panning=14
+tap down 2
+encoder 5
+snap voice_tune
+assert model inst.1.fine_tune=-15
+press shift
+encoder 1
+release shift
+snap voice_coarse
+assert model inst.1.fine_tune=-5
+tap delete
+snap voice_reset
+assert model inst.1.fine_tune=0
+wait 2500
+
+# The FILTER page: the response curve follows the values. The cutoff is bound to CC 74 in pickup mode, at 30 %: the knob has to reach it.
+tap f3
+tap down 2
+snap filter
+midicc 1 74 100
+midicc 1 74 60
+snap pickup_waiting
+midicc 1 74 38
+midicc 1 74 90
+snap pickup_caught
+tap f8
+tap f8
+snap pickup_undone
+assert model inst.1.cutoff=0.3
+wait 2500
+
+# The ENV page: the cutoff's envelope (the third of six), its attack under the cursor.
+tap f4
+tap f4 2
+tap down 2
+snap env_cutoff
+encoder 12
+snap env_attack
+
+# Learn: the chord FX1 + FX2 opens it on the row under the cursor; a cc binds, F2 makes it a jump, the chord closes it; the knob then moves the attack.
+press vol
+press fx
+release fx
+release vol
+snap learn_target
+midicc 1 21 64
+snap learn_bound
+tap f2
+snap learn_jump
+press vol
+press fx
+release fx
+release vol
+midicc 1 21 127
+snap env_jump
+tap f8
+snap env_jump_undone
+wait 2500
+
+# Another instrument by pad, the SENDS page.
+pad 3
+tap f5
+snap sends
+
+# The list of bindings (OS-013a): the overlay shows both stores in one list; a cc binds the row under the cursor, the arrows choose a binding, F3 takes it out, F4 clears all (asks twice).
+press vol
+press fx
+release fx
+release vol
+midicc 1 22 10
+snap learn_list
+tap down
+snap learn_list_cursor
+tap f4
+snap learn_clear_armed
+tap f3
+snap learn_deleted
+tap f4
+tap f4
+snap learn_cleared
+press vol
+press fx
+release fx
+release vol

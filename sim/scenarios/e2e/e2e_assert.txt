@@ -1,0 +1,47 @@
+# OS-E2E-1a: what the assertions say. `assert state` is the line the unit prints for `diag state`, `assert model` a value of the open document, `mark model` and
+# `assert model digest=@<label>` the whole document as one SHA-256 (of its native file). Nothing here ticks the clock or draws a picture: the run is a check, not a golden.
+# The ctest has the label `e2e` (tools/ci.sh e2e); the same lines live in the QA scenarios too (params.txt, pattern_edit.txt, screens.txt), which run on every push.
+document
+wait 20
+
+# The state line: an exact value, several pairs at once, and `~` for a regular expression (POSIX extended, searched in the value).
+assert state screen=PATTERN overlay=NONE playing=0 tempo=13000
+assert state screen=~^(PATTERN|SONG)$ page=0 msg=-
+assert state keys=~^$
+
+# The document the demo opens: the song, a note of the demo pattern, an instrument's name and its parameters (by the caption of the row in lower case).
+assert model tempo=13000
+assert model order.len=1
+assert model order.0=1
+assert model pat.1.0.0.note=25
+assert model pat.1.0.1.note=0
+assert model pat.1.0.1.fx1=0:0
+assert model inst.1.name=KICK
+assert model inst.4.name=ACID
+assert model inst.1.panning=26
+assert model inst.1.env0.attack=10
+mark model demo
+
+# An edit by the keys: Rec arms the Pattern screen, the first pad writes C-3 on step 1 of track 1 with the last used instrument.
+tap rec
+action cursor.jump_fraction 0
+tap down
+pad 36
+assert model pat.1.0.1.note=37
+assert model pat.1.0.1.instr=1
+assert state row=2 col=NOTE
+
+# ... and undone: the document is the one marked, byte for byte.
+action edit.undo
+assert model pat.1.0.1.note=0
+assert model digest=@demo
+
+# A parameter by the keys: the Instrument page, down to PANNING, 12 detents down.
+tap params
+tap down
+encoder -12
+assert state screen=INSTRUMENT
+assert model inst.1.panning=14
+action edit.undo
+assert model inst.1.panning=26
+assert model digest=@demo

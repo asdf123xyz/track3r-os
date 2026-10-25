@@ -1,0 +1,14 @@
+# mutant:   M22
+# class:    1
+# twin:     OS-BUG-ADDSLICE (an operation on a selection acts outside it)
+# expected: A3
+# effect:   INSERT of a block of columns (Vol only) moves the whole steps: the note, instrument and FX columns outside the block move too
+diff --git a/app/src/step_actions.cpp b/app/src/step_actions.cpp
+index d4ae0643..5d105679 100644
+--- a/app/src/step_actions.cpp
++++ b/app/src/step_actions.cpp
+@@ -321,3 +321,3 @@ bool step_insert(ActionContext& ctx, core::ActionArg) noexcept {
+       const model::Step now = src.step(t, first + k);
+-      buf[k] = pe::with_columns(now, k == 0 ? model::kEmptyStep : src.step(t, first + k - 1), b);
++      buf[k] = pe::with_columns(now, k == 0 ? model::kEmptyStep : src.step(t, first + k - 1), Selection::Block{b.row0, b.row1, b.track0, b.track1});
+       differs = differs || std::memcmp(&buf[k], &now, sizeof now) != 0;

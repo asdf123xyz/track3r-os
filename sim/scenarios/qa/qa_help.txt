@@ -1,0 +1,122 @@
+# OS-HELP H1 (docs/specs/OS-HELP.md), docs/qa/catalogue/global.md QA-GLB-141..147: Shift + Config opens the help page of the screen in view. The goldens are keyed qa_help/qa_glb_NNN. The Global and Song pages are
+# written (H1); the other pages say so until H2. OS-SMALLFIX11: the page is opaque (it covers the whole pane) and Perform has a second page for the DJ page, 15 pages in all.
+wait 300
+
+# QA-GLB-141: on Song, Shift + Config opens HELP: SONG, page 3/15, at the top; the Song screen is still the base screen. The same page in the other two themes.
+tap song
+wait 50
+press shift
+tap config
+release shift
+wait 50
+assert state screen=SONG overlay=HELP
+snap qa_glb_141
+theme black
+snap qa_glb_141_black
+theme white
+snap qa_glb_141_white
+theme amiga
+
+# QA-GLB-142: Left twice walks to the Global page (1/15: the screen buttons and the global keys); Left again stays; Right goes back to Song, and on to the end without wrapping.
+tap left 2
+snap qa_glb_142
+tap left
+tap right 2
+tap right 30
+snap qa_glb_142_end
+tap left 12
+
+# QA-GLB-143: Down scrolls a line, the encoder a line a detent, Shift + Down a screenful; the scroll bar follows. The last line stops at the bottom.
+tap down 10
+snap qa_glb_143
+press shift
+tap down
+release shift
+snap qa_glb_143_page
+encoder +100
+snap qa_glb_143_bottom
+encoder -100
+
+# QA-GLB-144: Play closes the page and does nothing else: Song is in view, the transport did not start.
+tap play
+wait 50
+assert state screen=SONG overlay=NONE playing=0
+snap qa_glb_144
+
+# QA-GLB-145: Shift + Config again comes back to the Song page at the scroll it was left (here: the top, after the encoder), and a page keeps its own scroll.
+press shift
+tap config
+release shift
+wait 50
+tap down 12
+tap left
+tap down 3
+tap right
+snap qa_glb_145
+tap f8
+wait 50
+assert state screen=SONG overlay=NONE
+press shift
+tap config
+release shift
+wait 50
+snap qa_glb_145_again
+# a pad closes it, and plays nothing
+pad 3
+wait 50
+assert state screen=SONG overlay=NONE
+snap qa_glb_146
+
+# QA-GLB-147: under the Navigator Shift + Config does nothing (the Navigator stays up); after F7 CLOSE it opens help again.
+press shift
+tap pattern
+release shift
+wait 50
+press shift
+tap config
+release shift
+wait 50
+assert state overlay=NAVIGATOR
+snap qa_glb_147
+tap f7
+wait 50
+assert state overlay=NONE
+
+# plain Config is unchanged: it opens the Config screen and Shift + Config there opens the Config page of help.
+tap config
+wait 50
+assert state screen=CONFIG overlay=NONE
+press shift
+tap config
+release shift
+wait 50
+assert state screen=CONFIG overlay=HELP
+snap qa_glb_141_config
+tap f8
+wait 50
+
+# QA-GLB-151: the page is opaque: on Perform's slots nothing of the slots shows behind the help text (the page covers the whole pane, 10 px sides included); HELP: PERFORM, 10/15.
+tap performance
+wait 50
+press shift
+tap config
+release shift
+wait 50
+assert state screen=PERFORM overlay=HELP
+snap qa_glb_151
+tap f8
+wait 50
+
+# QA-GLB-152: on the DJ page Shift + Config opens its own page, HELP: PERFORM DJ, 11/15 (paragraph, KEYS, PADS); Left is the slots page.
+tap performance
+wait 50
+press shift
+tap config
+release shift
+wait 50
+assert state screen=PERFORM overlay=HELP
+snap qa_glb_152
+tap left
+snap qa_glb_152_slots
+tap f8
+wait 50

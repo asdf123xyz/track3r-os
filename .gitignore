@@ -1,0 +1,11 @@
+build*/
+.toolchains/
+fixtures/
+__pycache__/
+*.pyc
+.claude/worktrees/
+.claude/settings.local.json
+site/
+
+# clangd (the clangd-lsp plugin) keeps its index here
+.cache/

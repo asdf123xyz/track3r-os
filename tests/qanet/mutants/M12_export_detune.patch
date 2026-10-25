@@ -1,0 +1,14 @@
+# mutant:   M12
+# class:    3
+# twin:     OS-BUG-SLICEPITCH (the export and the live sound disagree)
+# expected: C
+# effect:   The WAV export resamples 2 % fast (about 34 cents sharp)
+diff --git a/app/src/export_source.cpp b/app/src/export_source.cpp
+index 32b6374d..f28fdd42 100644
+--- a/app/src/export_source.cpp
++++ b/app/src/export_source.cpp
+@@ -98,3 +98,3 @@ std::uint32_t RateConverter::feed(const std::int16_t* in, std::uint32_t n, std::
+       }  // (an output the history has already moved past is not made: the ratio is not below one, so it does not arise)
+-      pos_ += kAdvNum;
++      pos_ += kAdvNum + kAdvNum / 50u;
+     }

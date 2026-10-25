@@ -1,0 +1,5 @@
+# OS-E2E-9: wav of a file that is not on the card: exit 2 with the line and the reason.
+document
+card e2e_card
+audio on
+wav x nothing.wav

@@ -1,0 +1,47 @@
+# OS-MANUAL2 C1: the walk-through of the DJ chapter's "Try it" (docs/manual/perform_dj.md). Each `snap walk_<n>` is the picture of step n, `perform_dj_walk_<n>.png` in docs/manual/img/
+# (the manifest is docs/manual/images.txt; tools/manual_images.py renders it, ctest o3sim_manual_images keeps the committed pictures in step).
+# A new step or a changed key means a changed picture: edit the chapter's step and this line together.
+# The simulator has no performance engine and no sequencer here: the page, its keys and its pad lights are drawn from the view state (as in qa/qa_perform_dj.txt); what is heard is tests/dj_test.cpp and the unit.
+# The manual numbers the pads 1 to 48; the simulator's `pad` takes 0 to 47, so the manual's pad N is `pad N-1`.
+
+# Step 1. Press `Perform`, then `Perform` again. The strip says PAGE DJ: twelve track boxes, all THRU, the fader in the middle.
+tap performance
+tap performance
+assert state screen=PERFORM
+snap walk_1
+
+# Step 2. Hold `Shift`, tap pad 1 and pad 2 once (tracks 1 and 2 are group A), pad 5 and pad 6 twice (tracks 5 and 6 are group B), release `Shift`.
+press shift
+pad 0
+pad 1
+pad 4
+pad 4
+pad 5
+pad 5
+release shift
+wait 3000
+
+# Step 3. Tap pad 12, the last pad of the bottom row: the fader jumps to the end of B, so group A is silent (A 0%, B 100%).
+pad 47
+wait 3000
+snap walk_3
+
+# Step 4. Press `F8` (RESET): the fader is back in the middle; the groups stay.
+tap f8
+wait 3000
+
+# Step 5. Hold `F4` (FILTER) and turn the encoder right three clicks: the filter row reads FILTER HP 30.
+press f4
+encoder 3
+snap walk_5
+
+# Step 6. Let go of `F4`: the filter springs back to off.
+release f4
+wait 3000
+
+# Step 7. Hold pad 15 (REP 1/16 of group A) and pad 24 (REP 1/4 of group B): a line under the gains names each REP. Let go: both end.
+pad 14 down
+pad 23 down
+snap walk_7
+pad 14 up
+pad 23 up

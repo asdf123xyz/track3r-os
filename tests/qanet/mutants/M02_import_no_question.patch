@@ -1,0 +1,15 @@
+# mutant:   M02
+# class:    1
+# twin:     OS-BUG-SLDOVER (an action that replaces the document asks nothing)
+# expected: A1
+# revert:   OS-OPENGUARD (the guard at app/src/file_actions.cpp import_go, switched off)
+# effect:   IMPORT of a module project no longer asks when the document has unsaved changes
+diff --git a/app/src/file_actions.cpp b/app/src/file_actions.cpp
+index 12ca457d..4f2dddf4 100644
+--- a/app/src/file_actions.cpp
++++ b/app/src/file_actions.cpp
+@@ -86,3 +86,3 @@ bool import_go(ActionContext& ctx, bool armed) noexcept {
+   }
+-  if (!armed && ctx.saves != nullptr && ctx.saves->dirty(*ctx.model.project)) {
++  if (!armed && ctx.saves != nullptr && false) {
+     ctx.view.file.confirm_new = true;

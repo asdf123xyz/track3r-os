@@ -1,0 +1,64 @@
+# OS-E2E-2: the parameters of an instrument act on the sound. The deep user's way: the Instrument page (PARAMS), the encoder, a pad. Each parameter is checked in the model (`assert model`) and then in the
+# sound (`assert audio`): a filter closes the noise, an envelope shapes the sine to the engine's ADSR, and the readings agree with what the page says. `document sound`: instrument 1 is the sine, instrument 2 white noise
+# (0.5 of full scale, both loop); both neutral until this script turns a knob. A window is 300 ms of which the pad is down for 201 (the steady part is measured from 20 ms: after the attack ramp).
+document sound
+audio on
+wait 30
+tap params
+tap f7
+assert state screen=INSTRUMENT
+
+# FILTER. Instrument 2, the noise, open (no filter: the sample as it is), then the low-pass at 10 % (FILTER page F3: FILTER on, the cursor down to CUTOFF), then the high-pass at 90 % (FILTER TYPE up one row, +1).
+render open 300
+pad 12 hold 200
+wait 99
+tap f3
+encoder 1
+assert model inst.2.filter=1
+tap down 2
+encoder -90
+assert model inst.2.cutoff=0.1
+render low 300
+pad 12 hold 200
+wait 99
+tap up
+encoder 1
+assert model inst.2.filter_type=1
+tap down
+encoder 80
+assert model inst.2.cutoff=0.9
+render high 300
+pad 12 hold 200
+wait 99
+# The open noise is as bright as noise is (a centroid near half the band, 11 kHz) and as loud as the sample: 0.5 of full scale peak, 10.7 dB under for the RMS of a uniform noise.
+assert audio open in=20-200 centroid>9000 centroid<13000 peak=-6.02+-0.1 rms=-10.7+-0.5
+# Closed it is dark (the centroid falls to 2 % of the open one: 230 Hz) and 27 dB quieter; the high-pass at 90 % keeps the top of the band: brighter than the open noise, a little quieter.
+assert audio low in=20-200 centroid<@open*0.1 rms<@open-20 peak<@open-20
+assert audio high in=20-200 centroid>@open*1.15 rms<@open rms>@open-4 sound
+
+# ENVELOPE. Instrument 1, the sine, MOD page (F4), destination VOLUME: SOURCE Off -> Envelope (the page shows the ENVELOPE then), attack 20 ms, decay 300 ms, sustain 40 %, release 100 ms. The pad is held 600 ms.
+tap f6
+tap f4
+encoder 1
+assert model inst.1.env0.enable=1
+tap down 2
+encoder 1
+assert model inst.1.env0.attack=20
+tap down
+encoder 30
+assert model inst.1.env0.decay=300
+tap down
+encoder -60
+assert model inst.1.env0.sustain=0.4
+tap down
+encoder -90
+assert model inst.1.env0.release=100
+render env 1000
+pad 12 hold 600
+wait 399
+# The level curve is the engine's amplitude envelope (voices.h AMP ENVELOPE: linear segments): the peak envelope against the model, the largest difference in fractions of the peak. A sine of 441 Hz has a peak
+# every 2.27 ms, and on a ramp of 1 / 20 ms that is up to 0.05 of the peak, so the tolerance is 0.06 (it is 0.012 on a ramp of 200 ms).
+assert audio env sound peak=-6.02+-0.1 envelope=adsr(a=20,d=300,s=0.4,r=100,off=600)+-0.06
+# The sustain is 40 % of the peak (-8 dB) and the tone is the same note (the envelope shapes the level and nothing else).
+assert audio env in=400-590 rms=-17.0+-0.3 pitch=441.18+-2c clicks=0
+assert audio env in=720-1000 silent

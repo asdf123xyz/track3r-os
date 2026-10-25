@@ -1,0 +1,14 @@
+# mutant:   M07
+# class:    2
+# twin:     USA-003 and USA-004 (a live key with a wrong or missing label)
+# expected: A2
+# effect:   The label of Song F5 (UNIQUE) is gone from the key row: a live key with no label
+diff --git a/app/include/o3os/app/screens/song_screen.h b/app/include/o3os/app/screens/song_screen.h
+index 9328f60e..e428567f 100644
+--- a/app/include/o3os/app/screens/song_screen.h
++++ b/app/include/o3os/app/screens/song_screen.h
+@@ -17,3 +17,3 @@ inline constexpr unsigned kSongPages = 2;
+ // OS-SONGMAP (Q1, to confirm): F5 UNIQUE and F6 TOOLS, where the slot's pattern - / + were (they stay on the encoder).
+-inline constexpr const char* kSongSoftKeys[8] = {"PLAY PAT", "PLAY SNG", "ADD SLOT", "DEL SLOT", "UNIQUE", "TOOLS", "TEMPO", "UNDO"};
++inline constexpr const char* kSongSoftKeys[8] = {"PLAY PAT", "PLAY SNG", "ADD SLOT", "DEL SLOT", "-", "TOOLS", "TEMPO", "UNDO"};
+ // While Shift is held (OS-SHIFTROW): the quarter jumps and the end (bound in Song's context), Shift + F8 redo. The duplicate-as-new-pattern slot is Shift + Insert. Shift + F6 NAME names the pattern (OS-NAMES).

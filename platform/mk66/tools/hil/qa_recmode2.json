@@ -1,0 +1,284 @@
+{
+ "name": "qa_recmode2",
+ "title": "OS-RECMODE2, Pattern: REC (STEP) and Shift + REC (LIVE), the chips WATCH / STEP / LIVE; Shift + REC from stopped counts in, Shift + REC in LIVE keeps the cursor and the take is one undo unit (OS-LIVEEXIT: REC in LIVE is WATCH), PLAY in LIVE ends it. Edits the loaded project in RAM only (nothing is saved)",
+ "steps": [
+  {
+   "run": "_load_tv16"
+  },
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.2,
+   "note": "(Shift released, in case a former run left it down)"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "NAVIGATOR"
+   },
+   "note": "(a leftover Navigator is closed: F7 is CLOSE, F8 would GO since OS-NAV2)"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "~^(LEARN|PATTERN_CHOOSER|LENGTH_CHOOSER|JUMP_CHOOSER|MODULE_PICKER|STEP_POPUP|FILL)$"
+   },
+   "note": "(a leftover overlay is put away: F8 is Back)"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "TEXT_ENTRY"
+   },
+   "note": "(the on-screen keyboard is cancelled with F7, never accepted)"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.4
+  },
+  {
+   "state": {
+    "screen": "PATTERN"
+   },
+   "within": 3
+  },
+  {
+   "run": "_stop"
+  },
+  {
+   "keys": [
+    "rec"
+   ],
+   "gap": 0.4,
+   "if_state": {
+    "mode": "0"
+   },
+   "note": "(stopped, Rec in Edit (STEP) goes back to WATCH: the scenario starts in WATCH, mode 3)"
+  },
+  {
+   "state": {
+    "mode": "3",
+    "playing": "0"
+   },
+   "within": 2,
+   "note": "WATCH, stopped (mode 3 is Browse)"
+  },
+  {
+   "say": "OS-RECMODE2, rows QA-PAT-124..139, 150, 151 of docs/qa/catalogue/pattern.md (docs/specs/OS-RECMODE2.md section 5): REC is STEP on / off, Shift + REC is LIVE on / off, WATCH is Browse; the chip in the info line says which (WATCH, amber STEP, red LIVE with a dot). The scenario edits the loaded project in RAM only. For check 1 first set Config > PATTERN > COUNT-IN to 1 BAR (it is a persistent setting: put it back to OFF afterwards). The three checks are the spec's HIL list; the notes of check 1 come from the host: `amidi -p hw:1,0,0 -S \"90 3C 64\"` (and `-S \"80 3C 00\"` for the release) while the unit is connected by USB MIDI, or from the pads."
+  },
+  {
+   "say": "CHECK 1 (QA-PAT-134): Shift + REC from stopped with COUNT-IN 1 bar. The countdown shows in the strip (RECORDING IN 4.. 3.. 2.. 1..), the chip is red LIVE from the first beat, a note played DURING the count-in sounds and writes nothing, a note played after the bar line is written at the play line."
+  },
+  {
+   "keys": [
+    "+shift",
+    "rec",
+    "-shift"
+   ],
+   "gap": 0.3,
+   "note": "Shift + REC from stopped: play + count-in + LIVE"
+  },
+  {
+   "state": {
+    "screen": "PATTERN",
+    "mode": "0",
+    "playing": "1"
+   },
+   "within": 2,
+   "note": "LIVE: Edit (mode 0) and the transport running"
+  },
+  {
+   "shot": "qa_recmode2_countin",
+   "non_blank": true,
+   "soft": true,
+   "note": "the countdown and the red LIVE chip (a person reads the picture: the sim has no count-in from stop)"
+  },
+  {
+   "say": "Now hit a pad (or send `amidi -p hw:1,0,0 -S \"90 3C 64\"`) DURING the countdown, wait for the bar line, then hit it again twice: the first hit sounds and writes nothing, the other two are written at the step the play line is on (cursor on the play line). In the report: was anything written before the bar line? did the written steps match the play line?"
+  },
+  {
+   "wait": 6.0,
+   "note": "(the count-in of one bar at the project's tempo, and some bars of take)"
+  },
+  {
+   "say": "CHECK 2 (QA-PAT-131, OS-LIVEEXIT): Shift + REC during LIVE. The chip turns amber STEP, playing goes on, the cursor stays on the row it is on (it no longer follows), and the take undoes as ONE unit."
+  },
+  {
+   "keys": [
+    "+shift",
+    "rec",
+    "-shift"
+   ],
+   "gap": 0.4,
+   "note": "Shift + REC in LIVE: STEP"
+  },
+  {
+   "state": {
+    "mode": "0",
+    "playing": "1"
+   },
+   "within": 2,
+   "note": "still Edit, still playing: STEP"
+  },
+  {
+   "cmd": "state",
+   "show": true,
+   "note": "the row is the one the cursor stopped on: read it twice a second apart (it must not change while the song plays)"
+  },
+  {
+   "wait": 1.5
+  },
+  {
+   "cmd": "state",
+   "show": true,
+   "soft": true,
+   "note": "the same row as above"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.5,
+   "note": "F8 UNDO: the whole take goes in one"
+  },
+  {
+   "say": "The steps written in check 1 are all gone after ONE F8 (the first press undoes the whole take; a second press would undo what was before it). In the report: one press or more?"
+  },
+  {
+   "keys": [
+    "rec"
+   ],
+   "gap": 0.4,
+   "note": "REC in STEP: WATCH, following again"
+  },
+  {
+   "state": {
+    "mode": "3",
+    "playing": "1"
+   },
+   "within": 2,
+   "note": "WATCH, playing"
+  },
+  {
+   "keys": [
+    "+shift",
+    "rec",
+    "-shift"
+   ],
+   "gap": 0.3,
+   "note": "Shift + REC while playing: LIVE"
+  },
+  {
+   "state": {
+    "mode": "0",
+    "playing": "1"
+   },
+   "within": 2,
+   "note": "LIVE"
+  },
+  {
+   "say": "CHECK 2b (QA-PAT-130, OS-LIVEEXIT): REC during LIVE. The chip turns WATCH, the recording ends, playing goes on and the view keeps following the play line."
+  },
+  {
+   "keys": [
+    "rec"
+   ],
+   "gap": 0.4,
+   "note": "REC in LIVE: WATCH"
+  },
+  {
+   "state": {
+    "mode": "3",
+    "playing": "1"
+   },
+   "within": 2,
+   "note": "Browse (WATCH), still playing"
+  },
+  {
+   "keys": [
+    "+shift",
+    "rec",
+    "-shift"
+   ],
+   "gap": 0.3,
+   "note": "Shift + REC while playing: LIVE again, for check 3"
+  },
+  {
+   "state": {
+    "mode": "0",
+    "playing": "1"
+   },
+   "within": 2,
+   "note": "LIVE"
+  },
+  {
+   "say": "CHECK 3 (QA-PAT-132): PLAY during LIVE stops the transport, ends the recording and leaves WATCH (the chip says WATCH, the view stays where the play line stopped)."
+  },
+  {
+   "keys": [
+    "play"
+   ],
+   "gap": 0.5,
+   "note": "PLAY in LIVE: stop"
+  },
+  {
+   "state": {
+    "mode": "3",
+    "playing": "0"
+   },
+   "within": 2,
+   "note": "WATCH, stopped"
+  },
+  {
+   "shot": "qa_recmode2_watch",
+   "non_blank": true,
+   "soft": true,
+   "note": "the WATCH chip"
+  }
+ ],
+ "finally": [
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.2
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.4
+  },
+  {
+   "run": "_stop"
+  },
+  {
+   "keys": [
+    "rec"
+   ],
+   "gap": 0.4,
+   "if_state": {
+    "mode": "0"
+   }
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.25,
+   "repeat": 6
+  }
+ ]
+}

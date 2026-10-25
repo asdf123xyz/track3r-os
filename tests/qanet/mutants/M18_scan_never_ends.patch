@@ -1,0 +1,17 @@
+# mutant:   M18
+# class:    4
+# twin:     OS-BUG-PREVLAT (a card job whose end the host folder never withholds)
+# expected: B
+# effect:   A listing of a folder with three or more skipped entries never reports Done: its job runs for ever
+diff --git a/app/src/dir_scan.cpp b/app/src/dir_scan.cpp
+index a84fbbd6..dd97300b 100644
+--- a/app/src/dir_scan.cpp
++++ b/app/src/dir_scan.cpp
+@@ -310,3 +310,6 @@ core::JobStatus DirScan::step(std::uint32_t budget_us) noexcept {
+     if (s == Status::End) {
+-      end(State::Done, Status::Ok);
++      if (skipped_ < 3u) {
++        end(State::Done, Status::Ok);
++      }
++      ++used;
+     } else if (s != Status::Ok) {

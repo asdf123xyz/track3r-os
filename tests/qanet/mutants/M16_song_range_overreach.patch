@@ -1,0 +1,14 @@
+# mutant:   M16
+# class:    1
+# twin:     OS-BUG-ADDSLICE (an operation on a selection acts outside it)
+# expected: A3
+# effect:   A Song edit over a range of slots also edits the slot after the range
+diff --git a/app/src/song_edit.cpp b/app/src/song_edit.cpp
+index 9acf0c0c..b49ff135 100644
+--- a/app/src/song_edit.cpp
++++ b/app/src/song_edit.cpp
+@@ -37,3 +37,3 @@ Span span_of(const model::Project& p, const SongRect& r) noexcept {
+   s.s0 = r.s0 < 0 ? 0 : r.s0;
+-  s.s1 = r.s1 < count ? r.s1 : count - 1;
++  s.s1 = r.s1 + 1 < count ? r.s1 + 1 : count - 1;
+   s.t0 = r.t0 < 0 ? 0 : r.t0;

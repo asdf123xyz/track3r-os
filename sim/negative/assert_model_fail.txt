@@ -1,0 +1,4 @@
+# OS-E2E-1a: a model value that is not the one wanted (the demo's tempo is 130 BPM).
+document
+assert model tempo=13000
+assert model tempo=12800

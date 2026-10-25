@@ -1,0 +1,44 @@
+# OS-MANUAL2 C4: the "Try it" of docs/manual/pattern.md. Each `snap walk_<n>` is the picture of step n, `pattern_walk_<n>.png` in docs/manual/img/ (manifest docs/manual/images.txt).
+# The manual numbers the pads 1 to 48 and the simulator's `pad` takes 0 to 47: the manual's pad N is `pad N-1`. Nothing here needs the engine: the steps write notes and move the playhead.
+
+# Setup, not a step: the empty project (File > NEW, ALL), so the walk-through starts on one empty pattern, as a new project does.
+document new
+wait 20
+tap file
+wait 20
+tap f3
+wait 20
+tap f3
+wait 700
+assert state screen=PATTERN
+wait 3000
+
+# Step 1. Press `Pattern`. The grid opens in WATCH, the browse mode: pads only preview. No picture: the screen at a glance shows the screen.
+tap pattern
+wait 700
+
+# Step 2. Press `Rec`. The chip reads STEP and a red frame shows. No picture of its own: the screen at a glance shows the STEP state.
+tap rec
+wait 20
+
+# Step 3. Press pad 1, pad 5, pad 8 and pad 12. Each note is written on the cursor's step, and the cursor moves on by JUMP.
+pad 0
+pad 4
+pad 7
+pad 11
+wait 20
+snap walk_3
+
+# Step 4. Press `Play`. The playhead runs over the steps (the simulator has no sequencer: `playhead 6` is the word the engine publishes). A STEP take is not moved by it.
+tap play
+playhead 6
+wait 100
+snap walk_4
+
+# Step 5. Press `Play` to stop, then `Rec`. The chip reads WATCH, and the four notes stay in the grid.
+tap play
+playhead stop
+wait 20
+tap rec
+wait 20
+snap walk_5

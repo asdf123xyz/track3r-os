@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+blank_issues_enabled: false
+contact_links:
+  - name: Install guide
+    url: https://github.com/trak3r-os/track3r-os/blob/main/docs/manual/install.md
+    about: How to install track3r-os, how to update it and how to go back to the official firmware.

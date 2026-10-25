@@ -1,0 +1,80 @@
+# OS-POWER P1 (docs/specs/OS-POWER.md section 8): the hold of the Power switch, docs/qa/catalogue/global.md QA-GLB-100.. . One `snap qa_glb_NNN` per row with a visible result; the goldens are keyed
+# qa_global/qa_glb_NNN. The simulator feeds core::PowerHold the way the platform's pin read does (active low); the stages of the shutdown are not simulated (the host test of platform/mk66/power is
+# their proof), the app's side is: the line, the strip, the lock after the commit. The switch arms after 100 ms of release, so the scenario waits first.
+wait 300
+
+# QA-GLB-157 (ui-map section 2, provisional key): Shift + Master is the next colour theme, Amiga, Black, White, Amiga; the screen repaints. The theme is set back to Amiga after the two snaps.
+theme amiga
+tap song
+press shift
+tap master
+release shift
+wait 100
+snap qa_glb_157
+press shift
+tap master
+release shift
+wait 100
+snap qa_glb_157_white
+theme amiga
+tap pattern
+
+# QA-GLB-100: Power held for 1 s on the Pattern screen: the line across the top edge is half full, the strip says HOLD TO SWITCH OFF. Let go: the line is empty again and nothing else happened.
+power down
+wait 1000
+snap qa_glb_100
+power up
+wait 100
+snap qa_glb_100_released
+
+# QA-GLB-100 (D4): the line and the strip are drawn over a modal overlay too (the Navigator is open: Shift + Pattern).
+press shift
+tap pattern
+release shift
+wait 100
+power down
+wait 500
+snap qa_glb_100_navigator
+power up
+wait 100
+tap pattern
+
+# QA-GLB-101: a short press under 150 ms shows nothing at all; one of 0.5 s shows the hint HOLD POWER 2 S TO SWITCH OFF for 1.5 s, then it goes.
+power hold 100
+wait 100
+snap qa_glb_101_brush
+power hold 500
+wait 100
+snap qa_glb_101
+wait 1600
+snap qa_glb_101_gone
+
+# QA-GLB-110: Shift down when Power goes down is the screenshot, never a power-off: no line, no hint, no off (the key row shows the Shift layer, as for any Shift press). This scenario has no card, so the
+# strip says NO SCREENSHOT: NO CARD (OS-SCREENSHOT; with a card the file is written, e2e/e2e_screenshot.txt).
+press shift
+wait 100
+power down
+wait 1200
+snap qa_glb_110
+power up
+wait 100
+release shift
+wait 100
+
+# QA-GLB-109: with unsaved work the strip warns: UNSAVED WORK - LET GO TO KEEP IT (the shutdown never saves).
+document
+power unsaved
+wait 100
+power down
+wait 600
+snap qa_glb_109
+power up
+wait 100
+
+# QA-GLB-102: held to the end of the line: at 2 s the strip says POWERING OFF and the line is full; the app reads no more input (a key pressed now does nothing).
+power down
+wait 2100
+snap qa_glb_102
+tap f1
+wait 100
+snap qa_glb_102_locked

@@ -1,0 +1,312 @@
+{
+ "name": "qa_h4",
+ "title": "OS-H4, rows QA-MOD-090..098 of docs/qa/catalogue/modules.md: the SMF EXPORT app and the first app that writes files (ABI 1.7): the first-launch confirm, F7 TOOLS listing an export app, the whole pattern and a block exported, a second export that becomes _001, a pulled card; the files are checked on a PC by hand",
+ "needs": [
+  "card"
+ ],
+ "steps": [
+  {
+   "say": "OS-H4 rows QA-MOD-090..098 of docs/qa/catalogue/modules.md (ADR 0014 slice H4, amendment A, ABI 1.7, new Community OS behaviour): the first app that WRITES FILES, SMF EXPORT, on the card in the unit (the card is checked first). It writes AppExport/smfexport/ on the card and nothing else. Precondition: smfexport.tmod in modules/ on the test card, the card holding no AppExport folder (or note which PAT files are there), and a project with notes in pattern 1: track 1 a sample instrument with a few notes (one with Micro-move FX 2), track 2 a MIDI instrument whose CHANNEL is 5 with a few notes, and an FX 7 on any step (to see the skipped-FX count). Reset the unit first: the confirm appears once per boot."
+  },
+  {
+   "card": {}
+  },
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.2,
+   "note": "(Shift released, in case a former run left it down)"
+  },
+  {
+   "keys": [
+    "+f7",
+    "+f8",
+    "-f8",
+    "-f7"
+   ],
+   "gap": 0.1,
+   "burst": true,
+   "if_state": {
+    "screen": "APP"
+   },
+   "note": "leave a leftover app first"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "NAVIGATOR"
+   },
+   "note": "(a leftover Navigator is closed)"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "~^(LEARN|PATTERN_CHOOSER|LENGTH_CHOOSER|JUMP_CHOOSER|MODULE_PICKER|STEP_POPUP|FILL|PLAY_MODE|TOOLS|EXPORT_PROGRESS)$"
+   },
+   "note": "(a leftover overlay is put away: F8 is Back)"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.6,
+   "note": "the Pattern screen, pattern 1, the transport stopped"
+  },
+  {
+   "state": {
+    "screen": "PATTERN",
+    "overlay": "NONE"
+   },
+   "within": 4
+  },
+  {
+   "say": "QA-MOD-091: F7 TOOLS lists the apps that hold edit_project OR export_files. Select NO block first (the whole pattern is exported; QA-MOD-093 does the block)."
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.5,
+   "note": "QA-MOD-091: F7 TOOLS"
+  },
+  {
+   "state": {
+    "overlay": "TOOLS"
+   },
+   "within": 3
+  },
+  {
+   "shot": "qa_mod_091_tools",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-MOD-091: the list holds SMFEXPORT (SMF Export) with the other tool apps, sorted by name, under EXPORT PATTERN"
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.15,
+   "repeat": 9,
+   "note": "scripted cursor move: 9 Downs from EXPORT PATTERN to SMFEXPORT on the test card (the 8 tool apps before it sorted by name); a card with other apps needs another count and a look at the shot above"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.6,
+   "note": "QA-MOD-090: the first launch per boot of an app that writes files asks first"
+  },
+  {
+   "shot": "qa_mod_090_confirm",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-MOD-090: the list says WRITES FILES TO APPEXPORT/SMFEXPORT: F1 AGAIN and the app has NOT started"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.8,
+   "note": "F1 again: the app starts"
+  },
+  {
+   "state": {
+    "screen": "APP",
+    "overlay": "NONE"
+   },
+   "within": 4
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "shot": "qa_mod_092_page",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-MOD-092: SMF EXPORT, PATTERN 1, WHOLE PATTERN with the track and row counts"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.5,
+   "note": "QA-MOD-092: F1 EXPORT"
+  },
+  {
+   "wait": 1.5
+  },
+  {
+   "shot": "qa_mod_092_done",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-MOD-092: DONE, WROTE APPEXPORT/SMFEXPORT/PAT001.mid with the note, track and byte counts and FX NOT EXPORTED: FX7 X<n>"
+  },
+  {
+   "cmd": "ls AppExport/smfexport",
+   "expect": "(?i)PAT001\\.mid",
+   "within": 10,
+   "poll": 1.0,
+   "note": "QA-MOD-092: the file is on the card (a card that already holds AppExport/smfexport numbers on: the checks read the names the page showed)",
+   "expect_not": "(?i)_o3save\\.tmp"
+  },
+  {
+   "say": "QA-MOD-094: press F1 again at once: a second file, never over the first. The page must say DONE with PAT001_001.mid."
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.5,
+   "note": "QA-MOD-094: a second export"
+  },
+  {
+   "wait": 1.5
+  },
+  {
+   "shot": "qa_mod_094_second",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-MOD-094: DONE, the name PAT001_001.mid"
+  },
+  {
+   "cmd": "ls AppExport/smfexport",
+   "expect": "(?i)PAT001_001\\.mid",
+   "within": 10,
+   "poll": 1.0,
+   "note": "QA-MOD-094: the second file, next to the first",
+   "expect_not": "(?i)_o3save\\.tmp"
+  },
+  {
+   "keys": [
+    "+f7",
+    "+f8",
+    "-f8",
+    "-f7"
+   ],
+   "gap": 0.1,
+   "burst": true,
+   "note": "the exit chord"
+  },
+  {
+   "state": {
+    "screen": "PATTERN",
+    "overlay": "NONE"
+   },
+   "within": 4
+  },
+  {
+   "say": "QA-MOD-093: a block. Put the cursor on ROW 1 of TRACK 1, Shift+Right (tracks 1 and 2) and Shift+Down 7 times (rows 1..8), then F7, SMFEXPORT, F1 (no confirm: it was answered this boot), F1 to export."
+  },
+  {
+   "keys": [
+    "+shift",
+    "right",
+    "-shift"
+   ],
+   "gap": 0.3
+  },
+  {
+   "keys": [
+    "+shift",
+    "down",
+    "-shift"
+   ],
+   "gap": 0.2,
+   "repeat": 7
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "overlay": "TOOLS"
+   },
+   "within": 3
+  },
+  {
+   "say": "MANUAL STEP: move the list's cursor to SMFEXPORT with Down (the list may keep its cursor from the first launch; the position depends on the apps on the card); the run goes on after the wait"
+  },
+  {
+   "wait": 8.0,
+   "note": "(time for the tester to move the cursor to SMFEXPORT)"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.8,
+   "note": "the app starts with the block as its context"
+  },
+  {
+   "state": {
+    "screen": "APP",
+    "overlay": "NONE"
+   },
+   "within": 4
+  },
+  {
+   "shot": "qa_mod_093_block",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-MOD-093: BLOCK TRACK 1-2 ROWS 1-8"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.5,
+   "note": "QA-MOD-093: F1 EXPORT"
+  },
+  {
+   "wait": 1.5
+  },
+  {
+   "shot": "qa_mod_093_done",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-MOD-093: DONE, PAT001_SEL.mid"
+  },
+  {
+   "cmd": "ls AppExport/smfexport",
+   "expect": "(?i)PAT001_SEL\\.mid",
+   "within": 10,
+   "poll": 1.0,
+   "note": "QA-MOD-093: the block's file",
+   "expect_not": "(?i)_o3save\\.tmp"
+  },
+  {
+   "say": "QA-MOD-098: leave with the exit chord during nothing, then pull the card OUT of the unit (touch nothing on it), open SMF EXPORT from Pattern F7 again, press F1. The page must say NO CARD OR IT CANNOT BE WRITTEN NOW (or NOT WRITTEN) and the unit must not hang. Put the card back (QA-MOD-097 needs it)."
+  },
+  {
+   "keys": [
+    "+f7",
+    "+f8",
+    "-f8",
+    "-f7"
+   ],
+   "gap": 0.1,
+   "burst": true,
+   "note": "the exit chord"
+  },
+  {
+   "state": {
+    "screen": "PATTERN",
+    "overlay": "NONE"
+   },
+   "within": 4
+  },
+  {
+   "say": "QA-MOD-095 / 096 / 097, on the computer: take the card to the PC. AppExport/smfexport/ holds PAT001.mid, PAT001_001.mid and PAT001_SEL.mid and NO _o3save.tmp (a stray Temp is a failure). Open PAT001.mid in a DAW or a MIDI player: format 1, 96 PPQ, the project's tempo and 4/4 in the first track, a track per track with notes named Track 1 and Track 2, the Micro-move note a little late, track 2 on channel 5, no overlapping notes on a track. PAT001_SEL.mid holds only rows 1..8 of tracks 1 and 2. Nothing else on the card changed (Projects, Settings, modules)."
+  }
+ ]
+}

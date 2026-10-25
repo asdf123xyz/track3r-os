@@ -1,0 +1,3 @@
+# OS-E2E-1a: `assert file` needs the card of the simulator (OS-E2E-1b's `card`); without one it fails with "no card".
+document
+assert file Projects exists

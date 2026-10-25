@@ -1,0 +1,14 @@
+# mutant:   M19
+# class:    3
+# twin:     OS-BUG-SLICEPITCH (the document and what is written of it differ)
+# expected: B
+# effect:   Save writes 0 for the fine tune of a sample instrument: the project reopens with the old sound (found by the save+OPEN relation of the B5 meta pass, which plants a fine tune before the save)
+diff --git a/formats/src/native_codec.h b/formats/src/native_codec.h
+index e0680dc6..d6807e20 100644
+--- a/formats/src/native_codec.h
++++ b/formats/src/native_codec.h
+@@ -218,3 +218,3 @@ inline void encode_sampler(Enc& e, const model::SamplerParams& s) noexcept {
+   e.u8(static_cast<std::uint8_t>(s.tune));
+-  e.u8(static_cast<std::uint8_t>(s.fine_tune));
++  e.u8(0);
+   e.u8(s.volume);

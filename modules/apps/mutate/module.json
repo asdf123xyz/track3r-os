@@ -1,0 +1,19 @@
+{
+  "name": "Mutate",
+  "id": "mutate",
+  "kind": "app",
+  "abi": "1.10",
+  "capabilities": ["read_project", "edit_project"],
+  "description": "Randomly nudges the sound parameters of the current sample or module instrument: AMOUNT sets how far (a percentage of each parameter's range), GROUP limits it to one page of parameters. The same SEED gives the same result. F1 APPLY writes one undo unit, F2 VARY draws a new one. Only the parameters the OS marks writable are touched. Opened from Pattern F7 TOOLS. New Community OS behaviour.",
+  "state_bytes": 1280,
+  "params": [
+    {"name": "Amount", "min": 0, "max": 100, "default": 20, "type": "int", "learnable": false},
+    {"name": "Group", "min": 0, "max": 8, "default": 0, "type": "int", "learnable": false},
+    {"name": "Seed", "min": 0, "max": 9999, "default": 0, "type": "int", "learnable": false}
+  ],
+  "views": [
+    {"name": "Body", "min_size": [480, 288], "preferred_size": [800, 384]}
+  ],
+  "voices": 1,
+  "memory": {"hot_bytes": 0, "sdram_bytes": 0}
+}

@@ -1,0 +1,43 @@
+{
+  "name": "Chip",
+  "id": "chip",
+  "kind": "instrument",
+  "abi": "1.8",
+  "description": "A chip-tune voice written from scratch: pulse (12.5 / 25 / 50 / 75 %), triangle and LFSR noise, optional 4-bit volume steps, a fast linear envelope, a three-step arpeggio, a pitch sweep and a vibrato. One mono voice an instance.",
+  "state_bytes": 208,
+  "params": [
+    {"name": "Wave", "min": 0, "max": 3, "default": 0, "type": "int", "labels": ["PULSE", "TRIANGLE", "NOISE LONG", "NOISE SHORT"]},
+    {"name": "Duty", "min": 0, "max": 3, "default": 1, "type": "int", "labels": ["12.5%", "25%", "50%", "75%"]},
+    {"name": "Raw Edges", "min": 0, "max": 1, "default": 0, "type": "bool"},
+    {"name": "Vol Steps", "min": 0, "max": 1, "default": 0, "type": "bool"},
+    {"name": "Volume", "min": -48, "max": 6, "default": -12, "unit": "db", "mod": true},
+    {"name": "Vel Sens", "min": 0, "max": 100, "default": 50, "unit": "percent"},
+    {"name": "Transpose", "min": -24, "max": 24, "default": 0, "type": "int", "unit": "semitones"},
+    {"name": "Fine", "min": -100, "max": 100, "default": 0, "type": "int", "unit": "cents"},
+    {"name": "Attack", "min": 0, "max": 500, "default": 0, "unit": "ms"},
+    {"name": "Decay", "min": 0, "max": 2000, "default": 250, "unit": "ms"},
+    {"name": "Sustain", "min": 0, "max": 100, "default": 60, "unit": "percent"},
+    {"name": "Release", "min": 0, "max": 2000, "default": 80, "unit": "ms"},
+    {"name": "Sweep", "min": -48, "max": 48, "default": 0, "unit": "semitones", "mod": true},
+    {"name": "Sweep Time", "min": 0, "max": 2000, "default": 120, "unit": "ms"},
+    {"name": "Vib Depth", "min": 0, "max": 200, "default": 0, "unit": "cents", "mod": true},
+    {"name": "Vib Rate", "min": 1, "max": 16, "default": 6, "curve": "log", "unit": "hz"},
+    {"name": "Vib Delay", "min": 0, "max": 1000, "default": 0, "unit": "ms"},
+    {"name": "Arp 1", "min": -24, "max": 24, "default": 0, "type": "int", "unit": "semitones"},
+    {"name": "Arp 2", "min": -24, "max": 24, "default": 0, "type": "int", "unit": "semitones"},
+    {"name": "Arp Speed", "min": 1, "max": 120, "default": 50, "curve": "log", "unit": "hz"}
+  ],
+  "views": [
+    {"name": "Wave", "min_size": [160, 64], "preferred_size": [380, 90]},
+    {"name": "Envelope", "min_size": [160, 80], "preferred_size": [380, 130]}
+  ],
+  "pitch": true,
+  "pages": [
+    {"name": "TONE", "first": 0},
+    {"name": "ENV", "first": 8},
+    {"name": "PITCH", "first": 12},
+    {"name": "ARP", "first": 17}
+  ],
+  "voices": 1,
+  "memory": {"hot_bytes": 1400, "sdram_bytes": 0}
+}

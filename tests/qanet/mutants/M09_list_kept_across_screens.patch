@@ -1,0 +1,13 @@
+# mutant:   M09
+# class:    2
+# twin:     OS-BUG-NEWLIST (File, then Sample load: the listing of one screen is shown on the other)
+# expected: B
+# effect:   Going from File to Sample load (or back) keeps the scan of the other screen instead of dropping it
+diff --git a/app/src/app.cpp b/app/src/app.cpp
+index 981f6194..5eb1e5ba 100644
+--- a/app/src/app.cpp
++++ b/app/src/app.cpp
+@@ -1779,3 +1779,2 @@ void App::poll_files() noexcept {
+     stop_files_scan();
+-    files_.invalidate();
+     state_.file.reset();

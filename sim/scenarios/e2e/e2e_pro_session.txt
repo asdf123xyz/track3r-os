@@ -1,0 +1,384 @@
+# OS-E2E-13: the "pro session" journey. A power user's session on the card of a simulator: open a kit, start a NEW project that keeps its instruments, write a song of five tracks and three patterns by the keys, play
+# it, mute and solo, hold a Perform slot and RESET it, export the song as a WAV, SAVE AS, edit, reload the saved project, and play the song again. One scenario (one card: the scratch copy of the card is removed when
+# a run ends, so the steps cannot be chained across files); about 2.7 s of audio in five windows (song 1.0 s, mix 0.3, perf 0.42, again 1.0, and the export read back), 10 s a run under the sanitizers.
+# The card e2e_pro is GENERATED (target e2e_pro_fixture: `o3pj_tool gen kit`, tests/tools/o3pj_tool.cpp; tests/e2e_pro_fixture_test.py holds it to what the generator writes): Projects/Kit/project.o3pj with four
+# sample instruments (1 SINE, a loop of 100 frames a period at 44,100 Hz: 441.18 Hz at C-5; 2 SAW on the AMIGA engine, 32 frames a period at the Paula rate 8,287 Hz; 3 PLUCK, a one shot that decays by e every 0.12 s;
+# 4 HAT, a 50 ms noise burst) and the MIDI instrument 49 SYNTH, and their WAVs in samples/. No amplitude envelope, so a note is the sample. Every pitch is the sample's own at the pad's semitone.
+# The song (400 BPM: a step is 37.5 ms; the Tempo FX 15 at value 100 is 200 BPM): pattern 1 has four steps that DUPLICATE x2 made eight (T1 C G F G, T2 E G, T3 C and C an octave up by the Tune FX, T4 a burst on every
+# second step by the Fill dialog, T5 the MIDI track); pattern 2 is its copy (F1 held, Copy, Shift + Copy) with a new bass line; pattern 3 is another copy SHRUNK /2 to four steps with the Tempo FX on T4's first step.
+# Evidence label: new Community OS behaviour (test only; no firmware file is touched). The master is not compared sample for sample with a soloed stem (docs/specs/OS-E2E.md, E2E-13, finding F1), and the
+# second take is compared by measurement, not by a null, because its first block falls at another phase of the engine's pacing (up to 1.45 ms).
+document
+wait 20
+card e2e_pro
+audio on
+wait 20
+
+# 1. The kit: File > OPEN the project of the card (four sample instruments, one of them on the AMIGA engine, and a MIDI instrument), then File > NEW keeping its instruments.
+tap file
+wait 300
+assert state screen=FILE sel=Kit
+tap f1
+wait 1500
+assert state screen=PATTERN msg=PROJECT_Kit_OPENED
+assert model inst.1.name=SINE
+assert model inst.2.name=SAW
+assert model inst.3.name=PLUCK
+assert model inst.4.name=HAT
+assert model inst.49.name=SYNTH
+tap file
+tap f3
+assert state msg=~NEW_PROJECT:_F3_ALL,_F1_KEEP
+tap f1
+wait 500
+assert state screen=PATTERN msg=NEW_PROJECT
+assert model order.len=1
+assert model inst.1.name=SINE
+assert model inst.49.name=SYNTH
+
+# 2. Pattern 1: four steps (F2 LENGTH, the pad of 4), then the notes of five tracks by the keys.
+tap f2
+pad 0
+tap f8
+tap rec
+tap note
+action cursor.jump_fraction 0
+# T1 SINE: C-5 on step 1, G-5 on step 3.
+action instrument.select 1
+pad 12
+tap down
+pad 19
+# T2 SAW (the AMIGA engine): E-5, G-5.
+action cursor.track 1
+action cursor.jump_fraction 0
+action instrument.select 2
+pad 16
+tap down
+pad 19
+# T3 PLUCK: C-5, then C-5 with the FX Tune at 36 (the picker's default is 24, the centre: 36 is an octave up).
+action cursor.track 1
+action cursor.jump_fraction 0
+action instrument.select 3
+pad 12
+tap down
+pad 12
+tap up
+tap fx
+action step.fx_type 40
+encoder 12
+assert model pat.1.2.2.fx1=40:36
+# T4 HAT: the Fill dialog (F4), TYPE EVERY N with N 2: a note on every second step.
+action cursor.track 1
+action cursor.jump_fraction 0
+action instrument.select 4
+tap note
+tap f4
+tap down 3
+tap right
+tap f1
+assert model pat.1.3.0.instr=4
+assert model pat.1.3.2.note=61
+assert model pat.1.3.1.note=0
+# T5 SYNTH, the MIDI instrument 49 (a step names it from the Instr column).
+action cursor.track 1
+action cursor.jump_fraction 0
+tap instr
+action step.instrument 49
+tap note
+tap down
+pad 19
+assert model pat.1.4.0.instr=49
+assert model pat.1.4.2.note=68
+assert model pat.1.4.2.instr=49
+assert model pat.1.0.0.note=61
+assert model pat.1.0.2.note=68
+assert model pat.1.1.0.note=65
+assert model pat.1.1.2.note=68
+
+# 3. PAT-OPS: DUPLICATE x2 (F7 TOOLS, the second entry) repeats the four steps into eight; the second half then gets its own first note (F-5 on T1, step 5).
+tap f7
+tap down 1
+tap f1
+assert state msg=~DUPLICATED
+assert model pat.1.4.4.note=61
+assert model pat.1.2.6.fx1=40:36
+action cursor.track -4
+action cursor.jump_fraction 2
+action instrument.select 1
+pad 17
+assert model pat.1.0.4.note=66
+
+# 4. Pattern 2 is a copy of pattern 1 (F1 held: the chooser; Copy takes pattern 1 whole, Shift + Copy writes it over pattern 2, which it makes), then its bass line is rewritten: F-5 and A-5.
+press f1
+wait 450
+pad 0
+tap copy
+encoder 1
+press shift
+tap copy
+release shift
+release f1
+wait 10
+assert state pattern=2 msg=~PATTERN_02_REPLACED_BY_01
+assert model pat.2.0.4.note=66
+action cursor.jump_fraction 0
+action instrument.select 1
+pad 17
+tap down
+pad 21
+assert model pat.2.0.0.note=66
+assert model pat.2.0.2.note=70
+assert model pat.1.0.0.note=61
+
+# 5. Pattern 3 is another copy, SHRUNK /2 (F7, the fourth entry: the even steps only: four steps), with the Tempo FX (15, value x 2 BPM) on the first step of T4.
+press f1
+wait 450
+pad 0
+tap copy
+encoder 2
+press shift
+tap copy
+release shift
+release f1
+wait 10
+assert state pattern=3 msg=~PATTERN_03_REPLACED_BY_01
+tap f7
+tap down 3
+tap f1
+assert state msg=SHRUNK:_4_STEPS
+action cursor.jump_fraction 0
+action cursor.track 3
+tap fx
+action step.fx_type 15
+encoder 40
+assert model pat.3.3.0.fx1=15:100
+assert model pat.3.3.3.note=61
+
+# 6. The song: Song screen, ADD SLOT (F3) and the encoder give the order 1, 2, 3; F7 TEMPO and the encoder set 400 BPM (a step is 37.5 ms; pattern 3 halves it).
+tap song
+assert state screen=SONG
+tap f3
+encoder 1
+tap f3
+encoder 1
+assert model order.len=3
+assert model order.0=1
+assert model order.1=2
+assert model order.2=3
+tap f7
+encoder 270
+assert model tempo=40000
+
+# 7. Play the song from its first slot and render it (the stems too): three patterns, the tempo falling in the third.
+press shift
+tap f1
+release shift
+render song 1000 stems
+tap play
+wait 100
+assert state playing=1 seq=1 tempo=40000 play_pattern=1
+wait 250
+assert state play_pattern=2
+wait 400
+assert state play_pattern=3 tempo=20000
+wait 250
+tap play
+assert state playing=0
+wait 1
+
+# What it sounds like. T1 (SINE, 441.18 Hz at C-5): C G F G in pattern 1 (a step is 37.5 ms: each note lasts two), F A F G in pattern 2, and in pattern 3, SHRUNK to the even steps, C G F G again, each note now
+# 75 ms (the Tempo FX halved the tempo at 600 ms): the windows below fall inside the notes only if the tempo changed. The pitches are the sample's own at the pad's semitone, to 4 cents.
+assert audio song.t1 in=6-70 pitch=441.18+-4c
+assert audio song.t1 in=80-145 pitch=661.00+-4c
+assert audio song.t1 in=155-220 pitch=588.91+-4c
+assert audio song.t1 in=230-295 pitch=661.00+-4c
+assert audio song.t1 in=306-370 pitch=588.91+-4c
+assert audio song.t1 in=380-445 pitch=741.95+-4c
+assert audio song.t1 in=455-520 pitch=588.91+-4c
+assert audio song.t1 in=530-595 pitch=661.00+-4c
+assert audio song.t1 in=606-670 pitch=441.18+-4c
+assert audio song.t1 in=685-745 pitch=661.00+-4c
+assert audio song.t1 in=760-820 pitch=588.91+-4c
+assert audio song.t1 in=835-895 pitch=661.00+-4c
+# T2 (SAW on the AMIGA engine: 8,287 Hz, 32 frames a period, 258.97 Hz at C-5): E-5 then G-5, twice in each pattern. Paula plays whole periods of its clock: the periods 339 and 285 give 326.96 and 388.9 Hz,
+# 3.7 and 4.0 cents above the equal-tempered 326.26 and 388.00 Hz that the Modern engine would play, so the tolerance is 1.5 cents: these pitches prove the AMIGA engine survived OPEN, NEW and the song.
+assert audio song.t2 in=6-70 pitch=326.96+-1.5c
+assert audio song.t2 in=80-145 pitch=388.90+-1.5c
+assert audio song.t2 in=155-220 pitch=326.96+-1.5c
+assert audio song.t2 in=230-295 pitch=388.90+-1.5c
+assert audio song.t2 in=606-670 pitch=326.96+-1.5c
+assert audio song.t2 in=685-745 pitch=388.90+-1.5c
+assert audio song.t2 in=760-820 pitch=326.96+-1.5c
+assert audio song.t2 in=835-895 pitch=388.90+-1.5c
+# T3 (PLUCK): C-5 on the first step of each pair and C-5 with the Tune FX at 36 (an octave up) on the second: 441.18 then 882.36 Hz, in the third pattern at its slower steps.
+assert audio song.t3 in=6-70 pitch=441.18+-4c
+assert audio song.t3 in=80-145 pitch=882.36+-4c
+assert audio song.t3 in=155-220 pitch=441.18+-4c
+assert audio song.t3 in=230-295 pitch=882.36+-4c
+assert audio song.t3 in=606-670 pitch=441.18+-4c
+assert audio song.t3 in=685-745 pitch=882.36+-4c
+# T4 (HAT, the noise burst): a burst on every second step, so every 75 ms, in patterns 1 and 2; pattern 3 has one on every one of its four steps and the Tempo FX sits on the first, so the bursts come 75 ms apart
+# from 600 ms (the grid of the old tempo would have a fourth burst at 637.5 ms, which is still sounding at 655).
+assert audio song.t4 in=0-70 onset=1.0+-1.5
+assert audio song.t4 in=55-110 onset=20.7+-2
+assert audio song.t4 in=655-720 onset=20.7+-2
+# T5 is a MIDI track: no sound of its own. T1, T2, T3 and T4 sum into the master, which the limiter holds at its ceiling.
+assert audio song.t5 silent
+assert audio song sound peak<-0.25
+
+# 8. Mute and solo, on the Song screen's TRACKS pads (row 2 mutes, row 4 solos; the column is the track): the song again from its first slot, T1 muted for 100 ms, then unmuted while T2 is soloed.
+press shift
+tap f1
+release shift
+render mix 300 stems
+tap play
+wait 50
+pad 12
+wait 100
+pad 12
+pad 37
+wait 100
+pad 37
+wait 49
+tap play
+wait 1
+assert audio mix.t1 in=10-45 sound
+assert audio mix.t1 in=70-145 silent
+assert audio mix.t1 in=165-245 silent
+# T1 is muted 50..150 ms, unmuted at 150 under T2's solo (silent either way), and sounds again when the solo ends at 250: its G note at the sine's own level (-9.06 dB) in 262..295 can only be heard if the unmute took.
+assert audio mix.t1 in=262-295 sound rms=-9.06+-0.3
+assert audio mix.t3 in=160-245 silent
+assert audio mix.t4 in=160-245 silent
+assert audio mix.t2 in=165-220 sound pitch=326.96+-1.5c
+# (The master is not asserted equal to the soloed stem: see the spec's E2E-13 finding F1.)
+assert audio mix in=170-245 sound
+
+# 9. Perform: the song plays from its first slot, T1..T4 are switched on in the bank (Shift + the top row of pads), and a slot is HELD with the encoder turned on it: slot 4, LOWPASS, pad 15 (its first row), 30 detents
+# down. The noise of T4 loses its top end while it is held (centroid 10.4 kHz to 2.9 kHz, 8 dB); F8 RESET puts every FX away and the burst is bright again. The sine of T1 is under the cutoff and does not change.
+tap performance
+press shift
+pad 0
+pad 1
+pad 2
+pad 3
+release shift
+tap f8
+tap song
+press shift
+tap f1
+release shift
+render perf 420 stems
+tap play
+tap performance
+wait 100
+pad 15 down
+wait 20
+# OS-PRFDEFAULTS: the row holds -30 from a new project (the LOWPASS default), so the pad alone is the -30 the encoder used to turn in.
+wait 130
+tap f8
+pad 15 up
+wait 168
+tap song
+tap play
+wait 1
+assert audio perf.t4 in=20-95 centroid>8000 rms>-24
+assert audio perf.t4 in=120-245 centroid<4500 rms<-27
+assert audio perf.t4 in=280-400 centroid>8000 rms>-24
+assert audio perf.t1 in=20-95 rms=-9.06+-0.3
+assert audio perf.t1 in=120-245 rms=-9.06+-0.3
+assert audio perf.t1 in=280-400 rms=-9.06+-0.3
+
+# 10. File > EXPORT (F6 twice from any page ends on PROJECTS, F7 is the EXPORT page, SONG is its first row, F1 starts it): the song written as a WAV on the card, 44.1 kHz, read back as a render. The offline renderer
+# plays the same song as the live one: its level in the first 880 ms is the live take's to 0.3 dB (the export starts on the first step and the live take 1.5 ms later at most).
+press shift
+tap f1
+release shift
+tap pattern
+tap file
+wait 50
+tap f6
+tap f6
+tap f7
+wait 50
+tap f1
+wait 50
+assert state overlay=EXPORT_PROGRESS
+wait 1500
+assert state msg=SAVED_EXPORT/UNTITLED/UNTITLED_SONG0001.WAV
+assert file EXPORT/UNTITLED/UNTITLED_SONG0001.WAV exists
+wav export EXPORT/UNTITLED/UNTITLED_SONG0001.WAV
+assert audio export in=20-880 sound rms=@song+-0.3 peak=@song+-0.3
+
+# 11. SAVE AS (F5 proposes the first free name, Track 01; F8 takes it): the project file and the four WAVs of its instruments land in the new folder, the WAVs byte for byte the kit's sizes. The digest marked
+# here is the document that the file has to give back.
+mark model presave
+tap f5
+wait 50
+assert state overlay=TEXT_ENTRY
+tap f8
+wait 2500
+assert state msg=SAVE_TRACK_01_DONE
+assert file "Projects/Track 01/project.o3pj" exists
+assert file "Projects/Track 01/samples/sine.wav" size=8844
+assert file "Projects/Track 01/samples/saw.wav" size=556
+assert file "Projects/Track 01/samples/pluck.wav" size=22094
+assert file "Projects/Track 01/samples/hat.wav" size=4454
+assert file "Projects/Kit/project.o3pj" exists
+
+# 12. Reload. An edit after the save (the tempo, 380 BPM) makes the open document differ from the file; File > OPEN asks first (F1 reads OPEN?), the second F1 discards the edit and loads Track 01 from the card:
+# the document is the digest marked before the save, byte for byte through the native file, and the notes, the Tempo FX, the song and the tempo are in it.
+tap song
+tap f7
+encoder -20
+assert model tempo=38000
+tap file
+tap f7
+tap f2
+wait 500
+assert state screen=FILE sel=Track_01
+tap f1
+assert state msg=~UNSAVED_CHANGES
+tap f1
+wait 1500
+assert state screen=PATTERN msg=PROJECT_Track_01_OPENED
+assert model digest=@presave
+assert model tempo=40000
+assert model order.len=3
+assert model order.2=3
+assert model inst.2.name=SAW
+assert model inst.49.name=SYNTH
+assert model pat.1.0.0.note=61
+assert model pat.2.0.2.note=70
+assert model pat.1.2.6.fx1=40:36
+assert model pat.3.3.0.fx1=15:100
+assert model pat.1.4.4.instr=49
+
+# 13. The song again, from the reloaded project and the samples read back from the card's WAVs: the same tempo change, the same notes, the same level as the first take (to 0.15 dB over the 20..880 ms of it) and the
+# same pitch in each window, to a cent. (Not a sample null: the first block of a take falls at another phase of the engine's 689 blocks in 1000 ticks, up to 1.45 ms, so the two takes are a block apart at most.)
+tap song
+press shift
+tap f1
+release shift
+render again 1000 stems
+tap play
+wait 100
+assert state playing=1 tempo=40000 play_pattern=1
+wait 650
+assert state play_pattern=3 tempo=20000
+wait 250
+tap play
+wait 1
+assert audio again in=20-880 rms=@song+-0.15 peak=@song+-0.15
+assert audio again.t1 in=80-145 pitch=@song.t1+-1c
+assert audio again.t1 in=380-445 pitch=@song.t1+-1c
+assert audio again.t1 in=685-745 pitch=@song.t1+-1c
+assert audio again.t2 in=80-145 pitch=@song.t2+-1c
+assert audio again.t3 in=80-145 pitch=@song.t3+-1c
+assert audio again.t4 in=655-720 onset=@song.t4+-1.5
+assert audio again.t5 silent
+# OS-E2E-4: the audio fingerprint (tests/audio_fingerprints/e2e_pro_session.json): the song's master (four tracks at once: no f0 track), the sample track and the Paula track of the song, and the held low-pass.
+# Taken at the 44,100 Hz clock (OS-RATE): a 441 Hz tone reads 441.00 Hz; the low bands move with the phase at which a note is cut.
+fingerprint song nof0
+fingerprint song.t1
+fingerprint song.t2
+fingerprint perf.t4

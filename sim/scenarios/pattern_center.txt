@@ -1,0 +1,27 @@
+# OS-CENTER and OS-PATCENTER (new Community OS behaviour; maintainer, 2026-10-17): the cursor's row is on the centre slot (the 8th: seven rows above it)
+# at EVERY step, the first and the last included: at step 1 the seven slots above it are blank, at the last step the eight below it. A document: 64 steps, the window shows 16.
+document
+snap start
+
+# The first row is on the centre slot with seven blank slots above it (snap start); the blank slots fill with steps as the cursor goes down (at row 7 the window starts at step 01).
+action nav.scroll 7
+snap row_7
+
+# One more and the pattern scrolls on: the cursor stays on the centre slot, row 8 shows step 02 first.
+tap down
+snap row_8
+
+action nav.scroll 20
+snap row_28
+
+# The last row is on the centre slot too, with eight blank slots below it.
+action cursor.jump_end
+snap last_row
+action nav.scroll -3
+snap row_60
+
+# A jump to the middle centres it; back at the top the cursor is on the centre slot again, the slots above it blank.
+action cursor.jump_fraction 2
+snap jump_middle
+action cursor.jump_fraction 0
+snap top_again

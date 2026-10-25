@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="440" height="513" viewBox="0 0 205 239" role="img" aria-labelledby="t d">
+<title id="t">Panel: the Power button on the rear panel is ringed. Hold it for 2 seconds.</title>
+<desc id="d">Hold Power for 2 s, until the line across the top of the screen is full. Let go sooner to stay on.</desc>
+<style>
+.body { fill: #3c3c3c; }
+.screen { fill: #141414; stroke: #262626; stroke-width: 2; }
+.soft { fill: #8a8a8a; }
+.pad { fill: #6a6a6a; }
+.key { fill: #7a7a7a; }
+.btn { fill: #5e5e5e; }
+.t { font-family: sans-serif; font-size: 12px; fill: #f4f4f4; text-anchor: middle; }
+.tk { font-family: sans-serif; font-size: 10px; fill: #f4f4f4; text-anchor: middle; }
+.dk { fill: #141414; }
+.cap { font-family: sans-serif; font-size: 13px; fill: #b0b0b0; }
+.scr { font-family: sans-serif; font-size: 16px; fill: #6f6f6f; text-anchor: middle; }
+.p{fill:#ffb000}
+.h{stroke:#ffb000;stroke-width:7}
+.lb{font-family:sans-serif;font-size:20px;font-weight:bold;fill:#ffb000;text-anchor:middle}
+.lk{font-family:sans-serif;font-size:14px;font-weight:bold;fill:#141414;text-anchor:middle}
+.bn{font-family:sans-serif;font-size:16px;font-weight:bold;fill:#f4f4f4;text-anchor:middle}
+.cp{font-family:sans-serif;font-size:30px;fill:#f4f4f4;text-anchor:middle}
+.lg{font-family:sans-serif;font-size:20px;fill:#f4f4f4}
+</style>
+<rect class="body" width="205" height="239" rx="14"/>
+<svg x="0" y="0" width="205" height="185" viewBox="1135 755 205 185">
+<rect x="1215" y="835" width="110" height="70" rx="8" fill="#2a2a2a" stroke="#ffb000" stroke-width="7"/>
+<text class="t" x="1270" y="866">Power</text><text class="tk" x="1270" y="884">rear panel</text>
+<text class="lb" x="1270" y="928">2 s</text>
+</svg>
+<rect x="16" y="197" width="30" height="30" rx="5" fill="#7a7a7a" stroke="#ffb000" stroke-width="5"/>
+<text class="lg" x="60" y="219">hold down</text>
+</svg>

@@ -1,0 +1,9 @@
+{
+ "name": "qa_usbdisk_chord_exact",
+ "title": "OS-USBDISK U1d, QA-GLB-016: power on holding Shift + F1 + F7: the boot disk opens",
+ "steps": [
+  {"say": "OS-USBDISK U1d, row QA-GLB-016, case exact: hold Shift + F1 + F7 while powering the unit on, then start this run. Nothing is injected, nothing is written"},
+  {"cmd": "log 400", "expect": ["boot: chord Shift\\+F1\\+F7, USB DISK mode"], "expect_not": ["boot: sd mounted"], "within": 5, "poll": 1.0, "note": "only Shift + F1 + F7 opens the disk"},
+  {"cmd": "sd", "expect": ["owner:\\s+host", "mount:\\s+not (mounted|tried)"], "show": true}
+ ]
+}

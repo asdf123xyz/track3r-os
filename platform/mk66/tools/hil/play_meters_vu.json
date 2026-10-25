@@ -1,0 +1,118 @@
+{
+ "name": "play_meters_vu",
+ "title": "load t-v16, play: 12-track metering, the VU pads, the Pattern screen against the simulator's chrome, stop",
+ "needs": [
+  "sim"
+ ],
+ "steps": [
+  {
+   "run": "_load_tv16"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "screen": "PATTERN"
+   },
+   "within": 3
+  },
+  {
+   "run": "_play_song"
+  },
+  {
+   "note": "let the pattern run so that every track that has a note has sounded",
+   "wait": 4.0
+  },
+  {
+   "mix": {
+    "min_tracks": 2,
+    "channels": {
+     "MAIN L": {
+      "min_rms_db": -50
+     },
+     "MAIN R": {
+      "min_rms_db": -50
+     }
+    }
+   }
+  },
+  {
+   "note": "the maintainer's expectation: all 12 tracks meter (not every instrument of t-v16 may sound yet: a soft check)",
+   "mix": {
+    "min_tracks": 12
+   },
+   "soft": true
+  },
+  {
+   "voices": {
+    "min_in_use": 1
+   }
+  },
+  {
+   "note": "Shift + F7 picks the VU pads; the 12 columns are the 12 tracks' meters",
+   "keys": [
+    "+shift",
+    "f7",
+    "-shift"
+   ],
+   "gap": 0.3
+  },
+  {
+   "state": {
+    "pads": "VU",
+    "shift": "0"
+   },
+   "within": 3
+  },
+  {
+   "leds": {
+    "min_lit": 1,
+    "within": 4,
+    "snap": "vu_a"
+   }
+  },
+  {
+   "shot": "pattern_vu",
+   "compare": {
+    "sim_scenario": "sim/scenarios/screens.txt",
+    "snap": "pattern_start",
+    "regions": [
+     "0,458,800,22"
+    ],
+    "tol": 24,
+    "aa": 1,
+    "max_bad": 0.005
+   },
+   "note": "the key-cap row is the part of the Pattern screen that does not depend on the project (compared with the simulator's golden, AA tolerance); soft: the unit's key-cap bar is 0.56x the simulator's brightness (OS-SIMKEY)",
+   "soft": true
+  },
+  {
+   "run": "_stop"
+  },
+  {
+   "leds": {
+    "max_lit": 4,
+    "within": 5
+   },
+   "note": "stopped: the VU pads fall back to dark"
+  }
+ ],
+ "finally": [
+  {
+   "keys": [
+    "+shift",
+    "f1",
+    "-shift"
+   ],
+   "gap": 0.3,
+   "note": "Shift + F1 puts the pads back to NOTES"
+  },
+  {
+   "run": "_stop"
+  }
+ ]
+}

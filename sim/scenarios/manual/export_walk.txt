@@ -1,0 +1,19 @@
+# OS-MANUAL2 C5: the walk-through of the Export chapter's "Try it" (docs/manual/export.md). Each `snap walk_<n>` is the picture of step n, `export_walk_<n>.png` in docs/manual/img/
+# (manifest: docs/manual/images.txt; tools/manual_images.py renders it, ctest o3sim_manual_images keeps the committed pictures in step). A new step or a changed key means a changed picture: edit the
+# chapter's step and this line together. The simulator has no card, so the last step of the chapter (F1 writes the file, the strip says SAVED) is not here: the simulator would say that there is no card.
+document
+
+# Step 1. Press `File`. The File screen opens on the PROJECTS page.
+tap file
+wait 20
+assert state screen=FILE
+
+# Step 2. Press `F7` (EXPORT). The EXPORT page opens with the cursor on SONG.
+tap f7
+wait 20
+snap walk_2
+
+# Step 3. Press `Down`. The cursor is on PATTERN nn; the WHAT line says "the pattern once, with its tail" and the FORMAT line says 16-bit stereo, 44,100 Hz. (The demo has one pattern, so the encoder has nothing to change here.)
+tap down
+wait 20
+snap walk_3

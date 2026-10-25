@@ -1,0 +1,4 @@
+# OS-E2E J2: `card copy` is a computer copying a folder of the card: the card must be pulled first.
+document
+card e2e_card
+card copy Projects Projects2

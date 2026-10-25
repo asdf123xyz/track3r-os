@@ -1,0 +1,28 @@
+{
+ "name": "qa_usbdisk_rw",
+ "title": "OS-USBDISK U1d, Linux only, the WRITABLE step: copy both ways with a checksum (SIZE_MB, default 16; the release pass is 100), remount, eject",
+ "needs": ["card", "disk"],
+ "vars": {"SIZE_MB": "16"},
+ "steps": [
+  {"say": "OS-USBDISK U1d, rows QA-GLB-015..017, 019..021. Linux only (Windows and macOS: untested, not run). THE UNIT MUST ALREADY BE IN THE BOOT DISK MODE: power it off, hold Shift + F1 + F7 while powering on until the strip 'USB DISK - EJECT ON THE COMPUTER OR PRESS A KEY' shows, then start this run (--expect-volume XXXX-XXXX is optional); the PC side touches nothing else. NO KEY IS PRESSED until the last step (a key restarts the unit; while the computer has the disk writable and mounted it takes two presses)"},
+  {"say": "USBDISK-BOOT (QA-GLB-015): no mount, no project, no outputs, the card is the computer's"},
+  {"cmd": "log 400", "expect": ["boot: chord Shift\\+F1\\+F7, USB DISK mode", "usb: pull-up on, DISK", "usb: disk opened, writable"], "expect_not": ["boot: sd mounted", "boot: loading Workspace", "audio: outputs open"], "within": 5, "poll": 1.0, "note": "the log: the chord was read, the DISK set is on the bus, the card was opened for the computer, writable (the writable step); no mount, no project load, no output opened"},
+  {"cmd": "sd", "expect": ["mount:\\s+not (mounted|tried)", "owner:\\s+host"], "expect_not": ["mount:\\s+mounted"], "note": "the card is the computer's: nothing is mounted by FatFs", "show": true},
+  {"state": {"msg": "~^USB_DISK_-_EJECT_ON_THE_COMPUTER_OR_PRESS_A_KEY$"}, "within": 5, "poll": 0.5, "soft": true, "note": "the strip (soft: the notice is re-posted every second and may have just expired)"},
+  {"shot": "disk_strip", "non_blank": true, "soft": true, "note": "(soft: the screen is the app's own with the persistent strip)"},
+  {"say": "USBDISK-ENUM (QA-GLB-019): the computer lists the unit's disk, writable (ro=0)"},
+  {"disk": "enumerate", "within": 30, "ro": false, "note": "the write-protect bit is clear: the boot disk is exported writable (since 2026-10-17)"},
+  {"disk": "mount", "within": 30},
+  {"say": "USBDISK-COPY (QA-GLB-020): both ways with a checksum. The write goes only into o3-usbdisk-test/ on the card"},
+  {"disk": "write", "size_mb": "${SIZE_MB}", "note": "writes a deterministic file, fsync, unmounts and mounts again (the computer's cache is gone), reads it back off the card, compares sha256, deletes it"},
+  {"disk": "read", "size_mb": "${SIZE_MB}", "note": "and the card's own files off to the computer with two-read agreement"},
+  {"say": "USBDISK-REMOUNT (QA-GLB-021)"},
+  {"disk": "remount", "within": 30},
+  {"cmd": "sd", "expect": ["owner:\\s+host"]},
+  {"say": "QA-GLB-023 is a separate BY-HAND check, not a step of this run (the runner cannot press the unit's keys): in a boot disk session with the disk mounted and NOT ejected, ONE key on the unit must not restart it: the strip warns 'THE COMPUTER MAY STILL BE WRITING: KEY AGAIN' (and the run above still passes); 6 s later the usual strip is back; a second key inside 5 s restarts. After the eject below one key restarts at once"},
+  {"say": "USBDISK-EJECT (QA-GLB-017): the computer ejects the medium (udisksctl power-off), the unit says so"},
+  {"disk": "eject", "within": 20, "note": "the computer's next command gets NOT READY / MEDIUM NOT PRESENT: the block device is gone or reads 0 blocks"},
+  {"state": {"msg": "~^DISK_EJECTED_-_PRESS_ANY_KEY_TO_RESTART$"}, "within": 8, "poll": 0.5, "note": "the strip: DISK EJECTED - PRESS ANY KEY TO RESTART (read at once: udisksctl power-off then removes the device on the computer's side, and the console goes with it)"},
+  {"say": "udisksctl power-off also turns the computer's port off: the unit leaves the bus (kernel 'USB disconnect'), so nothing more is read here. A person presses any key on the unit: it restarts into the normal boot with the card mounted; run boot_version next"}
+ ]
+}

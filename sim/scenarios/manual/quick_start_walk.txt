@@ -1,0 +1,36 @@
+# OS-MANUAL2 C4: the newcomer path of docs/manual/quick_start.md ("New to trackers?"). Each `snap walk_<n>` is the picture of step n, `quick_start_walk_<n>.png` in docs/manual/img/ (manifest docs/manual/images.txt).
+# The manual numbers the pads 1 to 48 and the simulator's `pad` takes 0 to 47: the manual's pad N is `pad N-1`. The simulator has no sequencer: `playhead 6` is the word the engine publishes while a pattern plays.
+# Step 2: File > NEW > KEEP INSTRUMENTS. The project keeps the demo kit's instruments and has a new, empty pattern (the demo's own pattern 1 holds a two-bar beat).
+document new
+wait 20
+tap file
+wait 20
+tap f3
+wait 20
+tap f1
+wait 900
+assert state screen=PATTERN
+wait 3000
+
+# Steps 1 and 2 need no picture: the logo and the demo kit are the boot's, the NEW question is a strip text, and the pad press of WATCH changes nothing on the screen.
+# Step 3. Press `Rec`, then four pads. The chip reads STEP, and each pad writes a note on the cursor's step and moves the cursor on.
+tap rec
+wait 20
+pad 0
+pad 4
+pad 7
+pad 11
+wait 20
+snap walk_3
+
+# Step 4. Press `Play`. The header reads PLAY and a green bar, the playhead, runs down the steps. Press `Play` again to stop.
+tap play
+playhead 6
+wait 100
+snap walk_4
+tap play
+playhead stop
+wait 20
+
+# Step 5. Press `File`, then `F4` (SAVE): the strip says SAVE TRACK 01 DONE. No picture and no step here: a save needs the simulator's `card` (a fixture folder that `o3sim --cards` names), and the File screen shows the strip only.
+# (Checked by hand once with `card e2e_card`: the strip read SAVE TRACK 01 DONE.)

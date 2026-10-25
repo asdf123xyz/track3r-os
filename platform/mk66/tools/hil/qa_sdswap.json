@@ -1,0 +1,43 @@
+{
+ "name": "qa_sdswap",
+ "title": "OS-FINALQA, Global (OS-SDSWAP): the SD card taken out and put back while the unit runs. Needs a person at the unit: the `say` lines tell when to pull and when to put the card back, and the steps after them poll (up to 90 s) until it has been done. Checks the typed failure (no i/o errors), the strip texts (`state` msg), the `sd` owner line, the remount and the reread of the Sample load listing. Writes nothing to the card",
+ "steps": [
+  {"say": "OS-SDSWAP, rows QA-GLB-008..010 of docs/qa/catalogue/global.md. The unit must hold the maintainer's test card (folders AIFF/, 8SVX/ ... at its root) and be idle (not playing, no save running). THIS SCENARIO NEEDS A PERSON: after the line 'PULL THE CARD' take the card OUT of the slot (all the way, not loosened), after 'PUT THE CARD BACK' push it in again. Each step waits up to 90 s for it. Nothing is written to the card"},
+  {"keys": ["-shift"], "gap": 0.2, "note": "(Shift released, in case a former run left it down)"},
+  {"keys": ["f7"], "gap": 0.3, "if_state": {"overlay": "NAVIGATOR"}, "note": "(a leftover Navigator is closed: F7 is CLOSE, F8 would GO since OS-NAV2)"},
+  {"keys": ["f8"], "gap": 0.3, "if_state": {"overlay": "~^(LEARN|PATTERN_CHOOSER|LENGTH_CHOOSER|JUMP_CHOOSER|MODULE_PICKER|STEP_POPUP)$"}, "note": "(a leftover overlay is put away: F8 is Back)"},
+  {"run": "_stop"},
+  {"cmd": "sd", "expect": ["slot:\\s+a card is in", "mount:\\s+mounted", "owner:\\s+tracker, \\d+ removed, \\d+ inserted since boot"], "show": true, "note": "the starting point: the card is mounted and the Tracker has it"},
+  {"keys": ["sampleload"], "gap": 0.5},
+  {"state": {"screen": "SAMPLE_LOAD"}, "within": 4},
+  {"wait": 2.0, "note": "the listing is a scan of the card's root: it is on screen when the person pulls the card"},
+  {"shot": "listed", "non_blank": true, "note": "the Sample load screen with the card's root listed"},
+
+  {"say": "PULL THE CARD now (out of the slot). Waiting up to 90 s"},
+  {"cmd": "sd", "expect": ["slot:\\s+no card", "mount:\\s+not mounted", "owner:\\s+no card, [1-9]\\d* removed"], "within": 90, "poll": 1.0, "show": true, "note": "QA-GLB-008: about a quarter of a second after the card leaves the unit has let go of it: the Tracker no longer owns it, nothing is mounted"},
+  {"state": {"msg": "~^CARD_REMOVED$"}, "within": 3, "poll": 0.3, "note": "QA-GLB-008: the strip said CARD REMOVED (the last news posted)"},
+  {"cmd": "ls /", "expect": "ls: the card is not mounted", "expect_not": ["i/o error", "bad handle"], "note": "QA-GLB-008: a card call fails typed, not with an i/o error"},
+  {"wait": 1.0},
+  {"state": {"screen": "SAMPLE_LOAD"}, "note": "the unit carries on with the screen it was on"},
+  {"shot": "removed", "non_blank": true, "note": "QA-GLB-008: the listing says NO SD CARD (no stale names of the card that left)"},
+
+  {"say": "PUT THE CARD BACK (the same card or another one). Waiting up to 90 s"},
+  {"cmd": "sd", "expect": ["slot:\\s+a card is in", "mount:\\s+mounted", "owner:\\s+tracker, [1-9]\\d* removed, [1-9]\\d* inserted"], "within": 90, "poll": 1.0, "show": true, "note": "QA-GLB-009: a quarter of a second after it is in, READING CARD, then the card is initialised and mounted by itself (no `sd mount`, no reset)"},
+  {"state": {"msg": "~^CARD_READY$"}, "within": 5, "poll": 0.3, "note": "QA-GLB-009: the strip said CARD READY"},
+  {"cmd": "ls /", "expect": "ls /:", "expect_not": ["not mounted", "i/o error", "bad handle"], "within": 5, "poll": 1.0, "note": "QA-GLB-010: the card reads again, with no i/o errors"},
+  {"wait": 2.0, "note": "the Sample load listing rereads the root by itself"},
+  {"state": {"screen": "SAMPLE_LOAD"}},
+  {"shot": "reinserted", "non_blank": true, "note": "QA-GLB-010: the root is listed again (folders first)"},
+
+  {"say": "QA-GLB-010, loading after the swap: the cursor is on the first entry of the root (a folder: 8SVX on the maintainer's test card). F3 enters it, F1 loads the first file listed (this build lists .wav and .wt only, a later one also the 8SVX/AIFF files of OS-SAMPFMT). The step is soft: an empty folder says NO FILE TO LOAD"},
+  {"keys": ["f3"], "gap": 1.5, "note": "ENTER the first folder"},
+  {"keys": ["f1"], "gap": 0.3, "note": "LOAD the first file of it"},
+  {"state": {"msg": "~(DONE|NO_FILE_TO_LOAD)$"}, "within": 20, "poll": 0.5, "soft": true, "note": "QA-GLB-010: a file read from the card after the swap is DONE (not FAILED, not CANNOT_OPEN_THE_FILE)"},
+  {"state": {"msg": "~^(?!.*(FAILED|CANNOT))"}, "soft": true, "note": "(no failure text)"},
+  {"cmd": "sd", "expect_not": ["mount:\\s+not mounted"], "show": true, "note": "(the report once more, for the person who reads the log)"}
+ ],
+ "finally": [
+  {"keys": ["f2"], "gap": 0.3, "if_state": {"screen": "SAMPLE_LOAD"}, "note": "(UP out of the folder, back to the root)"},
+  {"run": "_stop"}
+ ]
+}

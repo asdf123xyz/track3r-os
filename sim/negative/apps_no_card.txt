@@ -1,0 +1,3 @@
+# OS-APPUX S0: the apps are files of the card's modules/apps folder, so `apps on` with no card in the slot is exit 2.
+document
+apps on

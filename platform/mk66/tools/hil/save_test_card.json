@@ -1,0 +1,72 @@
+{
+ "name": "save_test_card",
+ "title": "File F5 SAVE AS writes a new project folder on the card in the unit (any SD card; --expect-volume is optional)",
+ "needs": [
+  "card"
+ ],
+ "steps": [
+  {
+   "note": "a card is in the unit, not write protected, or nothing below runs",
+   "card": {}
+  },
+  {
+   "run": "_load_tv16"
+  },
+  {
+   "keys": [
+    "file"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "screen": "FILE"
+   },
+   "within": 3
+  },
+  {
+   "keys": [
+    "f5",
+    "f8"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "msg": "~^SAVE_TRACK_[0-9]+_DONE$"
+   },
+   "keep": {
+    "as": "SAVED",
+    "field": "msg",
+    "re": "^SAVE_TRACK_([0-9]+)_DONE$"
+   },
+   "within": 200,
+   "poll": 0.5,
+   "note": "the project's own save job is through: a Save As of t-v16 (16 samples) takes about 100 s on the unit (v0.6.11: 106.9 s; 0.4.12: INSTR01 13 % at 1 s ... DONE at 103 s). The samples' SAVE_INSTRnn_DONE messages come first, one each, and end a looser wait while the save still runs (OS-HIL); a load or a save started meanwhile is refused ('a load or a save is already running'). The folder number NN is kept as {{SAVED}}. A save that never ends fails here"
+  },
+  {
+   "wait": 3.0,
+   "note": "(the writer closes the project file after the last message)"
+  },
+  {
+   "state": {
+    "msg": "~^SAVE_TRACK_{{SAVED}}_DONE$"
+   },
+   "note": "the save ended DONE and nothing after it said otherwise"
+  },
+  {
+   "cmd": "ls Projects/Track {{SAVED}}",
+   "expect": "(?m)^\\s*[1-9][0-9]*\\s+project\\.o3pj\\s*$",
+   "show": true,
+   "note": "the project file is in the new folder, not empty"
+  }
+ ],
+ "finally": [
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.3
+  }
+ ]
+}

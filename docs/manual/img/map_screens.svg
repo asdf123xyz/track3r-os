@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="866" height="528" viewBox="0 0 866 528" role="img" aria-labelledby="t">
+<title id="t">Screen map: the eleven screen buttons with the screen each opens, and how to reach Modules, the Input test and an app page.</title>
+<style>
+.b{fill:#3c3c3c}.k{fill:#5e5e5e}.n{fill:#2a2a2a;stroke:#7a7a7a;stroke-width:2;stroke-dasharray:6 4}
+.t{font-family:sans-serif;fill:#f4f4f4;text-anchor:middle}.s{font-size:13px;fill:#cfcfcf}.m{font-size:22px;font-weight:bold}
+.h{font-family:sans-serif;font-size:18px;fill:#b0b0b0}.r{font-size:15px}
+</style>
+<rect class="b" width="866" height="528" rx="20"/>
+<rect class="k" x="30" y="30" width="150" height="92" rx="8"/>
+<text class="t s" x="105" y="58">Instrument Parameters</text>
+<text class="t m" x="105" y="92">Instrument</text>
+<rect class="k" x="194" y="30" width="150" height="92" rx="8"/>
+<text class="t s" x="269" y="58">Perform</text>
+<text class="t m" x="269" y="92">Perform</text>
+<rect class="k" x="358" y="30" width="150" height="92" rx="8"/>
+<text class="t s" x="433" y="58">File</text>
+<text class="t m" x="433" y="92">File</text>
+<rect class="k" x="522" y="30" width="150" height="92" rx="8"/>
+<text class="t s" x="597" y="58">Config</text>
+<text class="t m" x="597" y="92">Config</text>
+<rect class="k" x="686" y="30" width="150" height="92" rx="8"/>
+<text class="t s" x="761" y="58">Master</text>
+<text class="t m" x="761" y="92">Mixer</text>
+<rect class="k" x="30" y="136" width="150" height="92" rx="8"/>
+<text class="t s" x="105" y="164">Sample Loader</text>
+<text class="t m" x="105" y="198">Sample load</text>
+<rect class="k" x="194" y="136" width="150" height="92" rx="8"/>
+<text class="t s" x="269" y="164">Sample Playback</text>
+<text class="t m" x="269" y="198">Wave</text>
+<rect class="k" x="358" y="136" width="150" height="92" rx="8"/>
+<text class="t s" x="433" y="164">Sample Editor</text>
+<text class="t m" x="433" y="198">Sample edit</text>
+<rect class="k" x="522" y="136" width="150" height="92" rx="8"/>
+<text class="t s" x="597" y="164">Sample Recorder</text>
+<text class="t m" x="597" y="198">Record</text>
+<rect class="k" x="686" y="136" width="150" height="92" rx="8"/>
+<text class="t s" x="761" y="164">Song</text>
+<text class="t m" x="761" y="198">Song</text>
+<rect x="30" y="242" width="150" height="92" rx="8" fill="#1f9e96" fill-opacity=".3"/>
+<text class="t s" x="105" y="292">Note (a column key)</text>
+<rect x="194" y="242" width="150" height="92" rx="8" fill="#f0c020" fill-opacity=".3"/>
+<text class="t s" x="269" y="292">Instr (a column key)</text>
+<rect x="358" y="242" width="150" height="92" rx="8" fill="#7e4fc4" fill-opacity=".3"/>
+<text class="t s" x="433" y="292">Vol (a column key)</text>
+<rect x="522" y="242" width="150" height="92" rx="8" fill="#2fc3dd" fill-opacity=".3"/>
+<text class="t s" x="597" y="292">Fx (a column key)</text>
+<rect class="k" x="686" y="242" width="150" height="92" rx="8"/>
+<text class="t s" x="761" y="270">Pattern</text>
+<text class="t m" x="761" y="304">Pattern</text>
+<text class="h" x="30" y="378">No screen button:</text>
+<rect class="n" x="30" y="394" width="260" height="104" rx="8"/>
+<text class="t m" x="160" y="428">Modules</text>
+<text class="t r" x="160" y="458">Navigator: Shift + Pattern,</text>
+<text class="t r" x="160" y="480">choose it, then press F8</text>
+<rect class="n" x="304" y="394" width="260" height="104" rx="8"/>
+<text class="t m" x="434" y="428">Input test</text>
+<text class="t r" x="434" y="458">Hold Shift + F1 + F8</text>
+<text class="t r" x="434" y="480">while the unit powers up</text>
+<rect class="n" x="578" y="394" width="260" height="104" rx="8"/>
+<text class="t m" x="708" y="428">App</text>
+<text class="t r" x="708" y="458">Launch an app on Modules (F1),</text>
+<text class="t r" x="708" y="480">leave it with F8</text>
+</svg>

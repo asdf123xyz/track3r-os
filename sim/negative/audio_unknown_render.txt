@@ -1,0 +1,8 @@
+# OS-E2E-2: an assertion names a render that no earlier line makes: refused when the script is read.
+document sound
+audio on
+wait 30
+render n 150
+pad 12 hold 100
+wait 49
+assert audio nope silent

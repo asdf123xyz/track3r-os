@@ -1,0 +1,48 @@
+# OS-E2E-2, the first journey with sound (docs/specs/OS-E2E.md "E2E-2: audio in the sim"). `audio on` puts the real engine behind the app: the sequencer, the sampler voices, the graph, the send effects and the
+# master limiter, rendered by the simulator's own clock (sim_audio.h). `render <name> <ms>` captures the master for the next <ms> of simulated time, and `assert audio` measures it. The document of the audio
+# journeys is `document sound`: an empty pattern at 120 BPM and four neutral instruments (volume 50 = 0 dB, pan centre, no filter, no envelope) bound to the test bank: instrument 1 is a sine of 100 samples a period
+# (441.18 Hz at the engine's rate, 0.5 of full scale) that loops. No file is read and no WAV is kept in git. `o3sim --wav <dir>` writes every render for listening (build-os-host/sim/wav/ in ctest).
+#
+# Tolerances, and why: a pitch is within 1-2 cents (the measure is good to a cent, tests/audio_check_test.cpp); a level within 0.1 dB (the sample is integer, the gain unity); the onset within 1.5 ms (a pad goes
+# to the engine at the next block start and the voice begins in that block: a block is 1.45 ms, and the pacing of the simulated clock puts the block edges the same every run).
+document sound
+audio on
+wait 30
+assert state screen=PATTERN playing=0
+
+# A pad is a live note. Pad 12 is the root of the pad board, note 60 (C-5), which plays a sample at its own pitch. Held 300 ms in a window of 600.
+render note 600
+pad 12 hold 300
+wait 299
+
+# The right note, at the right level, clean: the steady part of the note (a window of 280 ms is 123 periods, so the DC of an open half cycle is under 0.1 % of full scale).
+assert audio note in=20-300 pitch=441.18+-2c rms=-9.03+-0.1 peak=-6.02+-0.1 dc<0.002 clicks=0 pan=C+-0.1
+# At the right time: the pad went down in the first tick of the window, the engine takes it at the next block start (the note's first sample comes 1.5 ms in).
+assert audio note onset=1.5+-1.5
+# The whole note, its attack ramp (32 samples) and its release (256) included, has no click: the engine's ramps are kinks, not steps.
+assert audio note clicks=0 sound
+# It stops: the pad went up at 301 ms, the release is 5.8 ms; the rest of the window is exact silence.
+assert audio note in=320-600 silent
+assert audio note in=0-300 sound
+
+# Other pads, other notes: an octave down (pad 24, note 48), a whole tone up (pad 14, note 62), a fifth up (pad 19, note 67), an octave up (pad 0, note 72). An octave is a step of 0.5 or 2 samples
+# and reads the sample as it is (the alias figure is the 16-bit rounding); the others go through the voices' linear interpolation, which puts the images of the tone about 76 dB under it.
+render down 350
+pad 24 hold 250
+wait 99
+render tone 350
+pad 14 hold 250
+wait 99
+render fifth 350
+pad 19 hold 250
+wait 99
+render up 350
+pad 0 hold 250
+wait 99
+assert audio down in=20-250 pitch=220.59+-1c alias<-95 clicks=0 peak=-6.02+-0.1
+assert audio tone in=20-250 pitch=495.20+-1c alias<-70 clicks=0 peak=-6.02+-0.1
+assert audio fifth in=20-250 pitch=661.02+-1c alias<-70 clicks=0 peak=-6.02+-0.1
+assert audio up in=20-250 pitch=882.35+-1c alias<-90 clicks=0 peak=-6.02+-0.1
+# The same notes against each other: an octave is a ratio of two, to within a cent.
+assert audio up in=20-250 pitch=@note*2+-1c
+assert audio down in=20-250 pitch=@note*0.5+-1c

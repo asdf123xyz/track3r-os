@@ -1,0 +1,62 @@
+# OS-QANET A1: findings that are a DECISION, not a bug. Same lines as baseline_rules.txt (rule | action | context | reason | ID), where the ID column is the decision that allows it (an ADR section or a
+# backlog row) and nothing here is without one. A line that no longer occurs fails the test, as in the baseline. Empty at the start (OS-QANET section 8: every entry has a reason).
+# OS-QANET A2 (rule 2, tests/qanet/keys_test.cpp): a key the net would flag and a decision says is right. Same columns; a pattern (`*`, case ignored) says every state it matches is such a case.
+# The ID is the spec that decides it, or `rule:<name>` for a rule of OS-QANET section 4 that is applied by screen:
+#   rule:one-axis  a screen or page whose cursor moves along one axis (a list, a row of columns) or has nothing to move among: the arrows of the other axis are bound by Global and move nothing.
+R2 | Up (nav.up 0) | CONFIG_page_* | bound key changes nothing and says nothing | rule:one-axis
+R2 | Down (nav.down 0) | CONFIG_page_* | bound key changes nothing and says nothing | rule:one-axis
+R2 | Up (nav.up 0) | InstrumentEmpty | bound key changes nothing and says nothing | rule:one-axis
+R2 | Down (nav.down 0) | InstrumentEmpty | bound key changes nothing and says nothing | rule:one-axis
+R2 | Up (nav.up 0) | MIXER_page_3 | bound key changes nothing and says nothing | rule:one-axis
+R2 | Down (nav.down 0) | MIXER_page_3 | bound key changes nothing and says nothing | rule:one-axis
+R2 | Left (nav.left 0) | File | bound key changes nothing and says nothing | rule:one-axis
+R2 | Right (nav.right 0) | File | bound key changes nothing and says nothing | rule:one-axis
+R2 | Left (nav.left 0) | FileExport | bound key changes nothing and says nothing | rule:one-axis
+R2 | Right (nav.right 0) | FileExport | bound key changes nothing and says nothing | rule:one-axis
+R2 | Left (nav.left 0) | MIXER_page_2 | bound key changes nothing and says nothing | rule:one-axis
+R2 | Right (nav.right 0) | MIXER_page_2 | bound key changes nothing and says nothing | rule:one-axis
+R2 | Left (nav.left 0) | Modules | bound key changes nothing and says nothing | rule:one-axis
+R2 | Right (nav.right 0) | Modules | bound key changes nothing and says nothing | rule:one-axis
+R2 | Shift+* (song.select_tracks *) | PadsTracks | bound key changes nothing and says nothing | OS-SONGMAP
+R2 | Shift+* (song.select_tracks *) | SONG_page_1 | bound key changes nothing and says nothing | OS-SONGMAP
+R2 | Shift+* (popup.page *) | StepPopup | bound key changes nothing and says nothing | OS-FU3
+R2 | F1 (dj.key 0) | PerformDj | bound key changes nothing and says nothing | OS-DJ
+R2 | F1 (dj.key 0) | PERFORM_page_1 | bound key changes nothing and says nothing | OS-DJ
+R2 | F8 (file.report 0) | File | bound key changes nothing and says nothing | OS-FILES-B
+R2 | F7 (perform.key 6) | PerformDj | bound key changes nothing and says nothing | OS-DJ
+R2 | F7 (perform.key 6) | PERFORM_page_1 | bound key changes nothing and says nothing | OS-DJ
+R2 | Shift+F1 (perform.key 256) | PerformDj | bound key changes nothing and says nothing | OS-DJ
+R2 | Shift+F1 (perform.key 256) | PERFORM_page_1 | bound key changes nothing and says nothing | OS-DJ
+R2 | Shift+F2 (perform.key 257) | PerformDj | bound key changes nothing and says nothing | OS-DJ
+R2 | Shift+F2 (perform.key 257) | PERFORM_page_1 | bound key changes nothing and says nothing | OS-DJ
+R2 | Shift+F3 (perform.key 258) | PerformDj | bound key changes nothing and says nothing | OS-DJ
+R2 | Shift+F3 (perform.key 258) | PERFORM_page_1 | bound key changes nothing and says nothing | OS-DJ
+R2 | Shift+F4 (perform.key 259) | PerformDj | bound key changes nothing and says nothing | OS-DJ
+R2 | Shift+F4 (perform.key 259) | PERFORM_page_1 | bound key changes nothing and says nothing | OS-DJ
+R2 | Shift+F5 (perform.key 260) | PerformDj | bound key changes nothing and says nothing | OS-DJ
+R2 | Shift+F5 (perform.key 260) | PERFORM_page_1 | bound key changes nothing and says nothing | OS-DJ
+R2 | Shift+F6 (perform.key 261) | PerformDj | bound key changes nothing and says nothing | OS-DJ
+R2 | Shift+F6 (perform.key 261) | PERFORM_page_1 | bound key changes nothing and says nothing | OS-DJ
+R2 | Shift+F7 (perform.key 262) | PerformDj | bound key changes nothing and says nothing | OS-DJ
+R2 | Shift+F7 (perform.key 262) | PERFORM_page_1 | bound key changes nothing and says nothing | OS-DJ
+R2 | Shift+F8 (perform.key 263) | PerformDj | bound key changes nothing and says nothing | OS-DJ
+R2 | Shift+F8 (perform.key 263) | PERFORM_page_1 | bound key changes nothing and says nothing | OS-DJ
+# OS-BUG-SLDOVER (maintainer policy 2026-10-22: undo only for pattern edits, parameter changes and sample edits; a destructive action that asks gets no undo; a load into a free slot needs no question).
+R1 | sample.load > F1 | SampleLoad tap F1 [WAV onto a used sample slot] | undo history lowered | OS-QAFIX undo policy 2026-10-22
+R2 | F7 (param.apply 0) | CONFIG_page_2 | bound key changes nothing and says nothing | OS-QAFIX-7
+R2 | F7 (param.apply 0) | CONFIG_page_3 | bound key changes nothing and says nothing | OS-QAFIX-7
+# OS-FWCONFIG: F8 UPDATE opens the update dialog on the INFO page of a build that has a firmware update path; the net's sim has none (no `firmware on`), where the key row labels no F8 and the key does nothing (QA-CFG-040, QA-CFG-041; the dialog itself is walked by the qa_config_update scenarios).
+# OS-FWCONFIG: in the update dialog only F1 alone answers (docs/specs/OS-FWCONFIG.md): Shift + F1 is bound to ui.none and takes a question back, where the other dialogs let Shift + Fn act as Fn; the dialog's row does not follow Shift, so it still reads F1's label. A held Shift must never confirm a firmware update.
+R2 | Shift+F1 | FirmwareUpdate | the key row shows a label and the key is bound to nothing | OS-FWCONFIG
+R2 | F8 (firmware.open 0) | Config | bound key changes nothing and says nothing | OS-FWCONFIG
+R2 | F8 (firmware.open 0) | CONFIG_page_* | bound key changes nothing and says nothing | OS-FWCONFIG
+# OS-QAFIX-15: Learn F1/F2 (unbind, binding mode) act on the focused parameter's binding; the state the net opens has none focused, so they correctly do nothing (param_actions.cpp learn_clear/learn_mode).
+R2 | F1 (learn.clear 0) | Learn | bound key changes nothing and says nothing | OS-QAFIX-15
+R2 | F2 (learn.mode 0) | Learn | bound key changes nothing and says nothing | OS-QAFIX-15
+R2 | Shift+F1 (learn.clear 0) | Learn | bound key changes nothing and says nothing | OS-QAFIX-15
+R2 | Shift+F2 (learn.mode 0) | Learn | bound key changes nothing and says nothing | OS-QAFIX-15
+# OS-QAFIX-16: TextEntry F6 (automatic name) is for the Save As target only (text_actions.cpp text_auto); on other targets it correctly does nothing.
+R2 | F6 (text.auto 0) | TextEntry | bound key changes nothing and says nothing | OS-QAFIX-16
+R2 | Shift+F6 (text.auto 0) | TextEntry | bound key changes nothing and says nothing | OS-QAFIX-16
+# OS-PADOCT: Shift+F1 on the Pattern pads cycles the note-entry octave. It is an editing aid like the held-Note OCTAVE row, not a sound parameter: it changes no step and no sound, and an undo unit per press would only bury the real edits. The octave is saved with the project as before (OS-PERSIST2), which is why rule 1 sees it.
+R1 | pads.octave | Pattern tap F1 +Shift [demo] | document changed with no question and no undo unit | OS-PADOCT

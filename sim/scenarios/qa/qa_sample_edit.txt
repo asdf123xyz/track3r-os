@@ -1,0 +1,99 @@
+# OS-FINALQA (docs/specs/OS-FINALQA.md): the Sample edit screen's QA rows, docs/qa/catalogue/sample_edit.md. One `snap qa_sed_NNN` per row with a visible result; the goldens are keyed qa_sample_edit/qa_sed_NNN.
+# OS-SHIFTROW: with Shift held the key row shows the Shift layer: a label only on a key that does something, "-" elsewhere; Shift + F never falls through to the plain key.
+
+# QA-SED-001: Sample edit with Shift held: AMG 8K AMG 16K Q8 - - SAVE WAV PRV EDGE REDO.
+document
+tap sampleedit
+press shift
+snap qa_sed_001
+release shift
+
+# FQA-1a: the effects need a real sample. The card e2e_og (a generated fixture) holds one OG project whose instrument 1 is a sample of 200 frames; File > OPEN loads it (no `audio on` needed). The waveform
+# lane stays BUILDING THE WAVEFORM in the simulator; UNDO n, REDO n, START / END, AMP and the strip's `EDIT <NAME> DONE` are the visible results. The history is three deep, so each effect is undone (F8) before the next.
+card e2e_og
+tap file
+wait 300
+tap f1
+wait 800
+tap sampleedit
+wait 3000
+
+# QA-SED-005: F1 CROP of a selection (Right picks the END edge, the encoder moves it five frames: END 195).
+tap right
+encoder -5
+wait 100
+tap f1
+wait 500
+snap qa_sed_005
+tap f8
+wait 300
+
+# QA-SED-006: F3 REVERSE of all of the sample (no selection: UNDO 1).
+tap delete
+tap f3
+wait 500
+snap qa_sed_006
+tap f8
+wait 300
+
+# QA-SED-007: F4 FADE IN.
+tap f4
+wait 500
+snap qa_sed_007
+tap f8
+wait 300
+
+# QA-SED-008: F5 FADE OUT.
+tap f5
+wait 500
+snap qa_sed_008
+tap f8
+wait 300
+
+# QA-SED-009: F6 AMP at the default 200 %.
+tap f6
+wait 500
+snap qa_sed_009
+tap f8
+wait 300
+
+# QA-SED-019 (OS-AUDIT-15): the Sample edit button again opens the FX page (FILTER, COMPRESSOR and the nine rows); QA-SED-020: F1 FILTER at its defaults (low pass, 1000 Hz, Q 0.7) is one undo step;
+# QA-SED-021: Down x3 picks THRESHOLD, the encoder raises it six steps (-18 -> -12 DB), F2 COMPRESSOR runs; the button again goes back to the edit page.
+tap sampleedit
+snap qa_sed_019
+tap f1
+wait 500
+snap qa_sed_020
+tap f8
+wait 300
+tap down
+tap down
+tap down
+encoder 6
+tap f2
+wait 500
+snap qa_sed_021
+tap f8
+wait 300
+tap sampleedit
+
+# QA-SED-011: Shift + Up twice raises the AMP percentage by 20 (200 -> 220).
+press shift
+tap up 2
+release shift
+snap qa_sed_011
+
+# QA-SED-012: Shift + F1 AMIGA 8287 resamples all of the sample (END 200 -> 37 frames, UNDO 1).
+press shift
+tap f1
+release shift
+wait 500
+snap qa_sed_012
+
+# QA-SED-017 (OS-QAFIX-27): the header names the instrument being edited; Shift + F5 (NEXT INS) moves to the next one (INSTRUMENT 01 -> 02, the window and the selection reset).
+tap f8
+wait 300
+press shift
+tap f5
+release shift
+snap qa_sed_017

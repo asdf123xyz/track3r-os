@@ -1,0 +1,35 @@
+{
+  "name": "TB-303",
+  "id": "tb303",
+  "kind": "instrument",
+  "abi": "1.8",
+  "description": "An acid bass voice: a float port of Open303 (MIT). One mono voice an instance.",
+  "state_bytes": 432,
+  "params": [
+    {"name": "Waveform", "min": 0, "max": 1, "default": 0},
+    {"name": "Cutoff", "min": 314, "max": 2394, "default": 1000, "curve": "log", "unit": "hz"},
+    {"name": "Resonance", "min": 0, "max": 100, "default": 50, "unit": "percent"},
+    {"name": "Env Mod", "min": 0, "max": 100, "default": 25, "unit": "percent"},
+    {"name": "Decay", "min": 200, "max": 2000, "default": 1000, "curve": "log", "unit": "ms"},
+    {"name": "Accent", "min": 0, "max": 100, "default": 50, "unit": "percent"},
+    {"name": "Slide", "min": 0, "max": 300, "default": 60, "unit": "ms"},
+    {"name": "Volume", "min": -48, "max": 6, "default": -12, "unit": "db"},
+    {"name": "Legato Slide", "min": 0, "max": 1, "default": 1, "type": "bool"},
+    {"name": "Tune", "min": -100, "max": 100, "default": 0, "type": "int", "unit": "cents"},
+    {"name": "Transpose", "min": -24, "max": 24, "default": 0, "type": "int", "unit": "semitones"},
+    {"name": "Acc Thresh", "min": 1, "max": 127, "default": 100, "type": "int"},
+    {"name": "Filter Track", "min": 0, "max": 100, "default": 0, "unit": "percent"},
+    {"name": "Acc Decay", "min": 30, "max": 2000, "default": 200, "curve": "log", "unit": "ms"}
+  ],
+  "views": [
+    {"name": "Filter", "min_size": [160, 100], "preferred_size": [380, 140]},
+    {"name": "Envelope", "min_size": [160, 100], "preferred_size": [380, 140]}
+  ],
+  "pitch": true,
+  "pages": [
+    {"name": "SOUND", "first": 0},
+    {"name": "MODS", "first": 8}
+  ],
+  "voices": 1,
+  "memory": {"hot_bytes": 2400, "sdram_bytes": 0}
+}

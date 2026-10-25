@@ -1,0 +1,15 @@
+# mutant:   M01
+# class:    1
+# twin:     OS-BUG-SLDOVER (an action that replaces the document asks nothing)
+# expected: A1
+# revert:   OS-OPENGUARD (the guard at app/src/file_actions.cpp file_open, switched off)
+# effect:   File OPEN no longer asks when the document has unsaved changes: the open throws them away with no question
+diff --git a/app/src/file_actions.cpp b/app/src/file_actions.cpp
+index 12ca457d..2b4a9876 100644
+--- a/app/src/file_actions.cpp
++++ b/app/src/file_actions.cpp
+@@ -213,3 +213,3 @@ bool file_open(ActionContext& ctx, core::ActionArg) noexcept {
+   }
+-  if (!armed && ctx.saves != nullptr && ctx.model.project != nullptr && ctx.saves->dirty(*ctx.model.project)) {  // OS-OPENGUARD: as NEW and IMPORT, the open throws the changes away: it asks first
++  if (false && ctx.saves != nullptr && ctx.model.project != nullptr && ctx.saves->dirty(*ctx.model.project)) {  // OS-OPENGUARD: as NEW and IMPORT, the open throws the changes away: it asks first
+     ctx.view.file.confirm_new = true;

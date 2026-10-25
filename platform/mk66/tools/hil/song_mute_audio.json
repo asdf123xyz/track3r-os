@@ -1,0 +1,164 @@
+{
+ "name": "song_mute_audio",
+ "title": "SONG-UX mute measured on the USB AUDIO capture (QA-SNG-041, 045): a muted track's stem is digital silence (below -90 dBFS), unmuted it is above -30 dBFS RMS. Project t-v16, USB profile 8 (stem 2 = track 2)",
+ "needs": [
+  "audio",
+  "card"
+ ],
+ "steps": [
+  {
+   "run": "_load_tv16"
+  },
+  {
+   "keys": [
+    "song"
+   ],
+   "gap": 1.0
+  },
+  {
+   "state": {
+    "screen": "SONG"
+   },
+   "within": 3
+  },
+  {
+   "keys": [
+    "play"
+   ],
+   "gap": 2.0,
+   "if_state": {
+    "playing": "0"
+   }
+  },
+  {
+   "state": {
+    "playing": "1"
+   },
+   "within": 4
+  },
+  {
+   "audio": {
+    "seconds": 4,
+    "channel": 2,
+    "min_rms_db": -30,
+    "clipping": false
+   },
+   "note": "unmuted: T2 (stem 2, the bass) sounds above -30 dBFS RMS"
+  },
+  {
+   "pad": 13,
+   "gesture": "tap",
+   "note": "QA-SNG-041: TRACKS pads, row 2 = MUTE, column 2 = track 2"
+  },
+  {
+   "wait": 1.5
+  },
+  {
+   "audio": {
+    "seconds": 4,
+    "channel": 2,
+    "silent": true,
+    "max_peak_db": -90
+   },
+   "note": "QA-SNG-041: muted T2 is silent: peak and RMS below -90 dBFS"
+  },
+  {
+   "pad": 13,
+   "gesture": "tap",
+   "note": "unmute"
+  },
+  {
+   "wait": 1.5
+  },
+  {
+   "audio": {
+    "seconds": 4,
+    "channel": 2,
+    "min_rms_db": -30
+   },
+   "note": "unmuted again: T2 is back above -30 dBFS RMS"
+  },
+  {
+   "keys": [
+    "+shift",
+    "f7",
+    "-shift"
+   ],
+   "gap": 0.5,
+   "note": "QA-SNG-040: Shift + F7 = pads SLOTS"
+  },
+  {
+   "state": {
+    "pads": "SLOTS"
+   },
+   "within": 3
+  },
+  {
+   "keys": [
+    "+shift"
+   ],
+   "gap": 0.3,
+   "note": "QA-SNG-045: a lone Shift hold shows the TRACKS layer"
+  },
+  {
+   "pad": 13,
+   "gesture": "tap"
+  },
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 1.5
+  },
+  {
+   "audio": {
+    "seconds": 4,
+    "channel": 2,
+    "silent": true,
+    "max_peak_db": -90
+   },
+   "note": "QA-SNG-045: T2 muted through the Shift layer: silent below -90 dBFS"
+  },
+  {
+   "keys": [
+    "+shift"
+   ],
+   "gap": 0.3
+  },
+  {
+   "pad": 13,
+   "gesture": "tap"
+  },
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 1.5
+  },
+  {
+   "audio": {
+    "seconds": 4,
+    "channel": 2,
+    "min_rms_db": -30
+   },
+   "note": "QA-SNG-045: unmuted through the Shift layer: back above -30 dBFS"
+  }
+ ],
+ "finally": [
+  {
+   "keys": [
+    "play"
+   ],
+   "gap": 0.5,
+   "if_state": {
+    "playing": "1"
+   }
+  },
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.2
+  }
+ ]
+}

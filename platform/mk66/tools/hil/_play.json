@@ -1,0 +1,19 @@
+{
+ "steps": [
+  {
+   "note": "the outputs are open since boot (OS-OUTON: no click and no wait on Play); the 6 s bound below is slack for the fallback, where a Play that found them closed waits for the gate",
+   "keys": [
+    "play"
+   ],
+   "gap": 0.2
+  },
+  {
+   "state": {
+    "playing": "1",
+    "seq": "1"
+   },
+   "within": 6,
+   "poll": 0.3
+  }
+ ]
+}

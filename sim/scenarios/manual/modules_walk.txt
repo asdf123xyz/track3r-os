@@ -1,0 +1,47 @@
+# OS-MANUAL2 C2: the walk-through of the Modules chapter's "Try it" (docs/manual/modules.md). Each `snap walk_<n>` is the picture of step n, `modules_walk_<n>.png` in docs/manual/img/.
+# Edit the chapter's step and this line together.
+#
+# The Navigator route the chapter writes (hold `Shift` and press `Pattern`, encoder to MODULES, `F8` GO) ends in the action the scenario runs (`nav.screen 12`, as qa_modules does).
+# `card e2e_card` and `apps on` give the simulated card the shipped apps (sim/include/o3os/sim/sim_apps.h). Nothing is played.
+action nav.screen 12
+document
+wait 20
+card e2e_card
+apps on
+
+# Step 1. Open the Modules screen and press `F2` (RESCAN): the apps on the card are listed, each with its state.
+tap f2
+wait 50
+assert state screen=MODULES
+snap walk_1
+wait 2500
+
+# Step 2. Put the cursor on MIDI Monitor (the fourth row) and press `F1` (LAUNCH). It only listens, so it starts at once; its key row names its keys, and `F8` reads BACK.
+tap down 3
+tap f1
+wait 100
+assert state screen=APP
+snap walk_2
+
+# Step 3. Press `F8` (BACK). You are on the list again.
+tap f8
+wait 50
+assert state screen=MODULES
+
+# Step 4. Put the cursor on Rhythm Gen (the seventh row) and press `F1`. It edits the project, so it asks first: F1 reads LAUNCH? and the strip says what it will do.
+tap down 3
+tap f1
+wait 50
+assert state screen=MODULES
+snap walk_4
+
+# Step 5. Press `F1` again. Rhythm Gen starts.
+tap f1
+wait 100
+assert state screen=APP
+snap walk_5
+
+# Step 6. Press `Song`. The app ends and the Song screen opens; the app never sees the key.
+tap song
+wait 50
+assert state screen=SONG

@@ -1,0 +1,30 @@
+# OS-MANUAL2 C5: the walk-through of the Instrument chapter's "Try it" (docs/manual/instrument.md). Each `snap walk_<n>` is the picture of step n, `instrument_walk_<n>.png` in docs/manual/img/
+# (manifest: docs/manual/images.txt; tools/manual_images.py renders it, ctest o3sim_manual_images keeps the committed pictures in step). A new step or a changed key means a changed picture: edit the
+# chapter's step and this line together. The manual numbers the pads 1 to 48; the simulator's `pad` takes 0 to 47. The demo document has a sample instrument in view; no sound is rendered here.
+document
+
+# Step 1. Press `Params`. The Instrument screen opens on the SOURCE page.
+tap params
+wait 20
+assert state screen=INSTRUMENT
+
+# Step 2. Press `F3` (FILTER).
+tap f3
+wait 20
+
+# Step 3. Press `Down` twice: the cursor is on CUTOFF (the page opens on FILTER; the row under it is FILTER TYPE).
+tap down 2
+wait 20
+
+# Step 4. Hold a pad and turn the encoder about 20 clicks to the left: CUTOFF falls.
+pad 0 down
+encoder -20
+wait 20
+snap walk_4
+
+# Step 5. Let go of the pad and press `F8` (UNDO): the sweep is taken back in one step, CUTOFF is where it started.
+pad 0 up
+wait 20
+tap f8
+wait 20
+snap walk_5

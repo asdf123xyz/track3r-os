@@ -1,0 +1,154 @@
+# track3r-os backlog
+
+What is not finished. One row per package. Finished work (DONE) is not listed here: see [`docs/CHANGELOG.md`](../CHANGELOG.md) for what changed for users, and the git history for the rest.
+
+**States.** IDEA (a proposal; nobody codes an IDEA), APPROVED (the maintainer wants it, in order), QUEUED, IN PROGRESS, UNIT PENDING (merged; only a check on the real hardware is left), PARKED (on hold, with the reason) and DROPPED (will not be done, with the reason). The maintainer moves rows from IDEA to APPROVED, PARKED or DROPPED.
+
+**Columns.** Parity: OG = aims at compatibility with the official firmware's file formats or documented behaviour (verified only by an observation on an official unit, with evidence); N = new Community OS behaviour; R = research needed. Cost: S, M, L (small, medium, large). Rows keep their `OS-*` IDs; specs, the QA catalogue and the manual cite them.
+
+**Want something here, or something else?** Open an issue with the feature-request form (`.github/ISSUE_TEMPLATE/`). Feature requests become IDEA rows. Before you start on a row, ask in the issue: an APPROVED row can have a spec, a format constraint (`CLAUDE.md`, "Persistent formats") or a CPU budget that changes the plan.
+
+## IN PROGRESS
+
+| ID | What | Parity | Cost | Note |
+|---|---|---|---|---|
+| OS-QANET | A wider test net that catches classes of bugs, not single cases: rules over every bound action (A), a random user in the simulator (B), a differential audio matrix (C), the simulator nearer the unit (D), an audit of what an owner of the official firmware expects (E), planted mutants to measure the net (F) | N | M-L | Parts A, C, D, E and most of B are merged; findings are in `docs/qa/qanet-findings.md`. Left: B3 (with the SD work), B7 (only if OS-BUG-LOOPPAD returns), the B8 voice-pool and 2000-file-folder fixtures, E3 and D5 (after 1.0), F2 onwards. B6 is dropped. Spec: `docs/specs/OS-QANET.md`. |
+
+## UNIT PENDING
+
+Merged and covered by host or simulator tests; the check on the real unit is the only thing left. Each check is a row in `docs/qa/catalogue/`. If you own a unit and want to help, report PASS or FAIL in an issue.
+
+| ID | What | Check left on the unit |
+|---|---|---|
+| OS-PERF-SMP | Perform SMP POS and SMP END act at note start (spec: `docs/specs/OS-PERFFX.md` section 10) | Passed on the unit (final release candidate): note start and stop measured on a one-shot and a looped sample, CPU with both held on twelve tracks +0.39 and +0.48 pp (noise), 0 underruns, export byte-identical to Perform off. Left: a multi-slice instrument, and the +100 / -100 values (QA-PRF-151, QA-PRF-152) |
+| OS-PERF-REVERSE | Perform PLAYBACK acts: the next notes play backward from the end of the window to its start and stop there; one-shot and beat-slice sampler voices only; the step effect Reverse (26) does the same (spec: `docs/specs/OS-PERFFX.md` section 10.5). Shipped in v1.0.0 | Passed on the unit: one-shot, window and beat slice play backward, effect 26 on one step, export byte-identical. **CPU over its gate:** about 0.89 pp of a block per reversed voice, +5.34 pp with six reversed voices against a gate of 3 pp (QA-PRF-154); accepted as a known issue, follow-up OS-PERF-CPU2. Left: live pad notes played from Master or Song, Retrigger (55) on a backward note |
+| OS-PERF-LFO | Perform LFO rows act: VOL, PAN, TUNE, FLT and POS LFO change the speed of the track's LFO for that target; a slot that is Off or an envelope runs the instrument's stored LFO, or a 50 % triangle when the stored amount is under 5 % (spec: `docs/specs/OS-PERFFX.md` section 11). Shipped in v1.0.0 | Passed on the unit: effect on sound measured for each row on an instrument with no LFO, export byte-identical. **CPU over its estimate:** the five rows plus a held LOWPASS cost +18.11 pp on twelve tracks (+9.5 pp over LOWPASS alone; the estimate was 6 to 7 %); PAN LFO is the dearest (+4.3 pp); accepted as a known issue, follow-up OS-PERF-CPU2. Left: an instrument with its own LFO, POS LFO on wavetable and granular instruments, step effect 35 with a held FLT LFO |
+| OS-SCRATCH | DJ platter scratch: velocity from count timing, 25 ms inertia, Hermite read | the feel; CPU with SCR on |
+| OS-SCRATCH-IDLE, OS-SCRATCH-IDLE2 | Scratch with the hand still skips the read loop (bit-exact; the second makes the idle path cheaper) | CPU passed on the unit (SCR on with the hand still: +0.3 pp over off). Left: listen at still-to-moving (QA-PRF-150) |
+| OS-INSTR-ARROWS | Instrument: Left and Right edit the row by the fine step, Shift + arrows by the coarse step | the feel |
+| OS-LFO-GRAPH | The LFO picture shows the speed over a 16-step window | readability |
+| OS-A9-SEAM | The FILTER and COMPRESSOR edits warm over the loop tail when the range starts at the loop start | listen at the loop wrap (limit: a sustain loop in the middle of a sample processed whole keeps a seam) |
+| OS-AUDIT-A9 | Sample edit FILTER and COMPRESSOR (triage row 15) | The core passed on the unit, and cancelling a running compressor works. Left: the RATIO / ATTACK / RELEASE / MAKEUP / DETECTOR variations (HIGH PASS, BAND PASS and a selection range passed on earlier images) |
+| OS-PRFDEFAULTS | Perform: default values for the three rows of every slot | Every slot reads non-empty defaults on a fresh unit. Left: a row-by-row comparison with the table in `docs/specs/OS-PERFFX.md`, and the values by ear |
+| OS-PERFFX | Perform effects act (19 ids, plus BIT DEPTH and OVERDRIVE as ids 20 and 21) | per-effect checks in the Perform catalogue |
+| OS-SNDMOD | Sound modules TB-303, Chip, FM (16 algorithms, Detune) | CPU per voice measured on the unit: TB-303 about 15 % of the audio budget (over its 12 % row), FM about 11 % (over its 8 % row), Chip about 2 %; kept, not cut. Left: eight TB-303 at once and a polyphonic chord (not measured) |
+| MOD-ABI (OS-MODPITCH) | Module instrument ABI 1.8: a pitch-slide path (Glide, Slide, Arp reach TB-303 and FM), page names | QA-MOD-100 to 104: TB-303 glide CPU and the FM zipper, by ear |
+| OS-MODPAGEKEYS | A module's key row shows only the pages it has | QA-MOD-107 |
+| OS-APPUX 3.1 | Module app pages declare their key labels (ABI 1.9); `F8` is BACK | QA-MOD-118 |
+| OS-FXMODULE | Document the FX that module instruments ignore | none (manual only) |
+| ADR 0014 H4 | Export writes (sandbox); SMF EXPORT | QA-MOD-090 to 098 |
+| OS-MIDI2 + INSTUI S8b | Instrument MIDI pages (program change, CC) | a real MIDI sink, OFFSET over USB, bend range, VEL> by ear |
+| OS-FWCONFIG | Update the firmware from Config, INFO, `F8` | a real install on a unit (Level C) |
+| OS-POWER | Hold Power for 2 s to power off; a press wakes | off-current draw (no meter); the click at power off and on is a known gap |
+| OS-SCREENSHOT | Shift + Power saves `Screenshots/SHOT_nnnn.bmp` | QA-GLB-130 to 140 |
+| OS-LOOPER | Loop, overdub and save on Sample Record | by ear: clicks at punch in and out and at undo, layer alignment, count-in |
+| OS-BUG-HOLD, OS-STAMPCLAMP | Button holds stop firing after hours of uptime; input stamps clamped to the clock | a physical-button hold after about 40 minutes idle |
+| ODD-11 | Muted tracks keep rendering: voices are skipped when inaudible | by ear (no click), the export byte compare, a dense-event scene |
+| OS-CPUOPT1, OS-LFOLIVE (+ OS-BUG-WTLFO) | CPU work on LFO edits heard live and on the looper; wavetable LFO fix | `diag inst` and `diag voices` while it sounds |
+| OS-UNDOGRP | Undo granularity and reach per screen | a slow cutoff sweep is one undo unit; Mixer edits have no undo |
+| OS-FILES | Delete, rename, recents, purge unused samples, import MOD/S3M/MED, export to OG and `.pti` | the checks of part B |
+| SONG-UX (OS-SONGMAP, OS-SONGPADS) | Song editing: the track map becomes an editable grid (copy, paste, clear and transform tracks across the patterns of a range of slots); the pads get two modes on Song | the pads' LEDs in SLOTS; a paste over 30 or more slots while the song plays; QA-SNG-026, 027, 046 |
+| OS-KEYROWDLG | The F-key row says what the keys do while a dialog or a question is up | QA-FIL-095 to 097, QA-GLB-118, 120, 121 |
+| OS-PATCENTER, OS-OPENTOPAT | Pattern cursor stays centred at both ends; after open, RECOVER or NEW the screen goes to Pattern | the moving loop; QA-FIL-096 |
+| OS-PATSWITCH | Change the playing pattern without stopping (hold F1 on Pattern) | by ear: no gap, no double hit, no hung note |
+| OS-NEWKEEP | File > NEW asks ALL or KEEP INSTRUMENTS | QA-FIL-070 to 073 |
+| OS-BUG-PASTE24 | An OG instrument at VOLUME 100 jumped +24 dB at its first Params edit | none open for the fix; the Paula overshoot is by design (pt2-clone parity) |
+| OS-BUG-PROMPTQ, OS-BUG-MEMDISCARD | A question takes the strip's head ahead of news; a discarded take frees its memory at once | `qa_files_b`; the MEM figure after F4 |
+| OS-EXPNOTE | An export that finds a held note names the note | export with a pad held on a sampler and on a MIDI instrument |
+| PAT-UX part 1 and 2 | Pattern input: REC sign, held Delete, row wrap, pad on Instr column, STEP pads, paste, Insert and Shift+Delete | the checks of both batches |
+| REC-FLOW | Count-in on row 1; REC in LIVE goes to WATCH; Shift+Play from the cursor | `qa_playcur.json` and the count-in checks |
+| PAT-NAV (OS-ZOOM, OS-QJUMP) | Pattern navigation keys: zoom on Note+Instr, track moves, quarter jumps | 12-track legibility, fast Note+Instr roll, boot time |
+| PAT-OPS | Duplicate, expand and shrink a pattern; copy and paste a whole pattern | specified; the unit checks |
+| OS-SEDFX (reduced) | Sample editor: normalise and DC removal | `sample_edit_dc.json` |
+| OS-AUDIT-B2, B3 | Pad in the Instr column picks the instrument; filter off dims CUTOFF and RESONANCE; loop marks only in loop modes | rows 53, 55, 32, 63 |
+| OS-BUG-APPLYSILENT, OS-BUG-TOOLSPLAY, OS-SILENTMSG, OS-SLD-RANGE-ALL, OS-BUG-R3SEL | Silent keys now give a message; Sample edit pads 1..64; a pad note stays inside the selection | one check each on the unit |
+| OS-BUG-PREVLAT | The Sample load preview (F5) takes long to start | a 16-bit file starts in 50 to 80 ms on the unit; a 24-bit 96 kHz file takes about 0.75 s more (accepted) |
+| OS-BUG-SLDOVER, OS-SLDTARGET | Sample load asks before it replaces a used slot and refuses a module slot; the target instrument is shown and can be changed | on the unit |
+| OS-BUG-ADDSLICE, OS-BUG-SLICEPITCH, OS-BUG-WATCHSEL | Chop: ADD SLICE splits the selected slice; slices from the pads sound at the right octave; Shift + arrows in WATCH | on the unit |
+| OS-PADOCT | Pattern pads: an octave chooser on Shift+F1, the pad modes one key along | on the unit |
+
+## QUEUED
+
+No rows.
+
+## APPROVED (in order)
+
+| ID | What | Parity | Cost | Note |
+|---|---|---|---|---|
+| Publication | The public repository and the v1.0.0 release (the `.ptf`, `SHA256SUMS`, the manual) | — | M | The maintainer publishes. USB identity: the official Tracker pair 16D0:0E9F (accepted risks in `docs/specs/OS-USBDISK.md` section 3.1). |
+| OS-HILCARD | Test data kept out of git: the original `t-v16` project and the old sample folders pack into one release asset (`fixtures-1`, pinned by SHA-256 in `tools/testdata/testdata_manifest.json`); `testdata.py fetch` unpacks them into `build-fixtures/`; files that cannot be redistributed are fetched from their sources | — | S | Left: upload the asset with the release. Spec: `tools/testdata/README.md`. |
+| OS-AUDIT10 | The remaining minor rows of the audit of what an owner of the official firmware expects (`docs/qa/og-user-audit/triage.md`) | N | M-L | Done: batches A1 to A9, B1 to B6, rows 13, 62, 68, 72. Row 59 (Perform SMP POS, SMP END, PLAYBACK and the LFO speeds) shipped in v1.0.0: OS-PERF-SMP, OS-PERF-REVERSE and OS-PERF-LFO are UNIT PENDING above. |
+| OS-BUG-HOTSWAP | Swapping the SD card with a project loaded can crash the unit | R | ? | Seen once with the Dense8 project loaded after about 90 minutes: a memory-protection fault in the render interrupt, then a restart. A swap with an empty project worked. Cause unknown. Workaround: switch off before changing the card. Known issue of v1.0.0. Planned after v1.0.0. |
+
+## IDEA
+
+Proposals. The maintainer decides; nobody codes an IDEA.
+
+| ID | What | Parity | Cost | Note |
+|---|---|---|---|---|
+| OS-MIDIREC | MIDI tracks: record many notes and CCs, CC automation per track, an event-list editor | N | L | CPU is not the limit (about 0.4 % at the DIN limit of about 1,040 messages a second); the limits are the DIN wire (thin the data, cap per block, notes first), a new per-track event list with sub-step time (a project-format change, Level C; the OG export cannot carry it) and the UI. Radar cards: `docs/vision/radar/cc-automation.md`, `midi-poly-record.md`, `midi-event-list.md`. |
+| OS-PERF-CPU2 | Cheaper Perform effects, after v1.0.0: (a) the reversed-voice path has no fast path (PLAYBACK about 0.89 pp of a block per reversed voice); (b) PAN LFO costs +4.3 pp where about 0.15 k cycles a voice-block were estimated, and the five LFO rows with LOWPASS held cost +18.11 pp on twelve tracks | N | M | +5.34 pp (six reversed voices) and +18.11 pp (five LFO rows with LOWPASS), measured on the unit | Follow-up of the v1.0.0 Perform rows, accepted there as known issues. Level C (audio path): `rt-optimize`, then the measurement on the unit. Figures and method: `docs/architecture/cpu-budget.md`. |
+| OS-BUG-FWLIST | The update dialog (Config, INFO, `F8`) lists only the first 12 files of `Firmware/` and says MORE FILES ON THE CARD ARE NOT LISTED, so later files cannot be chosen | N | S | 0 | Found on a card with 19 images. Interim: keep 12 or fewer `.ptf` files in `Firmware/`. Options: page through the list, or show every entry. Level B (UI). |
+| OS-PERF-LFO-STEP | The step-effect LFO columns 23, 24, 33 and 36 have no consumer yet | N | ? | ? | Follow-up of OS-PERF-LFO. |
+| OS-INSFX | Effect `.tmod` modules in the reserved per-track insert slots and one master insert | N | ? | Level C: audio path, a published ABI, the project stores the inserts (version bump and round trip). Each module measured on the unit, with a cap on active inserts. |
+| OS-FXREC | Record MIDI Learn moves into the step FX columns during LIVE recording | N | ? | Shape A (no format change): a binding with an FX equivalent writes that FX at the play line on the cursor's track. Shape B (Learn on an FX cell binds a CC) changes the LRNB chunk: Level C. |
+| OS-E2E (later) | Later slices of OS-E2E: MIDI journey, modules in the simulator, format generators, HIL re-scope, card and power chaos | N | M each | Design: `docs/specs/OS-E2E.md` section 2 D8. |
+| OS-MODPAGEKEYS follow-up | A module with no parameters still shows F1 `1-8` | N | ? | |
+| OS-BUG-REMOUNT L1 to L3 | Latent items from the review: `save_service.cpp` skips slots but still clears `revalidate_`; `og_samples.cpp` takes its stats after bind; the `~epoch` collision at 2^31 remounts is theoretical | N | ? | Not scheduled. |
+| Research: a test image did not boot after the update | A bench image ended 0x7C into its last 4 KiB sector and did not boot after an update, 2 of 2; earlier images ending at least 0x114 into it booted. No source defect found. | R | ? | Lead only: the threshold, if real, lies between 0x7C and 0x114. |
+| Scales: the 28 other scales | Scales beyond the 12 of the held-Note panel | N | M | Changes the meaning of NOTE `scale` 0..11: needs NOTE 1.1. |
+| Song clip preview | One track of one slot, played once | N | M | After the Song track map. |
+| Official MIDI CC map | A fixed CC map for mixer, perform and levels (32 CCs, as the official manual documents it) | N | M | A static table, not Learn slots. Documented behaviour, not verified on a unit. |
+| MIDI transport on its own port | MIDI transport separate from the clock: its own port, and Off | N | M | Level C, render side. |
+| MIDI synth mode: Learn follows the instrument | Learn follows the selected instrument | N | S-M | `kLearnFollow` exists, but `learn_bind` never sets it (`core/include/o3os/core/learn.h`). |
+| Perform custom play modes | Custom play modes C1 to C20 | N | M | The orders must be sourced first; there are no tables in the repository. |
+| Perform per-track remix | Per-track remix in Perform | N | M | The sequencer already takes a pattern per track; the UI is missing. |
+| OS-VOLLAW | Measure the official firmware's level laws against this OS at the defaults and per control | R | S | Real projects store 86 for the track faders and mix levels; this OS puts 100 at unity, so 86 is about -5.6 dB. Hypothesis: 86 is unity on the official firmware. Procedure: `docs/hw/volume-law-measurement.md`. |
+| OS-AMPATK0 | The default attack of the amplitude envelope | R | S | In 93 real OG instruments, 55 one-shot and beat-slice ones have 0 ms and about 12 have 10 ms; this OS defaults to 10 ms. First check whether 10 ms was a deliberate anti-click choice. |
+| OS-WTLFO-DEFAULT | Wavetable position automation on by default | R | S | One real wavetable instrument has envelope slot 3 enabled as a triangle LFO; this OS leaves it off. Needs a look on the unit first. |
+| OG-16TRACK-MTP | Read Tracker+ and Mini 16-track pattern files (reading only) | OG | M | The track block size follows from the published pattern layout (MIT tracker-lib); a real file and the CRC rule are missing. Touches an OG format: the maintainer decides. |
+| OG-V17-EVIDENCE | Update `docs/formats/og.md` with project v17 / firmware 1.9.2 facts from the tracker-lib template | OG | S | Level A, after the maintainer agrees. Cite the source and its MIT licence in `THIRD_PARTY.md`. |
+
+Not a source: the unlicensed reverse-engineering repository polyend-tracker-re (no licence, cites firmware addresses). Nothing from it goes into this repository (`CLAUDE.md`, hard rule).
+
+## PARKED
+
+| ID | What | Why parked |
+|---|---|---|
+| OS-FILES-C (C1b) | A whole project exported in the OG format | C1 and C2 are merged; C3, the export checked on an official unit, is parked. The export keeps its EXPERIMENTAL label. Spec: `docs/specs/OS-FILES-C.md`. |
+| OS-MODMX | Modulation matrix (2 LFO + 2 ENV, 16 routes) | The maintainer chose not to add it; ADR 0014 H3c stays parked with it. |
+| ADR 0014 H3c | Edit-table route entries and a MOD RECIPES app | After OS-MODMX. |
+| OS-APPMIDI C1, C2 | Apps send MIDI (`midi_out` capability, rate limit, chunked SysEx in); read access to the app's own export folder | App modules stay out of the plan for now. |
+| OS-BUG-APPEXIT | Module app exit (F7+F8 chord, F8 alone) | Needs a test battery on the unit first. |
+| OS-RHYTHMUX | RHYTHM GEN usability (target, while playing, start row) | Needs a walk-through on the unit first. |
+| OS-BUG-TUNER | The tuner reads NO SIGNAL on a clean tone from the master | App modules stay out of the plan for now. Scope and Loudness VU read the same tap fine. |
+| OS-BUG-SPECQ | The scope's SPECTRUM view is quarantined under load | Check the draw budget under audio load, or draw the bars in two frames. |
+| OS-XMIT | XM and IT import as an importer `.tmod` | On hold. |
+| OS-SDTHEME | Themes, layouts and keymaps from the SD card (ADR 0009) | On hold. A user keymap holds 32 bindings against 515 built in, so a whole-table keymap would get PoolFull; there is no device loader yet. |
+| Perf E1, M3 and the rest of `cpu-budget.md` section 3 | Delay, reverb and limiter loops into fast RAM; FM per-block envelope segments; other kernels | Brought back only by a unit measurement above 80 % render max or any underrun. |
+| OS-CPUOPT2 | Second CPU pass: strips update | The expected gain (about 0.2 % of the block) is below the target; the resume conditions are in `docs/specs/OS-CPUOPT2.md`. |
+| Automation lanes, Phrases | Per-track automation; phrase sequencing | The modulation matrix would have covered most of it. |
+| OS-SMFSONG | SMF EXPORT of the whole song (v1 exports the pattern in view or the selection) | Needs ADR 0014 H4 (merged). |
+| OS-SHOTSLOW | The console `shot` takes 9 to 14 s while a song plays | Tooling only. |
+| OS-RENAME2 | Safe folder rename | Needs a crash-consistent FAT rename or a mount-time repair of shared-cluster folder pairs. Use SAVE AS and DELETE. |
+| OS-CONFILES | Extend the console's `fw put` into put, get, ls and rm for sample folders | On hold. |
+| OS-TRASHUI | Restore and really erase folders marked `.deleted` and samples no project references | Real erasure needs a decision. |
+| OS-CONVERT44 | A sample-edit action that resamples a sample to 44.1 kHz | On hold. |
+| OS-BSSSEG | The MK66 link prints "section `.bss' can't be allocated in segment 3" | To find: whether `.bss` shares a load segment with initialised data (a zeroing or overlap risk) or it is cosmetic. Linker script and boot: Level C if the layout changes. |
+
+## DROPPED
+
+| ID | What | Reason |
+|---|---|---|
+| OS-STEPPAD | Review the STEP pad mode (Shift+F5) | The STEP pad mode goes; OS-PADOCT takes the Pattern Shift layer over. |
+| OS-SONGLOOP | F1 PLAY PAT with a range of slots loops those slots | Dropped when SONG-UX was approved. |
+| OS-OGEXPORT-LAW | The OG export of a project below v7 writes v16 with the levels unchanged (plays +24 dB) | Duplicate: folded into OS-FILES-C section 5. |
+| OS-BUG-LOOPPAD | A pad on the loop path was silent while the Pattern step sounded | Not seen again. |
+| OS-SLOTPROPS | Per-slot REPEAT, mutes, transpose, named sections | A project-format change (Level C) that OG files cannot hold. |
+| Link | Ableton Link through a desktop bridge | The Tracker has no network; USB MIDI clock covers it. |
+| OS-TRK16 | 16 tracks in Pattern | 12 visible tracks; format intact. |
+| OS-GOV2 | Steal sampler voices before an underrun | Only extreme stress fails. |
+| Master FX phases 1 and 2 | Headroom, saturation, bass stages; 5-band EQ, Space | Discarded (the limiter stays; the reserved stages are hidden). |
+| OS-SYS (light) | Shift+Power capture, generated key reference | The QA catalogue serves as the key reference. |
+| Drum synth module, MIDI file import | — | Dropped (chords and voices do not map). |
+| Tier-2 scripts | Berry or Lua on the SD card | ADR 0002 amendment 4. |

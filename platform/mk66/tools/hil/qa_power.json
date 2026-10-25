@@ -1,0 +1,29 @@
+{
+ "name": "qa_power",
+ "title": "OS-POWER P1: the Power switch: the pin in the three pulls (M4), an injected hold (the line, the hint), and the shutdown's stages up to USB off, ending in a restart. No button held",
+ "steps": [
+  {"say": "OS-POWER P1, rows QA-GLB-100..116 of docs/qa/catalogue/global.md. The unit is idle, the Pattern screen, a card in the slot if QA-GLB-106/107 are to be run by hand. NO BUTTON is held for the console steps. The scenario injects the switch (`power press|release`: the debounced hold, the line, the hint) and ends with `power off dry`, which restarts the unit"},
+  {"keys": ["f7"], "gap": 0.3, "if_state": {"overlay": "NAVIGATOR"}, "note": "(a leftover Navigator is closed: F7 is CLOSE, F8 would GO since OS-NAV2)"},
+  {"keys": ["f8"], "gap": 0.3, "if_state": {"overlay": "~^(LEARN|PATTERN_CHOOSER|LENGTH_CHOOSER|JUMP_CHOOSER|MODULE_PICKER|STEP_POPUP)$"}, "note": "(a leftover overlay is put away: F8 is Back)"},
+  {"keys": ["f7"], "gap": 0.3, "if_state": {"overlay": "TEXT_ENTRY"}, "note": "(the on-screen keyboard is cancelled with F7, never accepted)"},
+  {"keys": ["pattern"], "gap": 0.4},
+  {"state": {"screen": "PATTERN"}, "within": 3},
+  {"run": "_stop"},
+  {"cmd": "power", "expect": ["power: PTC3 (high|low) \\(pull (none|up|down)\\), the switch reads (released|pressed)", "power: read now: no pull (high|low), pull-up (high|low), pull-down (high|low)", "power: board: pressed is (low|high), internal pull (none|up|down)", "power: hold (Booting|Armed)", "power: shutdown idle"], "show": true, "note": "QA-GLB-113 / M4: the raw level of PTC3 in the three pulls with Power UP (released). Then hold Power and run `power` again (the next SAY): the level that flips is the polarity, the pull that keeps it steady is the pull. A hold in Booting: wait a moment after the boot"},
+  {"cmd": "power", "expect": ["power: hold Armed"], "within": 10, "poll": 1.0, "note": "the hold is armed (the app has the screen and the switch was released for 100 ms)"},
+  {"say": "QA-GLB-113 / M4, by hand: HOLD Power with a finger and keep it down for 3 s, then run `power` in a terminal (not this runner) and note the three readings; let go. The scenario goes on without a finger"},
+  {"keys": ["-shift"], "gap": 0.2},
+  {"cmd": "power release", "expect": ["power: the console holds the switch up"]},
+  {"wait": 0.5},
+  {"cmd": "power press", "expect": ["power: the console holds the switch down"], "note": "QA-GLB-100: an injected hold, as the debounced pin would feed it. The unit commits at 2 s: no screenshot is taken during it (a shot takes longer than the hold)"},
+  {"wait": 1.0},
+  {"cmd": "power", "expect": ["power: hold Holding, debounced down, line [3-7]\\d\\d/1000", "power: shutdown idle"], "show": true, "note": "QA-GLB-100: the hold fills (about half after 1 s) and has not committed"},
+  {"say": "LOOK AT THE SCREEN NOW (QA-GLB-100): a line across the top edge about half full and the strip says HOLD TO SWITCH OFF (UNSAVED WORK - LET GO TO KEEP IT when the project has changes)"},
+  {"cmd": "power release", "expect": ["power: the console holds the switch up"]},
+  {"wait": 0.3},
+  {"cmd": "power", "expect": ["power: hold Armed", "power: presses [1-9]\\d* holds [1-9]\\d* taps [1-9]\\d* commits 0 refusals 0"], "show": true, "note": "QA-GLB-100/101: released after about 1.2 s: back to Armed, one tap counted, no commit; the strip says HOLD POWER 2 S TO SWITCH OFF for 1.5 s (look at it)"},
+  {"say": "QA-GLB-116 (the latch): start a song first by hand if the audio checks are wanted (Play), with a scope or a recorder on the line out and the status LED in view. `power off dry` follows: from the commit the LED keeps its heartbeat and never shows the 11-pulse audio-fault code, the sound fades in about 50 ms with no click, then USB goes (this console ends), the screen fades, the pads go out, and the unit restarts about 100 ms after Power is released (it is not held). The stage stamps are the `log` lines after it. With Power still UP the unit restarts about 100 ms after the stages; to try keys and pads against the lock (QA-GLB-102) hold Power by hand instead of running this step"},
+  {"cmd": "power off dry", "expect": ["power: off dry"], "timeout": 10, "show": true, "note": "QA-GLB-113 / 116: the unit restarts after Power is released (the first run of slice 1 is this, with NO button held)"},
+  {"cmd": "log 30", "expect": ["power: A quiet \\+0 ms", "power: A2 mute \\+\\d+ ms", "power: B card \\+\\d+ ms", "power: C unmount \\+\\d+ ms", "power: D usb \\+\\d+ ms"], "timeout": 3, "soft": true, "show": true, "note": "QA-GLB-113 / 116: the stage stamps in order (ms from stage A) up to USB off, read at once: the console ends at D (about 250 ms after the command), so this is a race that a slow host loses; the lines are gone after the restart (the log is cleared at boot). Soft: a lost race is not a failure of the shutdown"}
+ ]
+}

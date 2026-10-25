@@ -1,0 +1,8 @@
+# OS-E2E-1a: the digest of the document after an edit is not the one marked before it.
+document
+mark model before
+assert model digest=@before
+tap rec
+tap down
+pad 36
+assert model digest=@before

@@ -1,0 +1,28 @@
+{
+ "name": "qa_boot_last",
+ "title": "QA-FIL-111 (OS-QAFIX-E-FILE-10): the unit opens the project that was open last at power-on. Opens the project on the first row of the File screen, asks for a power cycle, and checks that the strip says PROJECT <name> OPENED after the boot (the state line's msg=). Reads the card only (the open writes nothing but the RECENT list, which already has that project first)",
+ "needs": ["card"],
+ "steps": [
+  {"say": "qa_fil_111: a card is in the unit with at least one project in Projects/, the unit has been up long enough to be at its Pattern screen. The scenario opens the project on the first row of File (the newest of RECENT) and then waits for YOU to power-cycle the unit (hold Power, switch on again: a reset from the console would do too); the runner needs the console to come back"},
+  {"card": {}},
+  {"keys": ["-shift"], "gap": 0.2, "note": "(Shift released, in case a former run left it down)"},
+  {"keys": ["f7"], "gap": 0.3, "if_state": {"overlay": "TEXT_ENTRY"}, "note": "(the on-screen keyboard is cancelled with F7, never accepted)"},
+  {"keys": ["file"], "gap": 0.5},
+  {"state": {"screen": "FILE"}, "within": 3},
+  {"keys": ["f2"], "gap": 0.5, "note": "RESCAN"},
+  {"wait": 2.0},
+  {"keys": ["+shift", "f1", "-shift"], "gap": 0.4, "note": "the cursor to the first entry (the RECENT group's first row when there is one)"},
+  {"state": {"sel": "~^.+$"}, "within": 3, "keep": {"as": "LAST", "field": "sel", "re": "^(.+)$"}, "note": "the project under the cursor is kept as {{LAST}}"},
+  {"keys": ["f1"], "gap": 0.5},
+  {"keys": ["f1"], "gap": 0.5, "if_state": {"msg": "~^UNSAVED_CHANGES"}, "note": "(only when the strip asks: this open is meant to discard the changes)"},
+  {"state": {"msg": "~(?i)^PROJECT_{{LAST}}_OPENED$"}, "within": 180, "poll": 2.0, "note": "the project is open and is the newest of RECENT (an open puts it first)"},
+  {"wait": 5.0, "note": "(the RECENT list is written once the card is idle)"},
+  {"keys": ["file"], "gap": 0.5},
+  {"keys": ["f3"], "gap": 0.4, "note": "F3 NEW asks which new project: the strip's last text is then the question, not the OPENED line, so that only a boot can bring the OPENED line back (nothing is created: the next key takes the question back)"},
+  {"state": {"msg": "~^NEW_PROJECT"}, "within": 3},
+  {"keys": ["down"], "gap": 0.4, "note": "(the question is taken back)"},
+  {"say": "qa_fil_111: POWER-CYCLE THE UNIT NOW and wait for the Pattern screen. The next step looks at the strip for up to 240 s. The strip is the proof: the boot opened the project itself, nothing was pressed"},
+  {"state": {"msg": "~(?i)^PROJECT_{{LAST}}_OPENED$"}, "within": 240, "poll": 2.0, "note": "after the boot: the last project opened by itself. FAILED here names why (a damaged file, a project the OS cannot read): the document is then the empty one it boots with"},
+  {"state": {"screen": "PATTERN"}, "within": 10, "soft": true, "note": "(OS-OPENTOPAT shows the Pattern view only from File; a boot open leaves the screen it booted on, which is Pattern)"}
+ ]
+}

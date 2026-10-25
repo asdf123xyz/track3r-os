@@ -1,0 +1,18 @@
+{
+  "name": "Tuner",
+  "id": "tuner",
+  "kind": "app",
+  "abi": "1.10",
+  "capabilities": ["audio_tap"],
+  "description": "Chromatic tuner for the line input or the master output: the note with its octave, the cents off as a needle (-50..+50), the frequency in Hz, and a confidence readout; NO SIGNAL when there is nothing to read. Reads the OS's audio tap (ABI 1.4, capability audio_tap), decimates it to 11 kHz with its own low-pass and finds the pitch with a normalised autocorrelation (30 Hz to 2 kHz); it makes no sound. New Community OS behaviour.",
+  "state_bytes": 40000,
+  "params": [
+    {"name": "A4", "min": 415, "max": 466, "default": 440, "type": "int", "unit": "hz", "learnable": false},
+    {"name": "Source", "min": 1, "max": 2, "default": 1, "type": "int", "learnable": false}
+  ],
+  "views": [
+    {"name": "Body", "min_size": [480, 288], "preferred_size": [490, 384]}
+  ],
+  "voices": 1,
+  "memory": {"hot_bytes": 0, "sdram_bytes": 0}
+}

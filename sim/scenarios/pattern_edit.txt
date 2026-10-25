@@ -1,0 +1,142 @@
+# OS-009 P1a.1, the edit core, on a document (the `document` command: a project whose pattern 1 is the demo, 12 tracks of 64 steps, the track
+# slots named like the demo's headers). Browse is where the screen starts: pads preview, the encoder scrolls, nothing edits.
+document
+snap browse
+assert state screen=PATTERN overlay=NONE row=0
+
+# Browse edits nothing: a pad previews (no engine yet), Delete is not bound, the encoder moves the cursor down two steps.
+pad 36
+tap delete
+encoder 2
+snap browse_nothing_edited
+
+# Rec arms the edit (the chip says STEP: OS-RECMODE2). Track 1 (KICK) has an event every fourth step: the steps in between are empty.
+tap rec
+action cursor.jump_fraction 0
+tap down
+snap edit_on
+
+# A pad in the Note column enters the note the pad board gives it (pad 36 is C-3), with the last used instrument, and the cursor goes down by
+# the edit step (1). Three pads, three steps; step 4 already holds a kick note.
+pad 36
+pad 40
+pad 43
+snap notes_by_pad
+assert model pat.1.0.1.note=37
+assert model pat.1.0.2.note=41
+assert model pat.1.0.3.note=44
+assert model pat.1.0.1.instr=1
+
+# The encoder changes the note under the cursor (up from step 3's G-3 by two), Shift + encoder by an octave; a note on an empty step starts at C-5.
+tap up
+encoder 2
+snap note_encoder
+assert model pat.1.0.3.note=46
+press shift
+encoder 1
+release shift
+snap note_octave
+
+# The Instr column (OS-AUDIT E-PAT-12): a pad picks instrument pad + 1 and writes no note of its own; the encoder walks the instrument (MIDI channels first).
+tap instr
+pad 5
+assert state col=INSTR instrument=6
+snap instr_column_pad
+tap up
+encoder 1
+snap instrument_encoder
+assert state col=INSTR instrument=7
+
+# The Vol column: the first entry is 127, then the encoder; the FX columns: a type first (here by action, the key for it is P1a.2), then the value by the
+# encoder and a pad, and the type with Fx held and the encoder.
+tap vol
+encoder -3
+snap volume
+assert model pat.1.0.3.vol=127
+tap fx
+action step.fx_type 27
+encoder 25
+snap fx_value
+assert model pat.1.0.3.fx1=27:25
+press fx
+wait 100
+encoder 1
+release fx
+snap fx_type_held
+
+# Delete clears what the column says (here FX1), then the whole step from the Note column; Insert shifts the track down, Shift + Delete pulls it up again (OS-DELPULL: the inverse of Insert).
+tap delete
+tap up
+tap note
+tap delete
+snap clear
+tap up
+tap up
+tap insert
+snap insert
+press shift
+tap delete
+release shift
+snap pull
+
+# A block: Shift and the arrows from where Shift was first pressed; the encoder moves every note of it, a pad sets them, Delete empties it.
+action cursor.jump_fraction 0
+tap right 5
+press shift
+tap down 5
+tap right
+release shift
+snap block
+encoder 3
+snap block_transposed
+tap delete
+snap block_cleared
+
+# Mute and solo: a lone Shift hold is the TRACKS layer of the pads (OS-PADS-A): row 2 mutes, row 4 solos the track of the pad's column; the marks are in the headers, bold while Shift is held.
+press shift
+pad 14
+pad 38
+pad 12
+snap marks_shift
+release shift
+snap marks
+
+# (The Select mode of OS-009, the block mark whose arrows extend the block, went with OS-LIVEREC: the block above is Shift + the arrows, in every mode.)
+action select.clear
+
+# The choosers: F1 the pattern (OS-PATSWITCH: the hold only, a tap opens nothing), F2 the length, F3 the step jump. Up, Down, the encoder, Left and Right (the defined values) and the pads.
+press f1
+wait 450
+encoder 2
+snap chooser_pattern
+encoder -2
+release f1
+wait 10
+tap f2
+encoder -4
+snap chooser_length
+tap right
+snap chooser_length_defined
+tap f3
+pad 3
+snap chooser_jump
+tap f8
+
+# Undo: F8 takes the last unit, Shift + F8 gives it back; the info line counts the units.
+tap f8
+tap f8
+snap undone
+press shift
+tap f8
+release shift
+snap redone
+
+# Copy takes the step under the cursor, Shift + Copy writes it at the cursor, further down (OS-PATCOPY).
+tap copy
+tap down
+tap down
+tap down
+press shift
+tap copy
+release shift
+snap paste

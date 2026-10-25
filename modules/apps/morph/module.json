@@ -1,0 +1,18 @@
+{
+  "name": "Morph",
+  "id": "morph",
+  "kind": "app",
+  "abi": "1.10",
+  "capabilities": ["read_project", "edit_project"],
+  "description": "Blends the current sample or module instrument (A) towards another instrument of the same kind and engine (B): POS 0 is A as it was when the app opened, POS 100 is B. Continuous parameters blend, stepped and enum ones switch to B's value from POS 50. F1 APPLY writes one undo unit, F3 RESET puts A back. No live sweep: every apply is one undo unit. Opened from Pattern F7 TOOLS. New Community OS behaviour.",
+  "state_bytes": 1792,
+  "params": [
+    {"name": "Source", "min": 0, "max": 64, "default": 0, "type": "int", "learnable": false},
+    {"name": "Pos", "min": 0, "max": 100, "default": 50, "type": "int", "learnable": false}
+  ],
+  "views": [
+    {"name": "Body", "min_size": [480, 288], "preferred_size": [800, 384]}
+  ],
+  "voices": 1,
+  "memory": {"hot_bytes": 0, "sdram_bytes": 0}
+}

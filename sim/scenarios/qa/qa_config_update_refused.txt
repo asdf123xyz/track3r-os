@@ -1,0 +1,12 @@
+# OS-FWCONFIG slice 2b: the update is refused while the project has unsaved changes (docs/specs/OS-FWCONFIG.md rule 2, question Q3). The dialog does not open; the strip says why.
+# A scenario of its own: `power unsaved` changes the document for the rest of the run, and the hand-over of qa_config_update.txt asks the same question again at INSTALL.
+document
+power unsaved
+firmware on
+
+# QA-CFG-056: F8 UPDATE on INFO with unsaved changes: the strip says SAVE THE PROJECT FIRST, the list does not open, nothing is asked of the port.
+tap config
+tap f4
+tap f8
+assert state overlay=NOTIFY
+snap qa_cfg_056

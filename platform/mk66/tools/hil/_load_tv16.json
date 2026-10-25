@@ -1,0 +1,61 @@
+{
+ "steps": [
+  {
+   "note": "the OG project Projects/t-v16-copy from the SD card (16 samples, about 7.6 MB). The copy is made over the disk share from the original Projects/t-v16, which no scenario opens or writes (the original stays untouched)",
+   "cmd": "load Projects/t-v16-copy",
+   "expect": "load: reading"
+  },
+  {
+   "cmd": "sd",
+   "expect": "pcm:\\s+.*loaded",
+   "fail_on": "FAILED",
+   "within": 90,
+   "poll": 1.0
+  },
+  {
+   "cmd": "sd",
+   "expect": "load:\\s+Projects/t-v16-copy: v\\d+"
+  },
+  {
+   "note": "the project saves tracks 1 6 7 8 muted (log: 'load: muted by the project'); unmute them with the TRACKS pads (Shift held, row 2 = MUTE)",
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "screen": "PATTERN"
+   },
+   "within": 3
+  },
+  {
+   "keys": [
+    "+shift"
+   ],
+   "gap": 0.3
+  },
+  {
+   "pad": 12,
+   "gesture": "tap"
+  },
+  {
+   "pad": 17,
+   "gesture": "tap"
+  },
+  {
+   "pad": 18,
+   "gesture": "tap"
+  },
+  {
+   "pad": 19,
+   "gesture": "tap"
+  },
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.3
+  }
+ ]
+}

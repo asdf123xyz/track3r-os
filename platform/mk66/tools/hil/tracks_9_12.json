@@ -1,0 +1,38 @@
+{
+ "name": "tracks_9_12",
+ "title": "OS-TRK912: the Pattern view scrolls to tracks 9-12 (state track 8 .. 11, col FX2 at the end) and back; shots of each window are not blank",
+ "steps": [
+  {"run": "_load_tv16"},
+  {"keys": ["-shift"], "gap": 0.2, "note": "(Shift released, in case a former run left it down)"},
+  {"keys": ["f7"], "gap": 0.3, "if_state": {"overlay": "NAVIGATOR"}, "note": "(a leftover Navigator is closed: F7 is CLOSE, F8 would GO since OS-NAV2)"},
+  {"keys": ["f8"], "gap": 0.3, "if_state": {"overlay": "~^(LEARN|PATTERN_CHOOSER|LENGTH_CHOOSER|JUMP_CHOOSER|MODULE_PICKER|STEP_POPUP)$"}, "note": "(a leftover overlay is put away: F8 is Back)"},
+  {"keys": ["f7"], "gap": 0.3, "if_state": {"overlay": "TEXT_ENTRY"}, "note": "(the on-screen keyboard is cancelled with F7, never accepted)"},
+  {"keys": ["pattern"], "gap": 0.4},
+  {"state": {"screen": "PATTERN"}, "within": 3},
+  {"run": "_stop"},
+  {"cmd": "cpu reset", "note": "(the cpu counters are since boot or since this reset: a scenario that checks underruns / over-budget starts from zero)"},
+  {"keys": ["left"], "gap": 0.1, "repeat": 130, "note": "to track 1, NOTE column (the cursor stops at the edge)"},
+  {"state": {"screen": "PATTERN", "track": "0", "col": "NOTE"}, "within": 3},
+  {"shot": "tracks_1_5", "compare": {"sim_scenario": "sim/scenarios/pattern_basic.txt", "snap": "initial", "regions": ["0,458,800,22"], "tol": 24, "aa": 1, "max_bad": 0.005}, "non_blank": true, "soft": true, "note": "(soft: the key-cap row against the simulator's first view)"},
+  {"keys": ["right"], "gap": 0.1, "repeat": 40, "note": "5 columns a track: 40 presses is track 9"},
+  {"state": {"track": "8", "col": "NOTE"}, "within": 3},
+  {"shot": "tracks_9_12_first", "non_blank": true},
+  {"keys": ["right"], "gap": 0.1, "repeat": 15},
+  {"state": {"track": "11", "col": "NOTE"}, "within": 3},
+  {"shot": "track_12", "non_blank": true},
+  {"keys": ["right"], "gap": 0.1, "repeat": 20, "note": "past the end: the cursor stays on the last column of the last track"},
+  {"state": {"track": "11", "col": "FX2"}, "within": 3},
+  {"shot": "tracks_9_12_last", "compare": {"sim_scenario": "sim/scenarios/pattern_basic.txt", "snap": "tracks_8_12", "regions": ["0,458,800,22"], "tol": 24, "aa": 1, "max_bad": 0.005}, "non_blank": true, "soft": true, "note": "(soft: the key-cap row against the simulator's last view)"},
+  {"say": "(`state` has no track names: the names of tracks 9-12 are checked on the shots by eye)"},
+  {"keys": ["left"], "gap": 0.1, "repeat": 130},
+  {"state": {"track": "0", "col": "NOTE"}, "within": 3}
+ ],
+ "finally": [
+  {"keys": ["f7"], "gap": 0.3, "if_state": {"overlay": "NAVIGATOR"}, "note": "(a leftover Navigator is closed: F7 is CLOSE, F8 would GO since OS-NAV2)"},
+  {"keys": ["f8"], "gap": 0.3, "if_state": {"overlay": "~^(LEARN|PATTERN_CHOOSER|LENGTH_CHOOSER|JUMP_CHOOSER|MODULE_PICKER|STEP_POPUP)$"}, "note": "(a leftover overlay is put away: F8 is Back)"},
+  {"keys": ["f7"], "gap": 0.3, "if_state": {"overlay": "TEXT_ENTRY"}, "note": "(the on-screen keyboard is cancelled with F7, never accepted)"},
+  {"keys": ["pattern"], "gap": 0.4},
+  {"keys": ["left"], "gap": 0.1, "repeat": 130},
+  {"run": "_stop"}
+ ]
+}

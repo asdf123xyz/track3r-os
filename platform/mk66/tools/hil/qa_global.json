@@ -1,0 +1,37 @@
+{
+ "name": "qa_global",
+ "title": "OS-FINALQA, Global (OS-303PERF): the module instruments' own measure on the unit: `diag mod` per instance (state and hot code placement; render alone against the whole instance loop, min / mean / max), `diag bench tb303` at 64 and 128 frames, and `diag cpu perf off`. Captures the readings in the log; the figures are the unit's, they are not pass / fail limits. Writes nothing to the card. Leaves the measure OFF",
+ "steps": [
+  {"say": "OS-303PERF, rows QA-GLB-001..007 of docs/qa/catalogue/global.md (a unit step is named by the row id its note begins with). For the figures of cpu-budget section 6 (the module render without USB traffic) the unit SHOULD present STANDARD before the run: Config > USB, USB AUDIO Off, F7 twice, from the unit (the second F7 re-enumerates the port and the console goes with it: o3hil cannot do that part). The check is soft, as in the README protocol (platform/mk66/README.md): in AUDIO the run still captures the placement lines, but its maxima carry the isochronous interrupts and are not a baseline: say so in the report. The console stays on the CDC serial port in STANDARD; nothing here changes the mode. The held note is measured for 8 s (it sounds about 17 s; a song would be 60 s: not this scenario)"},
+  {"keys": ["-shift"], "gap": 0.2, "note": "(Shift released, in case a former run left it down)"},
+  {"keys": ["f7"], "gap": 0.3, "if_state": {"overlay": "NAVIGATOR"}, "note": "(a leftover Navigator is closed: F7 is CLOSE, F8 would GO since OS-NAV2)"},
+  {"keys": ["f8"], "gap": 0.3, "if_state": {"overlay": "~^(LEARN|PATTERN_CHOOSER|LENGTH_CHOOSER|JUMP_CHOOSER|MODULE_PICKER|STEP_POPUP)$"}, "note": "(a leftover overlay is put away: F8 is Back)"},
+  {"keys": ["f7"], "gap": 0.3, "if_state": {"overlay": "TEXT_ENTRY"}, "note": "(the on-screen keyboard is cancelled with F7, never accepted)"},
+  {"cmd": "usb mode", "expect": ["usb mode: (STANDARD|AUDIO), profile \\d+"], "show": true, "note": "QA-GLB-001: the mode the figures were taken in"},
+  {"cmd": "usb mode", "expect": ["usb mode: STANDARD"], "soft": true, "note": "(soft, as in the README protocol: AUDIO adds the isochronous interrupts to every maximum below; say so in the report)"},
+  {"run": "_play"},
+  {"wait": 1.0},
+  {"run": "_stop"},
+  {"wait": 1.0},
+  {"cmd": "mod load tb303", "expect": "mod: tb303: (started|already loaded)"},
+  {"cmd": "mod", "expect": "mod: tb303 (v\\d+\\.\\d+\\.\\d+|unversioned) ABI", "within": 10, "poll": 1.0, "note": "it is in the listing once its (built-in) load is done"},
+  {"cmd": "mod bind 33 tb303", "expect": "mod: bind (ok|that instrument is bound already)", "note": "(a second run finds it bound already: fine)"},
+  {"cmd": "cpu reset", "expect": "cpu: peaks and fault counters reset", "note": "the maxima and the fault counters start again, and the instances' min / mean / max are turned ON (they are off from boot; this is what turns them on)"},
+  {"cmd": "mod note 33 36 110", "expect": "mod: note queued"},
+  {"wait": 8.0, "note": "8 s: about 5,500 blocks of the sounding instance (the held note sounds about 17 s)"},
+  {"cmd": "mod", "expect": "mod: instrument 33: (tb303|TB-303) (sounding|held|idle).*, state (SRAM|SDRAM), hot code (slab|SDRAM)", "within": 5, "poll": 1.0, "show": true, "note": "QA-GLB-002: where the instance runs from (state SRAM and hot code slab are the expected placement; SDRAM in either says the arena or the slab had no room)"},
+  {"cmd": "mod", "expect": "mod: perf 33: \\d+ blocks, loop min \\d+ mean \\d+ max \\d+, render min \\d+ mean \\d+ max \\d+, out mean \\d+, hooks \\d+", "within": 5, "poll": 1.0, "show": true, "note": "QA-GLB-003: the live split of the instance's block (loop = render + out + hooks)"},
+  {"cmd": "cpu", "expect": ["underrun 0\\b"], "show": true, "soft": true, "note": "(the engine's own figures of the same run)"},
+  {"cmd": "mod off 33", "expect": "mod: off queued"},
+  {"wait": 1.0},
+  {"cmd": "bench tb303 64", "if_reply_not": "not in this image", "expect": ["BENCH tb303 \\d+ 64 avg \\d+ max \\d+ \\(.*, 64 frames, \\d+ cycles/frame peak \\d+\\)", "BENCH done"], "timeout": 20, "show": true, "note": "QA-GLB-004: the module's render() alone on a private instance, 64 frames a call: min, blocks, mean, max"},
+  {"cmd": "bench tb303_128 64", "if_reply_not": "not in this image", "expect": ["BENCH tb303_128 \\d+ 64 avg \\d+ max \\d+ \\(.*, 128 frames, \\d+ cycles/frame peak \\d+\\)", "BENCH done"], "timeout": 20, "show": true, "note": "QA-GLB-005: the same at 128 frames a call (E2): cycles per frame read against the line above"},
+  {"cmd": "cpu perf off", "expect": "cpu: module perf off \\(cpu reset starts it again\\)", "note": "QA-GLB-006: the measure is turned off (the first cpu reset turned it on, and so did every scenario that starts with one)"},
+  {"cmd": "mod", "expect": ["mod: slab .*, perf off"], "expect_not": ["mod: perf 33"], "show": true, "note": "QA-GLB-007: the header says perf off and no instance lists a perf line"}
+ ],
+ "finally": [
+  {"cmd": "mod off 33"},
+  {"cmd": "cpu perf off", "note": "(whatever happened above, the measure is left off)"},
+  {"run": "_stop"}
+ ]
+}

@@ -1,0 +1,31 @@
+# OS-FU3, the step popups: a held Instr, Vol (its FX1), Fx (FX2) or Note button shows its list until it is let go; the release enters the choice in Edit (Note: OS-PADS-B, the note-entry settings, nothing is entered).
+document
+tap rec
+tap down
+tap down
+press instr
+wait 700
+encoder 3
+snap instr
+release instr
+wait 10
+press vol
+wait 700
+encoder 2
+snap vol
+release vol
+wait 10
+press fx
+wait 700
+encoder 4
+snap fx
+release fx
+wait 10
+press note
+wait 700
+pad 2
+pad 14
+pad 26
+pad 40
+pad 47
+snap note

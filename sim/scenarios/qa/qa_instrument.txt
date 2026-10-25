@@ -1,0 +1,246 @@
+# OS-FINALQA (docs/specs/OS-FINALQA.md): the Instrument screen's QA rows, docs/qa/catalogue/instrument.md. One `snap qa_ins_NNN` per row with a visible result; the goldens are keyed qa_instrument/qa_ins_NNN.
+# OS-SHIFTROW: with Shift held the key row shows the Shift layer: a label only on a key that does something, "-" elsewhere; Shift + F never falls through to the plain key.
+
+# QA-INS-001: the PARAMS page of the demo document with Shift held: NAME COPY PASTE DELETE SAVE (dim: S5 and S7 build them) <USED (dim at instrument 1) 02> REDO (OS-INSTUI D1).
+document
+tap params
+press shift
+snap qa_ins_001
+release shift
+
+# OS-INSTUI S1 (D1, O1). QA-INS-005: the key row on a sample instrument, and the header: 01 KICK, SAMPLE, the play mode, the engine (the simulator has no sample bank, so Auto stays AUTO).
+tap f3
+tap params
+snap qa_ins_005
+
+# QA-INS-006: another instrument, the header follows (03 HAT); F7 four times is 07 (QA-INS-007: the key row reads <06 and 08>).
+tap f7 2
+snap qa_ins_006
+tap f7 4
+snap qa_ins_007
+
+# QA-INS-008: a free slot (12), Shift held: <10 (the nearest in use) and USED> dim (none after it); F1 is MODULE (the picker, until S5).
+tap f7 5
+press shift
+snap qa_ins_008
+# QA-INS-009: Shift + F6 goes to the nearest instrument in use: 10.
+tap f6
+release shift
+snap qa_ins_009
+
+# QA-INS-010 (OS-INSTR-ARROWS): the pages are the F-keys, and the same F-key again steps the windows of its group: F4 is MOD and F4 again is the next destination (DEST 2/6). Five more presses go round to DEST 1/6.
+tap f2
+tap f4 2
+snap qa_ins_010
+tap f4 5
+
+# QA-INS-011: the Params button again goes to F1, the first page (VOICE until the source page exists); it no longer cycles.
+tap f3
+tap params
+snap qa_ins_011
+
+# QA-INS-012: Shift + a pad selects the instrument without a sound (pad 2 is instrument 3).
+press shift
+pad 2
+release shift
+snap qa_ins_012
+
+# QA-INS-015: F1 on a sample instrument opens the source page (OS-INSTUI S3): ONE SHOT has PLAY MODE and PLAY ENGINE.
+tap f1
+snap qa_ins_015
+
+# QA-INS-016 .. 018: the rows follow the play mode (O8's exception): WAVETABLE (WT POS, WT SIZE), GRANULAR (position, length, shape, loop), BEAT SLICE (SLICES, SLICE n of m). The simulator has no sample
+# bank, so the rows that need audio are dimmed (QA-INS-020 reads why); the window size reads 2048, the default.
+action instrument.play_mode 6
+snap qa_ins_016
+# QA-INS-020: the cursor on WT POS (no audio behind the instrument): the row is dimmed and the info line says why.
+tap down
+snap qa_ins_020
+action instrument.play_mode 7
+snap qa_ins_017
+action instrument.play_mode 5
+snap qa_ins_018
+
+# QA-INS-019: the encoder edits PLAY MODE (row 1, back at the top): one click up from BEAT SLICE is WAVETABLE, and Delete puts it back to ONE SHOT.
+tap up 3
+encoder +1
+snap qa_ins_019
+tap delete
+snap qa_ins_021
+
+# OS-INSTUI S5. QA-INS-025: an empty slot (12) is the type chooser: F1 SAMPLE, F2 MIDI, F3 PASTE (dim), F4 MODULE, F5 LOAD (dim); no rows.
+tap params
+action instrument.select 12
+wait 8000
+snap qa_ins_025
+# QA-INS-027: F2 MIDI makes a MIDI instrument on channel 1 (slots 1..48) and leaves the VOICE page; the header reads MIDI / CH 1.
+tap f2
+snap qa_ins_027
+wait 8000
+# QA-INS-030: Shift + F4 DELETE takes it out again (one undo unit, `INS 12 DELETED - F8 UNDO`) and the chooser is back; F8 brings the MIDI instrument back.
+press shift
+tap f4
+release shift
+snap qa_ins_030
+tap f8
+snap qa_ins_030b
+
+# OS-INSTUI S6 (the MOD page). QA-INS-035: F4 on instrument 1 is MOD, the volume destination (DEST 1/6 Volume): SOURCE reads Envelope, then AMOUNT, ATTACK, DECAY, SUSTAIN, RELEASE and the envelope's curve.
+document
+action instrument.select 1
+tap params
+wait 8000
+tap f4
+snap qa_ins_035
+# QA-INS-036: F4 again goes to the next destination (cutoff is the third); the encoder on SOURCE makes it an LFO: the rows are LFO SHAPE, LFO SPEED, LFO AMOUNT and the picture is the LFO's shape (Square, 80 %).
+tap f4 2
+encoder +1
+tap down
+encoder +1
+tap down 2
+encoder +30
+snap qa_ins_036
+# QA-INS-038: the cursor on LFO SPEED shows the label ("12 steps" after 7 clicks).
+tap up
+encoder +7
+snap qa_ins_038
+# QA-INS-219..221 (OS-LFO-GRAPH), on a Saw: the picture is a 16-step window, so LFO SPEED moves it: 128 steps is an eighth of a cycle (a slow partial ramp of the Saw), 4 steps four cycles, 1/16 step (past 32 cycles) a filled band. Back to 12 steps after.
+tap up
+encoder -2
+tap down
+encoder -7
+snap qa_ins_219
+encoder +10
+snap qa_ins_220
+encoder +14
+snap qa_ins_221
+encoder -17
+tap up
+encoder +2
+tap down
+# QA-INS-215 (OS-LFOSINE): the LFO SHAPE row one past Random is Sine (the sixth shape); the picture is (1 - cos) / 2 at 80 % over the 16-step window (cycles = 16 / period). Then back to Square and down to LFO SPEED, as the next snap expects.
+tap up
+encoder +2
+snap qa_ins_215
+encoder -2
+tap down
+# QA-INS-037: the wavetable position (4th destination) on a one shot is dimmed, not hidden, and the info line says WAVETABLE ONLY.
+tap up 2
+tap f4
+snap qa_ins_037
+
+# OS-INSTUI S7 (COPY / PASTE / NAME / SAVE / LOAD). QA-INS-050: Shift + F1 (NAME) opens the on-screen keyboard over the instrument's name: the title reads INSTRUMENT NAME, the name is selected, the keys read TYPE CAPS CANCEL OK (no AUTO).
+document
+action instrument.select 3
+tap params
+wait 8000
+press shift
+tap f1
+release shift
+snap qa_ins_050
+# F7 CANCEL leaves the name as it was.
+tap f7
+# QA-INS-054: a MIDI instrument (made on the free slot 12 by the chooser's F2) says SAMPLE INSTRUMENTS ONLY to Shift + F5; the Shift row shows SAVE dim there (and COPY, NAME, DELETE lit, PASTE dim: nothing is copied).
+action instrument.select 12
+wait 8000
+tap f2
+wait 8000
+press shift
+tap f5
+snap qa_ins_054
+release shift
+
+# OS-INSTUI S8a (the MIDI page). QA-INS-061: a MIDI instrument (made on the free slot 12 by the chooser's F2) opens on the MIDI page: one row CHANNEL (1), the header MIDI 1/1, the strip MIDI / CH 1, the footer `delete: default`;
+# F1 MIDI is lit and F2 .. F5 (VOICE FILTER MOD SENDS) are dim.
+document
+action instrument.select 12
+wait 8000
+tap f2
+wait 8000
+snap qa_ins_061
+# QA-INS-062: a dim key answers and says why (F4: NO MOD PAGE ON A MIDI INSTRUMENT); the page stays.
+tap f4
+snap qa_ins_062
+# QA-INS-063: the encoder edits CHANNEL (four clicks: 5); the strip reads MIDI / CH 5, the row and the card read 5.
+encoder +4
+snap qa_ins_063
+# QA-INS-064: Delete puts CHANNEL back to the default (1); the coarse step is 4 (three coarse clicks: 13).
+tap delete
+action param.coarse 3
+snap qa_ins_064
+# QA-INS-065: the page follows the kind: a sample instrument's SENDS page (instrument 2, F5), then back on the MIDI instrument: still the MIDI page, not SENDS.
+action instrument.select 2
+tap f5
+action instrument.select 12
+wait 8000
+snap qa_ins_065
+
+# OS-INSTUI S8b + S9 (INST 1.3). QA-INS-070: a MIDI instrument has two pages. F1 MIDI is lit with six rows CHANNEL, VELOCITY, PROGRAM, OUT, PB RANGE, OFFSET (the card of CHANNEL on the right), the header MIDI 1/2, the
+# footer `PROGRAM CHANGE: SET A CC TO PROG`; F2 reads CC and is lit, F3 .. F5 (FILTER MOD SENDS) are dim.
+action instrument.select 12
+wait 8000
+tap f1
+wait 8000
+snap qa_ins_070
+# QA-INS-071: the encoder edits each row, one undo unit a turn: VELOCITY 100, PROGRAM 5, OUT USB, PB RANGE 5 st, OFFSET 10 ms (the cursor ends on OFFSET).
+tap down
+encoder -27
+tap down
+encoder +6
+tap down
+encoder +2
+tap down
+encoder +3
+tap down
+encoder +10
+snap qa_ins_071
+# QA-INS-072: F2 is the CC page: CC A .. CC F, all CONFIG (the number of the Config page), header CC 2/2.
+tap f2
+wait 8000
+snap qa_ins_072
+# QA-INS-073: the options of a CC slot: CC A the controller 74, CC B PROG, CC C CH AT, CC D POLY AT.
+encoder +75
+tap down
+encoder +129
+tap down
+encoder +130
+tap down
+encoder +131
+snap qa_ins_073
+# QA-INS-074: a dim key answers and says why (F3: NO FILTER PAGE ON A MIDI INSTRUMENT); F1 goes back to the MIDI page.
+tap f3
+snap qa_ins_074
+tap f1
+wait 8000
+snap qa_ins_075
+# QA-INS-076 (S9): VEL> closes the VOICE page of a sample instrument (instrument 2): default 100 %, then 70 %.
+action instrument.select 2
+tap f2
+wait 8000
+tap down
+tap down
+tap down
+tap down
+tap down
+encoder -30
+snap qa_ins_076
+# QA-INS-218 (OS-AUDIT E-INST-05): the FILTER page, the filter turned Off first (encoder on the FILTER row, so the shot does not depend on the demo's value): CUTOFF and RESONANCE are dimmed (not hidden) and the info line on the cursor row (CUTOFF) reads FILTER OFF.
+action instrument.select 2
+tap f3
+wait 8000
+encoder -3
+tap down
+tap down
+snap qa_ins_218
+# QA-INS-222 (OS-INSTR-ARROWS): Left / Right are one encoder detent on the row under the cursor (the page and the cursor stay). The FILTER page of instrument 3, Down four times clamps the cursor on RESONANCE, the last of its four rows, wherever it was left; Right five times: five detents up.
+action instrument.select 3
+tap f3
+wait 8000
+tap down 4
+tap right 5
+snap qa_ins_222
+# QA-INS-223: Shift + Left is the coarse step down (as Shift + encoder: ten detents).
+press shift
+tap left
+release shift
+snap qa_ins_223

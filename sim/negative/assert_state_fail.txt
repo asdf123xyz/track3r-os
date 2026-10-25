@@ -1,0 +1,5 @@
+# OS-E2E-1a: an assertion that does not hold ends the run with exit 2 and names the line. The screen is PATTERN, not SONG.
+document
+wait 10
+assert state screen=PATTERN
+assert state screen=SONG

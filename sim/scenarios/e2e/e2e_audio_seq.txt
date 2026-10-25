@@ -1,0 +1,50 @@
+# OS-E2E-2: the sequencer plays through the real engine. A deep user's session: write two notes into the empty pattern with the keys, press Play, and the sound comes at the grid's times; stop, and it is gone.
+# `document sound` is a pattern of 16 steps at 120 BPM (a step is 125 ms); instrument 3 is the pluck, a one shot that decays by e every 0.12 s from 0.4 of full scale. `render <name> <ms> stems` also captures the
+# tracks (post-fader, mono) and the master pair of the stem tap. Tolerances: an onset is within 1.5 ms of the grid (the Play command is taken at the next block start; a block is 1.45 ms).
+document sound
+audio on
+wait 30
+assert state screen=PATTERN playing=0
+
+# Rec arms the step edit; the cursor to step 1 of track 1; a pad writes C-5 (note 61 in a step: the model counts from 1) with the last used instrument (1); the Instr column and the encoder make it the pluck (3).
+tap rec
+action cursor.jump_fraction 0
+pad 12
+assert model pat.1.0.0.note=61
+assert model pat.1.0.0.instr=1
+tap up
+tap instr
+encoder 2
+assert model pat.1.0.0.instr=3
+# Step 7 (six steps on, 750 ms later): the same note, now with the instrument the keys last used.
+tap note
+tap down 6
+pad 12
+assert model pat.1.0.6.note=61
+assert model pat.1.0.6.instr=3
+tap rec
+# (the pad also played each note live; wait for the plucks to die away, and check that they have)
+render quiet 700
+wait 700
+assert audio quiet in=600-700 silent
+
+# Play. The transport is the sequencer's; the state line says so; the notes come at step 1 and step 7.
+render song 1100 stems
+tap play
+assert state playing=1
+wait 1098
+# The first note starts at the first block after the press, the second 750.0 ms of the grid later: 151.5 ms into the window that starts at 600.
+assert audio song onset=1.5+-1.5 peak=-8.0+-0.3 pitch=441.18+-3c in=0-400
+assert audio song in=600-1100 onset=151.5+-1.5 peak=-8.0+-0.3 pitch=441.18+-3c
+# Between them the first pluck has decayed (0.12 s each e: -8.7 dB per 125 ms) and ended with its sample at 500 ms: silence from 520 to 740 ms.
+assert audio song in=520-740 silent
+# No clicks anywhere in the take (the pluck's end, the retrigger, the stop).
+assert audio song clicks=0
+# The tracks: T1 carries it, T2 is empty, and the master is T1 (centre pan, unity level) 63 frames later, the master limiter's look-ahead: the residual is at the floor.
+assert audio song.t1 sound pitch=441.18+-3c in=0-400
+assert audio song.t2 silent
+assert audio song null=song.t1,-90,lag=63
+
+# Stop: the transport stops, the state line says so.
+tap play
+assert state playing=0

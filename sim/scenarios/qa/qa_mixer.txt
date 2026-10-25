@@ -1,0 +1,106 @@
+# OS-FINALQA (docs/specs/OS-FINALQA.md): the Mixer screen's QA rows, docs/qa/catalogue/mixer.md. One `snap qa_mix_NNN` per row with a visible result; the goldens are keyed qa_mixer/qa_mix_NNN.
+# OS-SHIFTROW: with Shift held the key row shows the Shift layer: a label only on a key that does something, "-" elsewhere; Shift + F never falls through to the plain key.
+
+# QA-MIX-001: the Mixer with Shift held: - - - - - - UNMUTE UNSOLO.
+tap master
+press shift
+snap qa_mix_001
+release shift
+
+# QA-MIX-002 (OS-MIXHIDE): the MASTER FX page (F3) shows only the limiter: the card at the right reads MASTER LIMITER / ALWAYS ON, with none of the reserved stages (headroom, saturation, EQ, bass, space, bit depth), and no LIMITER on/off row (OS-SMALL3: the limiter is always on).
+tap master
+tap f3
+snap qa_mix_002
+
+# QA-MIX-003 (OS-SHIFTROW): UNMUTE ALL. Back on the MIXER page (F1), two strips muted with F7, then Shift + F7 clears every mute.
+document
+tap f1
+tap f7
+tap right
+tap f7
+press shift
+tap f7
+release shift
+snap qa_mix_003
+
+# QA-MIX-004 (OS-SHIFTROW): UNSOLO ALL. A strip soloed with F8, then Shift + F8 clears the solo.
+tap f8
+press shift
+tap f8
+release shift
+snap qa_mix_004
+
+# OS-NAMES: QA-MIX-010, Shift + F1 (NAME) on the MIXER page opens the on-screen keyboard over the name of the track under the cursor: the title reads TRACK NAME, the name is selected (the demo's T1).
+document
+tap master
+tap f1
+press shift
+tap f1
+release shift
+snap qa_mix_010
+theme black
+snap qa_mix_010_black
+theme white
+snap qa_mix_010_white
+theme amiga
+# Typing over the selection replaces the name (pads: l e a d); F8 keeps it as one undo unit, and the strip's column carries it.
+pad 32
+pad 14
+pad 24
+pad 26
+snap qa_mix_010_typed
+tap f8
+snap qa_mix_011
+theme black
+snap qa_mix_011_black
+theme white
+snap qa_mix_011_white
+theme amiga
+
+# QA-MIX-012: a bus is not a track. The cursor goes from T1 past the twelve tracks to IN and Shift + F1 says TRACKS ONLY; no keyboard opens.
+wait 3000
+tap left 20
+tap right 12
+press shift
+tap f1
+release shift
+snap qa_mix_012
+
+# QA-MIX-030 (OS-MASTERVOL): Master held + the encoder is the master volume, from any screen. On Pattern the strip says MASTER VOLUME 79% (the demo document's 86, seven detents down); the screen does not change and the release is silent.
+# The next plain tap of Master (it acts at the release) is the Mixer, whose MST column shows 79.
+wait 3000
+document
+tap pattern
+press master
+wait 5
+encoder -7
+snap qa_mix_030
+assert state screen=PATTERN
+release master
+wait 5
+assert state screen=PATTERN
+tap master
+assert state screen=MIXER
+snap qa_mix_030_mixer
+
+# OS-FINALQA (FQA-2a): the page keys F1, F2, F4, F5 and F6 on the Mixer. F3 is QA-MIX-002. The wait clears the MASTER VOLUME notice of QA-MIX-030.
+wait 3000
+# QA-MIX-033 (F2): from the MIXER page, F2 shows the ROUTING page.
+tap f2
+snap qa_mix_033
+
+# QA-MIX-034 (F4): from ROUTING, F4 shows the STEMS page.
+tap f4
+snap qa_mix_034
+
+# QA-MIX-032 (F1): from STEMS, F1 goes back to the MIXER page, its cursor on the first column.
+tap f1
+snap qa_mix_032
+
+# QA-MIX-035 (F5): from the MIXER page, F5 (CUE LVL) shows the MASTER FX page with the cursor on CUE LEVEL.
+tap f5
+snap qa_mix_035
+
+# QA-MIX-036 (F6): unbound on the Mixer. Its key reads "--" and the press changes nothing on the MASTER FX page and says nothing.
+tap f6
+snap qa_mix_036

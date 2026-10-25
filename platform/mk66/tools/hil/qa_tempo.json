@@ -1,0 +1,114 @@
+{
+ "name": "qa_tempo",
+ "title": "OS-PATTEMPO: Pattern held + the encoder is the project tempo, Pattern held + pad taps tap it, the Pattern tap acts at the release",
+ "steps": [
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.2,
+   "note": "(Shift released, in case a former run left it down)"
+  },
+  {
+   "keys": [
+    "song"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "screen": "SONG"
+   },
+   "within": 3
+  },
+  {
+   "keys": [
+    "+pattern"
+   ],
+   "gap": 0.2,
+   "note": "QA-GLB-153: Pattern held on Song; nothing changes screen"
+  },
+  {
+   "enc": 7
+  },
+  {
+   "wait": 0.3
+  },
+  {
+   "shot": "qa_glb_153",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-GLB-153: still Song, the strip says TEMPO and the value, seven BPM above the start"
+  },
+  {
+   "keys": [
+    "-pattern"
+   ],
+   "gap": 0.4
+  },
+  {
+   "state": {
+    "screen": "SONG"
+   },
+   "within": 2,
+   "note": "QA-GLB-153: the release after a turn is silent"
+  },
+  {
+   "keys": [
+    "+pattern"
+   ],
+   "gap": 0.2
+  },
+  {
+   "pad": 5,
+   "gesture": "down"
+  },
+  {
+   "pad": 5,
+   "gesture": "up"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "pad": 9,
+   "gesture": "down"
+  },
+  {
+   "pad": 9,
+   "gesture": "up"
+  },
+  {
+   "shot": "qa_glb_154",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-GLB-154: two pad taps about 500 ms apart under Pattern: the strip says TAP and a tempo near 120 (the unit's own timing jitters), no note sounds"
+  },
+  {
+   "keys": [
+    "-pattern"
+   ],
+   "gap": 0.4
+  },
+  {
+   "state": {
+    "screen": "SONG"
+   },
+   "within": 2,
+   "note": "QA-GLB-154: the release after a tap is silent"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.5,
+   "note": "QA-GLB-155: a quick tap of Pattern; it acts at the release, and is the Pattern screen"
+  },
+  {
+   "state": {
+    "screen": "PATTERN"
+   },
+   "within": 3
+  }
+ ]
+}

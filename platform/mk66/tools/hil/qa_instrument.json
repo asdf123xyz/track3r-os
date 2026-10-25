@@ -1,0 +1,1007 @@
+{
+ "name": "qa_instrument",
+ "title": "OS-FINALQA, Instrument > OS-IFX1: the OVERDRIVE, BIT DEPTH and GLIDE rows act on the sampler voices; OS-INSTUI S1/S2: the key rows, F6/F7, Left/Right, the pads that play the instrument in view and the notes that end when the instrument changes (heard by ear and on a MIDI monitor). OS-INSTUI S2b: a pad on a MIDI instrument sends its note on the instrument's channel and never leaves it hanging. OS-INSTUI S3 / S4: the Params source page and the Wave screen per play mode, with a wavetable from /WTABLE. Edits the loaded project in RAM only (nothing is saved). OS-INSTUI S5: the type chooser of an empty slot, DELETE and INIT. OS-INSTUI S6: the MOD page (SOURCE Off / Envelope / LFO per destination, the LFO's shape, speed and amount), heard by ear OS-INSTUI S8a: the MIDI page (CHANNEL) and the O2 re-verification against a real MIDI sink with the channel edited under a held pad (QA-INS-061..069).",
+ "steps": [
+  {
+   "say": "OS-IFX1, rows QA-INS-002..004 of docs/qa/catalogue/instrument.md (docs/specs/OS-IFX1.md). The instrument's OVERDRIVE, BIT DEPTH and GLIDE rows were editable and ignored before; they act now. Edits the loaded project in RAM only (nothing is saved)"
+  },
+  {
+   "run": "_load_tv16"
+  },
+  {
+   "say": "QA-INS-002 (OVERDRIVE): select a sample instrument, Params, the SENDS page, the OVERDRIVE row; start a loop (a sustained or looped sample) and turn the encoder up from 0 to 100 while it plays: the sound saturates live, steadily, bounded at full scale; back to 0 it is the clean sample again"
+  },
+  {
+   "say": "QA-INS-003 (BIT DEPTH): the BIT DEPTH row, the encoder down from 16 to 4 while the note plays: 16 is clean, 12 slightly gritty, 8 lo-fi, 4 a harsh buzz; the PLAY ENGINE 12 BIT / 8 BIT presets are a cap on it (the lower applies)"
+  },
+  {
+   "say": "QA-INS-004 (GLIDE): the GLIDE row (VOICE page) at 500 ms; in the pattern two different notes in a row on one track (C, then G): the second starts at the C's pitch and arrives at G in half a second; the same note twice does not glide; the edit is read when a note starts (it reaches the next note)"
+  },
+  {
+   "say": "OS-INSTUI S1/S2, rows QA-INS-005..015 of docs/qa/catalogue/instrument.md (docs/specs/OS-INSTUI.md). The Params screen: F1 the source page (dim until S3), VOICE FILTER MOD SENDS, F6/F7 the neighbouring instrument, F8 UNDO; Shift: NAME COPY PASTE DELETE SAVE (dim, S5/S7), <USED USED> the nearest in use, REDO. Edits the loaded project in RAM only"
+  },
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.2,
+   "note": "(Shift released, in case a former run left it down)"
+  },
+  {
+   "keys": [
+    "params"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "screen": "INSTRUMENT"
+   },
+   "within": 3
+  },
+  {
+   "say": "QA-INS-005/006: the header reads the instrument, its kind, the play mode and the engine it plays with (a Paula-rate sample on Auto reads AUTO>AMIGA); the key row reads SAMPLE (dim) VOICE FILTER MOD SENDS <NN NN> UNDO"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.4
+  },
+  {
+   "state": {
+    "instrument": "2"
+   },
+   "within": 2,
+   "note": "QA-INS-007: F7 goes to the next instrument"
+  },
+  {
+   "keys": [
+    "f6"
+   ],
+   "gap": 0.4
+  },
+  {
+   "state": {
+    "instrument": "1"
+   },
+   "within": 2,
+   "note": "QA-INS-007: F6 goes back; at instrument 1 a further F6 does nothing (no wrap, no message)"
+  },
+  {
+   "keys": [
+    "f6"
+   ],
+   "gap": 0.4
+  },
+  {
+   "state": {
+    "instrument": "1"
+   },
+   "within": 2
+  },
+  {
+   "keys": [
+    "+shift"
+   ],
+   "gap": 0.3
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.4
+  },
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.3
+  },
+  {
+   "say": "QA-INS-008/009: with Shift held the labels are NAME COPY PASTE DELETE SAVE (dim: pressing one says which slice builds it), then the numbers of the nearest instrument in use; Shift+F7 went to the next instrument that holds something"
+  },
+  {
+   "keys": [
+    "f4",
+    "f4"
+   ],
+   "gap": 0.4,
+   "note": "QA-INS-010: the pages are the F-keys; F4 is MOD and F4 again is the next destination (DEST 2/6)"
+  },
+  {
+   "keys": [
+    "params"
+   ],
+   "gap": 0.4,
+   "note": "QA-INS-011: the Params button again goes to F1 (VOICE until S3), it does not cycle"
+  },
+  {
+   "say": "QA-INS-013 (a pad plays the instrument in view): select a looping or long sample instrument with F6/F7, hold a pad: the instrument sounds at the pad's pitch and keeps sounding while the pad is held; let go: it ends. A beat slice instrument plays slice n on pad n. Shift+pad selects the instrument and makes no sound (QA-INS-012)"
+  },
+  {
+   "pad": 5,
+   "gesture": "down",
+   "note": "(a pad is held)"
+  },
+  {
+   "wait": 1.0
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.4,
+   "note": "QA-INS-014: F7 while the pad holds the note"
+  },
+  {
+   "say": "QA-INS-014: the note stopped at the F7 (its release, on the instrument that started it) and the next instrument is not sounding; the pad is still down. Repeat with Shift+F7 and with a pad of the Instr-hold list"
+  },
+  {
+   "pad": 5,
+   "gesture": "up",
+   "note": "(letting go afterwards is silent)"
+  },
+  {
+   "say": "QA-INS-014 with a MIDI instrument: the steps below (QA-INS-033 / 034, OS-INSTUI S2b) do it on a project that has MIDI instruments (t-v16: 49..64)"
+  },
+  {
+   "say": "OS-INSTUI S3, rows QA-INS-016..024: the Params F1 source page and the play mode. Needs a card with the maintainer's test set at its root (a wavetable from /WTABLE, e.g. a Serum-style WAV of 2048-frame windows, and any sample from /AIFF or /MOD). Edits the loaded project in RAM only (nothing is saved)"
+  },
+  {
+   "say": "QA-INS-022 (the wavetable): Sample load (the SAMPLE LOAD button), open /WTABLE and load a wavetable WAV into the instrument in view (a free sample slot); then Params, F1"
+  },
+  {
+   "keys": [
+    "params",
+    "f1"
+   ],
+   "gap": 0.6,
+   "note": "QA-INS-022: Params, F1 (the source page of the instrument in view)"
+  },
+  {
+   "say": "QA-INS-022: the page is SOURCE 1/5 with PLAY MODE One shot and PLAY ENGINE; on the right the waveform of the table with START and END marked"
+  },
+  {
+   "say": "QA-INS-022: turn the encoder on PLAY MODE (the first row) up six clicks to Wavetable. The strip says PLAY MODE: WAVETABLE; the rows become PLAY MODE, WT POS, WT SIZE, PLAY ENGINE; WT SIZE reads 2048 (the window of the table), WT POS 0; the sample on the right has the first window marked (WINDOW 0 OF 0..N-1)"
+  },
+  {
+   "say": "QA-INS-022: hold a pad: it sounds the table's first window as an oscillator at the pad's pitch. Down to WT POS and turn the encoder while the pad is held: the timbre changes live, window by window (WT POS stops at the last window, N-1). Down to WT SIZE and turn it one click down: the size halves (1024), the position doubles, the window marked on the sample is half as wide; at 32 it stops. Delete on WT SIZE: back to 2048"
+  },
+  {
+   "say": "QA-INS-022: F7 or a pad (Shift + pad) to a short sample instrument if there is one of fewer than 32 frames (a one-click sample): PLAY MODE to Wavetable says WAVETABLE NEEDS A SAMPLE OF 32 FRAMES and the mode stays; F8 UNDO on a normal wavetable edit restores One shot"
+  },
+  {
+   "say": "QA-INS-023 (granular and slices): on a longer sample (from /AIFF or /MOD) PLAY MODE to Granular: GRAIN POS reads seconds, GRAIN LENGTH samples (11 per click), GRAIN SHAPE Square / Triangle / Gauss, GRAIN LOOP Forward / Backward / PingPong; the grain is marked on the sample and follows each edit; a held pad plays a grain cloud at GRAIN POS and the position moves live. PLAY MODE to Beat slice with no slices: the strip says BEAT SLICE: NO SLICES, AUTO OR EVEN ON WAVE and SLICE is dimmed with the reason on the info line"
+  },
+  {
+   "say": "QA-INS-024 (held arrow): on the FILTER page put the cursor on CUTOFF and hold Right: the value climbs a click at a time at the key repeat and stops at 100 %; F8 once takes the whole run back (the clicks merge as the encoder's do). Hold Left the same way. Shift + Right is the coarse step"
+  },
+  {
+   "say": "OS-INSTUI S4, rows QA-WAV-003..008 of docs/qa/catalogue/wave.md (the Wave screen per play mode). Same card: a wavetable WAV from /WTABLE (a Serum-style table of 2048-frame windows) and a longer sample from /AIFF or /MOD"
+  },
+  {
+   "keys": [
+    "sampleplay"
+   ],
+   "gap": 0.6,
+   "note": "QA-WAV-008: the Wave screen on the wavetable loaded in the QA-INS-022 steps (instrument in view)"
+  },
+  {
+   "keys": [
+    "+shift",
+    "f1",
+    "-shift"
+   ],
+   "gap": 0.6,
+   "note": "QA-WAV-003: Shift + F1 MODE"
+  },
+  {
+   "say": "QA-WAV-003: the list of the eight play modes opens, the cursor on the instrument's own (Wavetable if the QA-INS-022 steps left it so); Up / Down and the encoder move it, F8 closes it with nothing changed"
+  },
+  {
+   "say": "QA-WAV-004 / QA-WAV-008: choose WAVETABLE (cursor on it, F1). The header reads WAVETABLE, the keys POSITION WINDOW - - - PREVIEW ZOOM- UNDO, the rows POSITION (n OF 0..N-1) and WINDOW (2048 smp); the table's waveform shows with the first window marked"
+  },
+  {
+   "say": "QA-WAV-008: hold a pad and turn the encoder on POSITION: the pad's note changes timbre window by window and the marked window walks along the table (it stops at the last whole window). F2 WINDOW, encoder down: the window halves, its position doubles, the marked window is half as wide; Shift + encoder is coarse; Delete is the default (2048). F8 UNDO takes each step back"
+  },
+  {
+   "say": "QA-WAV-005: Shift + F1, choose GRANULAR: the keys POSITION LENGTH SHAPE LOOP - PREVIEW ZOOM- UNDO; POSITION in seconds, LENGTH in samples (11 a click), SHAPE Square / Triangle / Gauss, LOOP Forward / Backward / PingPong; the grain is marked on the sample and follows each edit; a held pad plays the grain cloud"
+  },
+  {
+   "say": "QA-WAV-006: Shift + F1, choose BEAT SLICE: the CHOP page (AUTO EVEN ZC ADD DEL ...); choose ONE SHOT: the WAVE page (START LOOP S LOOP E END ...)"
+  },
+  {
+   "say": "OS-INSTUI S5, rows QA-INS-025..032. Same card; a project with a free instrument slot (12), a sample instrument with a pattern that plays it, and (QA-INS-031) the TB-303 module instrument"
+  },
+  {
+   "keys": [
+    "params"
+   ],
+   "gap": 0.6,
+   "note": "QA-INS-025: open the Params page (button Params) and go to a free slot with F7 / Shift + pad"
+  },
+  {
+   "say": "QA-INS-025: on a free slot the page is the type chooser: F1 SAMPLE, F2 MIDI (A MIDI INSTRUMENT ON CHANNEL 1), F3 PASTE (dim until something is copied: NOTHING COPIED: SHIFT+F2 ON AN INSTRUMENT), F4 MODULE, F5 LOAD (lit: LOAD AN INSTRUMENT FILE (.PTI) FROM THE CARD); no rows; the encoder does nothing; Shift shows DELETE dim"
+  },
+  {
+   "keys": [
+    "f3"
+   ],
+   "gap": 0.6,
+   "note": "QA-INS-028: F3 PASTE"
+  },
+  {
+   "say": "QA-INS-028: with nothing copied F3 says NOTHING TO PASTE: SHIFT+F2 COPIES and nothing changes (F5 LOAD is QA-INS-056)"
+  },
+  {
+   "keys": [
+    "f2"
+   ],
+   "gap": 0.6,
+   "note": "QA-INS-027: F2 MIDI"
+  },
+  {
+   "say": "QA-INS-027: a MIDI instrument exists on this slot: the header reads MIDI / CH 1 (instrument 61 and above: CH 13 for 61, counting from 1 at 49); connect a MIDI monitor (amidi -d -p hw:1,0,0) to see its channel once the MIDI page lands (S8a). F8 UNDO takes it away: the chooser is back"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.6,
+   "note": "QA-INS-026: F1 SAMPLE on the free slot"
+  },
+  {
+   "say": "QA-INS-026: Sample load opens; choose a WAV and press F1 LOAD: when the strip says DONE the Params page returns on this instrument (source page). Press the Params button from Sample load without loading: the next visit to Sample load does not jump back"
+  },
+  {
+   "keys": [
+    "params"
+   ],
+   "gap": 0.6,
+   "note": "back to Params"
+  },
+  {
+   "keys": [
+    "f4"
+   ],
+   "gap": 0.6,
+   "note": "QA-INS-029: F4 MODULE on a free slot (not a slot whose module was deleted)"
+  },
+  {
+   "say": "QA-INS-029: the module picker opens over the page listing the card's instrument modules; F1 binds the one under the cursor (ENGINE SET) and the page shows the module's pages; F8 UNDO takes the instrument away (the instance stays bound)"
+  },
+  {
+   "say": "QA-INS-030: go to a sample instrument used by the pattern and press Shift + F4 (DELETE). The strip says INS nn DELETED - F8 UNDO; the page is the chooser; start the pattern: the steps of that instrument are silent, nothing else changes. F8 UNDO: the instrument returns and sounds again (the sample is still there); Shift + F8 REDO deletes it again. The card is not touched. Delete while the pattern plays: the deleted sample keeps sounding until playback stops (the slot is silenced at the next quiet handover: expected, not a fault); a module's note, in contrast, ends at once"
+  },
+  {
+   "say": "QA-INS-031: on the TB-303 module instrument press Shift + F4, then play its steps and hold a pad: silence. F4 MODULE then pick: the strip says RELOAD TO PUT A MODULE HERE. F1 SAMPLE (load a WAV) or F2 MIDI: the new instrument sounds, never the TB-303. F8 UNDO until the TB-303 returns: it plays again"
+  },
+  {
+   "say": "QA-INS-032: on an edited sample instrument (volume, cutoff, an envelope, PLAY MODE) press Shift + Delete: every row is at its default, the name, the sample and its start / end stay, the strip says INS nn INIT - F8 UNDO; a second press says ALREADY AT THE DEFAULTS; F8 restores the edits. On the TB-303: its knobs go to its own defaults and the sound follows at once"
+  },
+  {
+   "say": "OS-INSTUI S2b, rows QA-INS-033 / 034 of docs/qa/catalogue/instrument.md (docs/specs/OS-INSTUI.md 'S2b Built'): a pad on a MIDI instrument sends MIDI. Needs an OG project with MIDI instruments (t-v16: 49..64) and the unit's USB MIDI out on the PC. Run `amidi -d -p hw:1,0,0` in a terminal NOW and keep it open for all the steps below; the device setting MIDI OUT must include USB (DIN + a synth or a MIDI-to-USB cable on the DIN out also works: the same bytes). Edits the loaded project in RAM only"
+  },
+  {
+   "run": "_stop"
+  },
+  {
+   "keys": [
+    "f6"
+   ],
+   "gap": 0.08,
+   "repeat": 70,
+   "note": "(to instrument 1: F6 stops there, no wrap)"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.1,
+   "repeat": 48,
+   "note": "(to instrument 49, the first MIDI instrument of t-v16)"
+  },
+  {
+   "state": {
+    "instrument": "49"
+   },
+   "within": 3,
+   "note": "(the header reads the MIDI instrument and CH n: the channel the notes must use)"
+  },
+  {
+   "say": "QA-INS-033 (a pad on a MIDI instrument sends a note): read CH n in the header; hold pad 5 for a second, then let go. The monitor must show ONE note-on `9(n-1) <note> 127` when the pad goes down and ONE note-off (`8(n-1) <note> 0`, or a 9x with velocity 0) when it is released, on channel n, the same note. The pad keeps no other sound on the unit (a MIDI instrument has no voice)"
+  },
+  {
+   "pad": 5,
+   "gesture": "down",
+   "note": "(a pad is held on the MIDI instrument: the monitor shows the note-on)"
+  },
+  {
+   "wait": 1.5
+  },
+  {
+   "pad": 5,
+   "gesture": "up",
+   "note": "(released: the monitor shows the note-off)"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "say": "QA-INS-033: channels 1 and 16. F7 steps through the MIDI instruments 49..64; read CH n in the header of each (the channel is stored in the project; no screen edits it before S8a). On an instrument whose header reads CH 1 hold pad 9: `90 <note> 7F` then `80 <note> 00`; on one that reads CH 16: `9F ...` / `8F ...` (if the project has none on 1 or 16, any channel proves the rule: the status nibble is the header's n minus 1). Two pads at once (5 and 9) give two note-ons and two note-offs, each pair on its own note"
+  },
+  {
+   "pad": 5,
+   "gesture": "down",
+   "note": "(two pads held: two notes)"
+  },
+  {
+   "pad": 9,
+   "gesture": "down"
+  },
+  {
+   "wait": 1.0
+  },
+  {
+   "pad": 9,
+   "gesture": "up"
+  },
+  {
+   "pad": 5,
+   "gesture": "up"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "say": "QA-INS-034 (no hanging MIDI note, every path): hold pad 5, then press F7 WHILE it is held. The note-off of the pad must appear on the monitor AT the F7 (before you let go), on the channel of the instrument that was in view when the pad went down; the pad's later release adds nothing. Then the same with F6, Shift+F7, Shift+F6 and a pad pick from the Instr-hold list; a Shift+pad pick likewise"
+  },
+  {
+   "pad": 5,
+   "gesture": "down",
+   "note": "(held on the MIDI instrument)"
+  },
+  {
+   "wait": 1.0
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.4,
+   "note": "QA-INS-034: F7 while the pad holds the MIDI note: the note-off appears now"
+  },
+  {
+   "wait": 0.8
+  },
+  {
+   "pad": 5,
+   "gesture": "up",
+   "note": "(nothing more on the monitor)"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "pad": 5,
+   "gesture": "down"
+  },
+  {
+   "wait": 1.0
+  },
+  {
+   "keys": [
+    "+shift"
+   ],
+   "gap": 0.3
+  },
+  {
+   "keys": [
+    "f6"
+   ],
+   "gap": 0.4,
+   "note": "QA-INS-034: Shift+F6 while a pad holds the note"
+  },
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.3
+  },
+  {
+   "wait": 0.8
+  },
+  {
+   "pad": 5,
+   "gesture": "up"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "say": "QA-INS-034: Stop and a project load with a pad held. Select a MIDI instrument; the next step plays the pattern, holds pad 5, then stops: the note-off of the pad's note must come with the stop (the router's panic), the later release adds nothing; the sequencer's own MIDI notes (if the pattern plays a MIDI instrument) also all end"
+  },
+  {
+   "run": "_play"
+  },
+  {
+   "wait": 1.0
+  },
+  {
+   "pad": 5,
+   "gesture": "down",
+   "note": "(a pad is held while the song plays)"
+  },
+  {
+   "wait": 1.0
+  },
+  {
+   "run": "_stop",
+   "note": "(Stop: the monitor shows every note-on answered by a note-off)"
+  },
+  {
+   "wait": 1.0
+  },
+  {
+   "pad": 5,
+   "gesture": "up"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "say": "QA-INS-034: at the end of the monitor session every `9x` line has its `8x` line on the same channel and note; no note sounds on the receiving synth. Close the monitor"
+  },
+  {
+   "say": "OS-INSTUI S8a, rows QA-INS-061..069 of docs/qa/catalogue/instrument.md (docs/specs/OS-INSTUI.md 'S8a Built'): the MIDI page of a MIDI instrument (F1 MIDI, the stored CHANNEL), and the O2 re-verification against a REAL sink that S2 asks of S8a: with CHANNEL edited under a held pad, every note-on from a pad has its note-off on the same channel and note. Same setup as the S2b steps above (an OG project with MIDI instruments, t-v16 49..64; the device setting MIDI OUT includes USB). Run `amidi -d -p hw:1,0,0` in a terminal NOW and keep it open for all the steps below: in every step, every `9x` line must have its `8x` line on the SAME channel nibble and note, in that order, and nothing may be left on. The S2b steps already cover F6/F7, Stop and a load without a channel edit; these add only the channel change. Edits the loaded project in RAM only"
+  },
+  {
+   "run": "_stop"
+  },
+  {
+   "keys": [
+    "f6"
+   ],
+   "gap": 0.08,
+   "repeat": 70,
+   "note": "(to instrument 1: F6 stops there, no wrap)"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.1,
+   "repeat": 48,
+   "note": "(to instrument 49, the first MIDI instrument of t-v16)"
+  },
+  {
+   "state": {
+    "instrument": "49"
+   },
+   "within": 3
+  },
+  {
+   "say": "QA-INS-061 / 062: the page is the MIDI page: the header reads MIDI 1/1, the strip MIDI / CH n, one row CHANNEL (n, 1..16) with the card on the right (RANGE 1 .. 16, DEFAULT 1; no controller line: CHANNEL cannot be learned) and three dim lines under it; the footer reads `delete: default` (no Program Change hint). The key row is MIDI VOICE FILTER MOD SENDS <48 50> UNDO with VOICE .. SENDS dim. Now press F2, then F5: the strip says NO VOICE PAGE ON A MIDI INSTRUMENT, then NO SENDS PAGE ON A MIDI INSTRUMENT, and the page does not change"
+  },
+  {
+   "keys": [
+    "f2"
+   ],
+   "gap": 0.4,
+   "note": "QA-INS-062: dim key, the reason on the strip; the page stays"
+  },
+  {
+   "keys": [
+    "f5"
+   ],
+   "gap": 0.4
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.4,
+   "note": "QA-INS-061: F1 MIDI, the page that is already there: nothing changes and no word"
+  },
+  {
+   "say": "QA-INS-063: turn the encoder one click up: CHANNEL reads n+1 and the strip header MIDI / CH n+1; F8 (UNDO) gives n back, Shift+F8 (REDO) n+1 again; one click is one unit. Turn it hard down: it stops at 1 and a further click does nothing (no new UNDO unit); hard up: it stops at 16. Delete is the default (1), Shift + the encoder steps by 4. Note the channel n of the instrument and leave it there for the next steps (F8 until it reads n again)"
+  },
+  {
+   "enc": 1,
+   "note": "QA-INS-063: CHANNEL up one"
+  },
+  {
+   "wait": 0.6
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.4,
+   "note": "UNDO: the channel is back"
+  },
+  {
+   "wait": 0.4
+  },
+  {
+   "say": "QA-INS-066: a pad sounds the NEW channel. Edit CHANNEL up by 2 (encoder), hold pad 5 for a second and let go: the monitor shows ONE note-on and ONE note-off on channel n+2 (status nibble n+1), the same note. Then F8 (UNDO) back to n"
+  },
+  {
+   "enc": 2,
+   "note": "CHANNEL n+2"
+  },
+  {
+   "wait": 0.4
+  },
+  {
+   "pad": 5,
+   "gesture": "down",
+   "note": "(note-on on channel n+2)"
+  },
+  {
+   "wait": 1.0
+  },
+  {
+   "pad": 5,
+   "gesture": "up",
+   "note": "(note-off on channel n+2, the same note)"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.4,
+   "note": "UNDO: channel n again"
+  },
+  {
+   "wait": 0.4
+  },
+  {
+   "say": "QA-INS-067 (O2 with a real sink): hold pad 5 on channel n (the monitor shows 9(n-1) <note> 7F), turn the encoder +3 WHILE it is held (CHANNEL n+3: the monitor shows nothing new), then let go. The note-off must be `8(n-1) <note>`: the channel the note-on had (n), NOT n+3, the same note, and nothing else. Then press the pad again: its note-on and note-off are both on n+3"
+  },
+  {
+   "pad": 5,
+   "gesture": "down",
+   "note": "(held on channel n: the monitor shows the note-on)"
+  },
+  {
+   "wait": 1.0
+  },
+  {
+   "enc": 3,
+   "note": "CHANNEL n+3 while the pad is held: the monitor stays quiet"
+  },
+  {
+   "wait": 0.8
+  },
+  {
+   "pad": 5,
+   "gesture": "up",
+   "note": "(the note-off is on channel n, not n+3)"
+  },
+  {
+   "wait": 0.6
+  },
+  {
+   "pad": 5,
+   "gesture": "down",
+   "note": "(now on n+3)"
+  },
+  {
+   "wait": 1.0
+  },
+  {
+   "pad": 5,
+   "gesture": "up"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.4,
+   "note": "UNDO the channel edit"
+  },
+  {
+   "wait": 0.4
+  },
+  {
+   "say": "QA-INS-068 (the same under F7, Stop and a load): (a) hold pad 5, turn the encoder +2, press F7 while it is held: the note-off appears AT the F7, on the channel the note-on had; let go: nothing more. (b) F6 back; play the song (_play), hold pad 5, encoder +2, then Stop: the pad's note-off comes with the stop on the note-on's channel (the sequencer's own notes also all end), the later release adds nothing. (c) hold pad 5, encoder +2, then `load Projects/t-v16-copy` on the serial console while it is held: the note-off of the pad is on the note-on's channel, the later release adds nothing"
+  },
+  {
+   "pad": 5,
+   "gesture": "down",
+   "note": "(a) held on channel n"
+  },
+  {
+   "wait": 1.0
+  },
+  {
+   "enc": 2
+  },
+  {
+   "wait": 0.4
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.4,
+   "note": "(a) F7 while held, after the channel edit: the note-off at once, on channel n"
+  },
+  {
+   "wait": 0.8
+  },
+  {
+   "pad": 5,
+   "gesture": "up",
+   "note": "(nothing more on the monitor)"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "keys": [
+    "f6"
+   ],
+   "gap": 0.4,
+   "note": "(back on 49, now channel n+2)"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.4,
+   "note": "UNDO the channel edit"
+  },
+  {
+   "run": "_play"
+  },
+  {
+   "wait": 1.0
+  },
+  {
+   "pad": 5,
+   "gesture": "down",
+   "note": "(b) held on channel n while the song plays"
+  },
+  {
+   "wait": 1.0
+  },
+  {
+   "enc": 2
+  },
+  {
+   "wait": 0.6
+  },
+  {
+   "run": "_stop",
+   "note": "(b) Stop: every note-on answered by a note-off, the pad's on channel n"
+  },
+  {
+   "wait": 1.0
+  },
+  {
+   "pad": 5,
+   "gesture": "up"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.4,
+   "note": "UNDO the channel edit"
+  },
+  {
+   "pad": 5,
+   "gesture": "down",
+   "note": "(c) held on channel n"
+  },
+  {
+   "wait": 1.0
+  },
+  {
+   "enc": 2
+  },
+  {
+   "wait": 0.4
+  },
+  {
+   "cmd": "load Projects/t-v16-copy",
+   "expect": "load: reading",
+   "note": "(c) the load while the pad is held"
+  },
+  {
+   "cmd": "sd",
+   "expect": "pcm:\\s+.*loaded",
+   "fail_on": "FAILED",
+   "within": 90,
+   "poll": 1.0
+  },
+  {
+   "wait": 0.8
+  },
+  {
+   "pad": 5,
+   "gesture": "up",
+   "note": "(the note-off was sent at the load, on channel n; nothing now)"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "say": "QA-INS-068: at the end of the monitor session every `9x` line has its `8x` line on the same channel and note, whatever the channel edits in between; no note sounds on the receiving synth"
+  },
+  {
+   "say": "QA-INS-069 (FX 37 is CC F): in Pattern, on a track whose step has a MIDI instrument (49), put FX 37 with the value 5 on a step with a note and play it with the monitor open. The monitor must show a CONTROL CHANGE `Bn <CC F> 05` (status B0 + channel, then the CC F number set in Config, then 05) and NO Program Change `Cn 05`: the S8a review decided that FX 37 stays CC F (a saved FX 37 must not change meaning); Program Change comes in S8b as a CC A-F slot set to PROG. A `Cn 05` instead means the build's seq/fx.h kSlot37IsProgramChange is true: report it"
+  },
+  {
+   "say": "OS-INSTUI S6, rows QA-INS-035..042 of docs/qa/catalogue/instrument.md (docs/specs/OS-INSTUI.md). The Params F4 MOD page replaces ENV: per destination (Volume, Panning, Cutoff, WT Position, Gran Position, Finetune; F4 again walks them) a SOURCE row Off / Envelope / LFO, the envelope's AMOUNT ATTACK DECAY SUSTAIN RELEASE or the LFO's SHAPE SPEED AMOUNT. An LFO edit is heard at the next quiet handover (playback stopped, no note held), not while a pattern plays. Edits the loaded project in RAM only (nothing is saved)"
+  },
+  {
+   "run": "_load_tv16"
+  },
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.2,
+   "note": "(Shift released, in case a former run left it down)"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "~^(MODULE_PICKER|STEP_POPUP|FILL|PLAY_MODE|TOOLS)$"
+   },
+   "note": "(a leftover overlay of the manual steps above is put away: F8 is Back; the load keeps overlays open)"
+  },
+  {
+   "keys": [
+    "params"
+   ],
+   "gap": 0.5
+  },
+  {
+   "keys": [
+    "f6"
+   ],
+   "gap": 0.08,
+   "repeat": 70,
+   "note": "(to instrument 1: F6 stops there, no wrap. The load keeps the instrument in view, 49 after the MIDI section: one F6 would land on the empty slot 48, where F4 is the engine picker, which captures every key but its own, Pattern included)"
+  },
+  {
+   "state": {
+    "screen": "INSTRUMENT",
+    "instrument": "1"
+   },
+   "within": 3
+  },
+  {
+   "keys": [
+    "f4"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "screen": "INSTRUMENT",
+    "overlay": "~^(NONE|NOTIFY)$"
+   },
+   "within": 2,
+   "note": "the MOD page, not the engine picker (MODULE_PICKER)"
+  },
+  {
+   "say": "QA-INS-035: the MOD page: the header reads MOD 4/5 (3/4 on a MIDI or free instrument), DEST 1/6 Volume on the right; the first row is SOURCE, reading Envelope for the volume destination, then AMOUNT ATTACK DECAY SUSTAIN RELEASE and the envelope curve under them. Turn the encoder on SOURCE once: LFO (Off is one click down). The words are those of the official manual (Off, Envelope, LFO; not verified on a unit)"
+  },
+  {
+   "keys": [
+    "f4"
+   ],
+   "gap": 0.3
+  },
+  {
+   "keys": [
+    "f4"
+   ],
+   "gap": 0.3
+  },
+  {
+   "say": "QA-INS-036: DEST 3/6 Cutoff. SOURCE to LFO (encoder up): the rows change to LFO SHAPE (Rev Saw, Saw, Triangle, Square, Random), LFO SPEED (128 steps .. 1/64 step, 29 values) and LFO AMOUNT (0..100 %, a fresh one 50 %), and the picture is the LFO's shape; SOURCE back to Envelope or Off brings the envelope rows back. The volume destination's SPEED has 24 values (24 steps .. 1/64 step)"
+  },
+  {
+   "keys": [
+    "f4"
+   ],
+   "gap": 0.3
+  },
+  {
+   "say": "QA-INS-037: DEST 4/6 WT Position on a one shot instrument: every row is dim, not gone, and the info line reads WAVETABLE ONLY; F4 again: GRANULAR ONLY; with the instrument's FILTER page switched off the Cutoff destination reads FILTER OFF; WAVETABLE (or GRANULAR) on the source page lights the position destination. A dim row can still be edited"
+  },
+  {
+   "say": "QA-INS-039 (the LFO is audible): on a sustained sample set the Volume destination to LFO (SHAPE Triangle, SPEED 4 steps, AMOUNT 100 %): stop playback, hold a pad: a tremolo at the tempo's rate. Cutoff to LFO with the FILTER on (LP, cutoff 40 %): the filter sweeps. Panning to LFO: the sound moves left and right. FINETUNE to LFO: vibrato. Each is heard when the pad is pressed after the edit (the edit reaches the voices at the quiet handover)"
+  },
+  {
+   "say": "QA-INS-040: F8 (UNDO) takes the SOURCE or LFO edit back and the sound follows (at the next quiet handover); Shift+F8 (REDO) brings it again"
+  },
+  {
+   "say": "QA-INS-041: Shift+Delete (INIT) on an instrument whose Volume destination is an LFO and whose Panning destination is an Envelope: every destination is back to its default (Volume Envelope, the others Off, LFO Triangle / 128 steps / 50 %); the name, the sample and the slices stay; F8 brings the edits back"
+  },
+  {
+   "say": "QA-INS-042: on the source page put a short sample (about 1500 frames) in WAVETABLE with WT SIZE 2048 (a size the sample cannot hold): the page says NOT PLAYABLE and no window is drawn; the instrument is silent; WT SIZE one step down (1024) draws the window and sounds"
+  },
+  {
+   "say": "QA-INS-043: on a sample instrument (the header reads 05 KICK) press Shift+F2 (COPY): the strip says INS 05 COPIED. On a MIDI instrument the same; on a module instrument it says A MODULE INSTRUMENT CANNOT BE COPIED, on an empty slot NOTHING TO COPY"
+  },
+  {
+   "say": "QA-INS-044: go to a free slot (F7 until an empty one: the type chooser) and press Shift+F3 (PASTE; also the chooser's F3, dim before something is copied): INS nn PASTED - F8 UNDO, the header and the pages are the copy's (name, play mode, points, envelopes), the SOURCE page's picture is the same sample, and the Sample load screen's ARENA readout does not move (the audio is shared, not copied). Hold a pad: it sounds like the source"
+  },
+  {
+   "say": "QA-INS-045: PASTE over a used sample instrument (Shift+F3): INS nn REPLACED - F8 UNDO and the slot is now the copy, with the copy's sound. F8 (UNDO) gives back the instrument that was there AND its sound; Shift+F8 (REDO) the copy again"
+  },
+  {
+   "say": "QA-INS-046: PASTE onto a module instrument (a TB-303 slot): INS nn IS A MODULE: DELETE IT FIRST, nothing changes and F8 has nothing new to undo. Shift+F4 (DELETE) on it, then PASTE: it takes the copy (the module instance stays bound but silent)"
+  },
+  {
+   "say": "QA-INS-047: on a free slot (the type chooser) with nothing copied the F3 PASTE key is dim and its line reads NOTHING COPIED: SHIFT+F2 ON AN INSTRUMENT; after a COPY it is lit and its line reads PASTE <the name>; F3 puts the copy in the slot"
+  },
+  {
+   "say": "QA-INS-048: COPY instrument 5, PASTE into 12, then DELETE instrument 5 (Shift+F4): 12 still plays its sample; undo the delete: both play. Edit 5's sample on Sample edit (CROP, NORM): 12 keeps the old sound; edit 12's: 5 keeps its own. COPY 5 again, edit 5, PASTE into 13: 13 has the audio of the COPY, not the edit. Loading a new project empties the clipboard (the chooser's PASTE is dim again)"
+  },
+  {
+   "say": "QA-INS-049: PASTE into a free slot, F8 (UNDO): the slot is empty again and silent; Shift+F8 (REDO): the copy is back and plays. PASTE over a used slot, F8: the old instrument sounds again, not the pasted audio (the sound follows at the next quiet handover: stopped, no pad held)"
+  },
+  {
+   "say": "QA-INS-050: Shift+F1 (NAME) on a used instrument: the on-screen keyboard titled INSTRUMENT NAME opens with the name selected; the pads type, F2 CAPS, Delete deletes, F7 CANCEL leaves the name as it was, F8 OK keeps it (the F6 AUTO key is not there)"
+  },
+  {
+   "say": "QA-INS-051: NAME: type more than 32 characters: it stops at 32; every key of the keyboard is allowed (including @ and +); F8: INS nn RENAMED - F8 UNDO and the header shows the new name; F8 (UNDO) gives the old name back, Shift+F8 the new one. Accepting the name unchanged does nothing"
+  },
+  {
+   "say": "QA-INS-052: Shift+F5 (SAVE) on a sample instrument (any SD card; a write-protected card answers CARD IS WRITE PROTECTED and writes nothing): the strip runs SAVE <name> to 100% and DONE; read the card on a computer: instruments/<NAME>.pti exists, its size is 392 bytes plus twice the frames (the OG's instrument format), there is no _o3save.tmp (OS-FILES-C C1b: a sample that plays at another rate, or on the Amiga engine, is written resampled to 44,100 Hz and the strip says RESAMPLED <rate> -> 44100 HZ; a 12/8 bit engine, an Amiga mode other than one shot or forward loop, or a level under 40 of a 1.1.14-law project is refused on the strip; QA-FIL-090)"
+  },
+  {
+   "say": "QA-FIL-090 (OS-FILES-C C1b, A/B by ear, a test card): take a 22,050 Hz sample (a 1 kHz tone is easiest) and an Amiga-engine sample (a MOD or 8,287 Hz sample) and SAVE each (Shift+F5): the strip says RESAMPLED 22050 -> 44100 HZ / RESAMPLED 8287 -> 44100 HZ; time the save of the longest sample you have and note whether the screen and the MIDI-in stay responsive meanwhile; then LOAD the .pti into a free slot and play it at C-4 and C-5 against the original (same pitch, same level; for the Amiga one set the tune +12 and -12 and A/B again; a loop loops without a click); if you have an official unit, copy the file to it and listen"
+  },
+  {
+   "say": "QA-INS-053: SAVE the same instrument again and again: instruments/KICK.pti is never touched (compare its bytes), the next files are KICK 2.pti, KICK 3.pti; an instrument named a/b..c:d or CON gets a safe file name (a_b_c_d, CON_), one with no name Instrument NN; a file you put in instruments/ yourself with the same name is never replaced"
+  },
+  {
+   "say": "QA-INS-054: SAVE (Shift+F5) on a MIDI instrument and on a module instrument: the strip says SAMPLE INSTRUMENTS ONLY and the card is untouched; on an empty slot NOTHING TO SAVE (the key is dim)"
+  },
+  {
+   "say": "QA-INS-055: SAVE and pull the card (or the power) while the strip shows the percentage: after the next boot instruments/ holds no partial <name>.pti (only whole files, and at most a _o3save.tmp that the next save removes); a card that is full says so on the strip and leaves no file"
+  },
+  {
+   "say": "QA-INS-056: on a free slot (the type chooser) press F5 (LOAD): the INSTRUMENT LOAD screen lists the folders and the .pti files of instruments/ (the header reads PTI; ADD, PLAY, WT and CH read --); with no instruments/ folder it says NO instruments FOLDER; F2 goes up to browse elsewhere"
+  },
+  {
+   "say": "QA-INS-057: LOAD (F1) a .pti saved by SAVE (or taken from an OG project's instruments/ folder): the Instrument screen comes back on the slot with the instrument and its sound (read from the card: the arena readout drops by the sample); F8 (UNDO) empties the slot again (silent), Shift+F8 (REDO) loads it again without reading the card"
+  },
+  {
+   "say": "QA-INS-058: LOAD a file that is not an instrument (rename a .txt to .pti), a .pti cut short (copy its first 100 bytes), a stereo-length one: the strip says why (UNKNOWN FILE TYPE, TRUNCATED, UNSUPPORTED FORMAT, NO AUDIO IN THE FILE), the screen stays, the slot is still empty and F8 has nothing new to undo; with the sample arena full: THE SAMPLE ARENA IS FULL"
+  },
+  {
+   "say": "QA-INS-059: round trip on the unit: SAVE an edited instrument (a loop, a filter, an LFO, slices), LOAD the file into a free slot: every page shows the same values and the two sound the same. Copy the file to the computer and check that its first bytes read TI and that an official 1.9 Tracker takes it (the format is the OG's: this last check is the official unit's, not this one's)"
+  },
+  {
+   "say": "OS-INSTUI S8b + S9 (INST 1.3), rows QA-INS-075..082 of docs/qa/catalogue/instrument.md (docs/specs/OS-INSTUI.md, docs/formats/INST-1.3-diff.md). A MIDI instrument has two pages (F1 MIDI: CHANNEL VELOCITY PROGRAM OUT PB RANGE OFFSET; F2 CC: CC A..F). Watch the unit's MIDI with `amidi -d -p hw:1,0,0` on the PC (USB), plus a DIN monitor where a step says DIN. Edits the loaded project in RAM only (nothing is saved)"
+  },
+  {
+   "run": "_load_tv16"
+  },
+  {
+   "say": "QA-INS-075 (PROGRAM on an edit): Params on a MIDI instrument (49 or make one with F2 of a free slot), F1, Down twice to PROGRAM. Turn the encoder +5 (program 4): the monitor shows ONE `C(n-1) 04` (n = CHANNEL), on USB and DIN. Turn +3: `C(n-1) 07`. F8 (UNDO): `C(n-1) 04`; Shift+F8: `07`. Turn down to NONE: nothing is sent"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "~^(MODULE_PICKER|STEP_POPUP|FILL|PLAY_MODE|TOOLS)$"
+   },
+   "note": "(a leftover overlay of the manual steps above is put away: F8 is Back; the load keeps overlays open)"
+  },
+  {
+   "keys": [
+    "params"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "screen": "INSTRUMENT"
+   },
+   "within": 3
+  },
+  {
+   "keys": [
+    "f6"
+   ],
+   "gap": 0.08,
+   "repeat": 70,
+   "note": "(to instrument 1: F6 stops there, no wrap. The load keeps the instrument in view, and the manual steps above send the tester to other instruments)"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.1,
+   "repeat": 48,
+   "note": "(to instrument 49, the first MIDI instrument of t-v16)"
+  },
+  {
+   "state": {
+    "instrument": "49"
+   },
+   "within": 3
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.4,
+   "note": "F1 MIDI"
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.3,
+   "repeat": 2,
+   "note": "CHANNEL, VELOCITY, PROGRAM: Down twice"
+  },
+  {
+   "enc": 5,
+   "note": "PROGRAM 4 (monitor: C(n-1) 04)"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "enc": 3,
+   "note": "PROGRAM 7 (monitor: C(n-1) 07)"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "say": "QA-INS-076 (PROGRAM before the first note after a load): with PROGRAM 4 set, `load Projects/t-v16-copy` on the serial console, set the MIDI instrument's PROGRAM to 4 again (the load made the receiver unknown), press a pad twice: the FIRST note-on is preceded by ONE `C(n-1) 04`; the second press sends only `9x`/`8x`; Stop and Play of a pattern do not send it again"
+  },
+  {
+   "say": "QA-INS-077 (OUT routes): OUT row to USB: a pad and a step note appear on the USB monitor only; OUT DIN: DIN only; DIN + USB: both; Config with Config's MIDI OUT (the Config MIDI page) on DIN only: DIN only. The same for a step's FX CC A when CC A is set (F2)"
+  },
+  {
+   "say": "QA-INS-078 (PB RANGE): a step with a note on the MIDI instrument and FX 34 (Micro-tune) = 198, PB RANGE 2 (the default: a bend range of 2 semitones), play: `En 57 5F` (12,247) just before the `9n`; the next note without the FX sends `En 00 40` (centre) first; Stop with the channel bent sends the centre. PB RANGE 0: no bend at all. A sample instrument's Micro-tune sends no bend"
+  },
+  {
+   "say": "QA-INS-079 (CC slots): F2, CC A = CC 74 (75 clicks), CC B = PROG, CC C = CH AT, CC D = POLY AT; in Pattern a step with a note and FX 8 = 100 and FX 9 = 7, the next step FX 10 = 33 and FX 11 = 44: the monitor shows `Bn 4A 64`, `Cn 07`, `Dn 21`, `An <note> 2C`. POLY AT with no note sounding sends nothing. A slot at CONFIG sends the Config page's number on the Config OUT CHANNEL; FX 37 follows CC F"
+  },
+  {
+   "say": "QA-INS-080 (OFFSET): two MIDI instruments, OFFSET 50 ms on one and 0 on the other, a step (or two pads) on each at the same time, `amidi -d -p hw:1,0,0 -t`: the delayed one's note-on and note-off are 50 ms (+-1 ms on USB) behind the other's, the note length is the same. Stop inside the delay: no `9x` for a note that never sounded"
+  },
+  {
+   "say": "QA-INS-081 (O2 for OUT / channel / OFFSET): OUT = USB, OFFSET 20, hold pad 5, turn OUT to DIN and CHANNEL +3 while it is held, let go: the `8(n-1)` is on USB, on the note-on's channel, 20 ms late; nothing on DIN for that note. Then a sounding step note, edit OUT / OFFSET, Stop: its off is on the port and channel of its on. At the end of the session every `9x` has its `8x`"
+  },
+  {
+   "say": "QA-INS-082 (VEL>): a sample instrument, Params F2 VOICE: the last row is VEL> (default 100 %); Down to it, turn -30 (70 %), F8 undoes. From the PC `amidi -p hw:1,0,0 -S \"90 3C 40\"` (velocity 64) plays at 64/127 at VEL> 100 (as the keyboard always did), as velocity 127 at 0 %, as 96/127 at 50 %; a pad is always at full level; a MIDI instrument has no VEL> row"
+  }
+ ],
+ "finally": [
+  {
+   "run": "_stop"
+  }
+ ]
+}

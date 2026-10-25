@@ -1,0 +1,14 @@
+# mutant:   M14
+# class:    3
+# twin:     OS-BUG-SLICEPITCH (one path of two plays the wrong slice)
+# expected: C
+# effect:   The Wave screen's pad n plays slice n + 1 on a beat slice instrument
+diff --git a/app/src/wave_actions.cpp b/app/src/wave_actions.cpp
+index 3a9b8643..b8631eed 100644
+--- a/app/src/wave_actions.cpp
++++ b/app/src/wave_actions.cpp
+@@ -175,3 +175,3 @@ bool pad(ActionContext& ctx, core::ActionArg arg, bool sound) noexcept {
+     ctx.preview->pad_down(static_cast<unsigned>(arg), static_cast<unsigned>(ctx.view.pattern.track()), static_cast<unsigned>(ctx.view.instrument),
+-                          beat ? audio::kSliceRootNote + static_cast<unsigned>(arg) : ctx.view.edit.pads.note(static_cast<unsigned>(arg)));
++                          beat ? audio::kSliceRootNote + static_cast<unsigned>(arg) + 1u : ctx.view.edit.pads.note(static_cast<unsigned>(arg)));
+   }

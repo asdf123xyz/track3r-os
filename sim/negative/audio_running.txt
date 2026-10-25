@@ -1,0 +1,7 @@
+# OS-E2E-2: an assertion on a render that is still being captured is refused (the script has to wait for it).
+document sound
+audio on
+wait 30
+render n 150
+pad 12 hold 100
+assert audio n sound

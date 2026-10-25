@@ -1,0 +1,4 @@
+# OS-E2E-1b: the card's loader and sample bank are bound to the document that was open when it came in, so a later `document` is exit 2.
+document
+card e2e_card
+document

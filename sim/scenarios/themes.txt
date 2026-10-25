@@ -1,0 +1,29 @@
+# OS-003b: the colour themes. The default is Amiga; Shift + Master (ui.theme.next) goes to the next one, wrapping, and
+# `theme <name>` sets one. The cursor and everything else stay where they were: only the picture changes.
+tap right 3
+tap down 5
+snap amiga
+
+press shift
+tap master
+release shift
+snap black_by_key
+
+press shift
+tap master
+release shift
+snap white_by_key
+
+press shift
+tap master
+release shift
+snap amiga_again
+
+theme white
+snap white_by_name
+theme black
+snap black_by_name
+
+# A timed message (an F-key's notification) in a theme. (Master alone is the Mixer's button: it has no screen yet.)
+tap f4
+snap black_message

@@ -1,0 +1,690 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+//
+// OS-PERF-LFO (docs/specs/OS-PERFFX.md section 11): the Perform rows VOL, PAN, TUNE, FLT and POS LFO act on the sampler voices. The row's value is a signed offset on the LFO speed index of the track's LFO
+// for the destination. The oracle is the instrument's own LFO: a layer over an instrument whose slot is Off or an envelope is bit for bit the instrument whose slot is an LFO at index 14 + offset (the
+// slot's stored shape and amount), and a layer over an LFO slot is the instrument with that LFO at the index moved by the offset. Also: the clamps, the sampler-only and the wavetable / granular-only rules,
+// the layer across FxReset and Stopped, the layer over the step FX 35 and the step FX back, the layer's end, and an export with all five rows held that is byte for byte the export with Perform off.
+// Host and Cortex-M4F.
+#include <doctest/doctest.h>
+
+#include <o3os/audio/engine.h>
+#include <o3os/audio/event_source.h>
+
+#include "support/lfo_probe.h"
+#include "support/need.h"
+
+#include <algorithm>
+#include <cstdlib>
+#include <cstring>
+#include <initializer_list>
+
+#define REQ LFO_REQ
+
+namespace {
+
+using audio::EventKind;
+using audio::SeqEvent;
+
+SeqEvent mod_set(unsigned group, std::uint8_t track, std::uint8_t a, std::uint8_t b, std::uint8_t layer, std::int32_t value) {
+  SeqEvent e{};
+  e.kind = EventKind::ModSet;
+  e.track = track;
+  e.a = a;
+  e.b = b;
+  e.c = layer;
+  e.flags = static_cast<std::uint8_t>(group);
+  e.value = value;
+  return e;
+}
+
+SeqEvent mod_end(std::uint8_t track, unsigned group) {
+  SeqEvent e{};
+  e.kind = EventKind::ModEnd;
+  e.track = track;
+  e.flags = static_cast<std::uint8_t>(group);
+  return e;
+}
+
+// The layer's group of a destination (VOL, PAN, TUNE, FLT, POS LFO = the groups 11, 12, 13, 14, 15) and the probe's destination of each (kAmp, kPan, kTune, kCut, kWt / kGran for POS).
+constexpr unsigned kGroup[5] = {audio::kModGroupLfoVolume, audio::kModGroupLfoPanning, audio::kModGroupLfoFinetune, audio::kModGroupLfoFilter, audio::kModGroupLfoPosition};
+unsigned group_of(Dest d) {
+  switch (d) {
+    case kAmp: return kGroup[0];
+    case kPan: return kGroup[1];
+    case kTune: return kGroup[2];
+    case kCut: return kGroup[3];
+    default: return kGroup[4];
+  }
+}
+
+void hold(VoicePool& p, Dest d, int offset) { p.fx_event(0, mod_set(group_of(d), 0, 0, 0, audio::kLayerPerf, offset)); }
+
+// The table index an offset gives over `base` (14: "1 step"), held to the table (the amp's is 5..28).
+unsigned expect_index(Dest d, int base, int offset) {
+  const int lo = d == kAmp ? static_cast<int>(audio::kAmpRateBase) : 0;
+  const int i = base + offset;
+  return static_cast<unsigned>(i < lo ? lo : (i > 28 ? 28 : i));
+}
+
+// The LFO instrument at table index `idx` (the amp's rate field is the index less 5).
+audio::FilterMod lfo_at(Dest d, std::uint8_t shape, unsigned idx, float amount) {
+  return lfo(shape, static_cast<std::uint8_t>(d == kAmp ? idx - audio::kAmpRateBase : idx), amount);
+}
+
+// A slot with no LFO that stores one: Off, or an ADSR; the stored shape and amount are what the layer's LFO plays, the stored rate is not used.
+audio::FilterMod stored(std::uint8_t shape, float amount, bool envelope) {
+  audio::FilterMod m;
+  m.kind = envelope ? audio::kFmodEnv : audio::kFmodNone;
+  m.shape = shape;
+  m.rate = 3;
+  m.amount = envelope ? 0.8f : 1.0f;
+  m.lfo_amount = amount;
+  m.sustain = 0.5f;
+  m.attack = 40;
+  m.decay = 80;
+  m.release = 40;
+  return m;
+}
+
+// `blocks` blocks of a note on track 0 of the descriptor, the transport stopped, the layer held before the note when `offset` is not 0.
+std::vector<double> run(Dest d, const SampleDesc& desc, int offset, unsigned blocks) {
+  VoicePool& p = pool(0);
+  p.perf_clear();
+  p.set_sample(0, desc);
+  p.set_tempo_x100(kTempo);
+  p.restart_clock();
+  p.transport_stopped();
+  if (offset != 0) {
+    hold(p, d, offset);
+  }
+  std::vector<double> out;
+  if (!p.note_on(0, 60, 0, audio::kVelocityDefault)) {
+    return out;
+  }
+  p.mark_live();
+  Probe pr{d, 0};
+  for (unsigned b = 0; b < blocks; ++b) {
+    out.push_back(step_block(p, pr));
+  }
+  p.perf_clear();
+  return out;
+}
+
+// One block, the probe's value, except that the cutoff is read from the filter itself (the coefficient the post pass set last) and not from the rms of the noise table through it: that rms varies by itself from
+// block to block, a threshold on it is not a test; the cutoff is a pure function of the LFO and the base.
+double sb(VoicePool& p, Probe& pr) {
+  const double r = step_block(p, pr);
+  return pr.dest == kCut ? static_cast<double>(p.filter_cutoff(0)) : r;
+}
+
+constexpr unsigned kRun = 300;  // blocks: a bit more than a period of the 8-step LFO at 300 BPM
+constexpr Dest kAll[] = {kAmp, kPan, kTune, kCut, kWt, kGran};
+
+}  // namespace
+
+static_assert(VoicePool::perf_slot_of(audio::kModGroupLfoVolume) == VoicePool::kPerfLfoSlot && VoicePool::perf_slot_of(audio::kModGroupLfoPosition) == VoicePool::kPerfLfoSlot + 4u &&
+                  VoicePool::perf_slot_of(audio::kModGroupLfoFilter) == VoicePool::kPerfLfoSlot + 3u && VoicePool::kPerfLfoSlot + VoicePool::kLfoDests == VoicePool::kPerfSlots,
+              "one slot a group, the five LFO slots last");
+
+TEST_CASE("perform lfo: over a slot that is Off or an ADSR the layer is bit for bit the instrument's LFO at index 14 + offset, with the slot's stored shape and amount") {
+  for (const Dest d : kAll) {
+    for (const bool envelope : {false, true}) {
+      if (d == kAmp && envelope) {
+        continue;  // (the amp slot's ADSR is the player's envelope, not a modulator: the Off case covers the tremolo)
+      }
+      for (const int o : {-8, -3, 3, 14, 20, -28}) {
+        const audio::FilterMod want = lfo_at(d, 2, expect_index(d, 14, o), 0.6f);
+        const std::vector<double> ref = run(d, desc_for(d, want), 0, kRun);
+        const std::vector<double> got = run(d, desc_for(d, stored(2, 0.6f, envelope)), o, kRun);
+        REQ(ref.size() == kRun && got.size() == kRun);
+        CHECK_MESSAGE(got == ref, "dest " << static_cast<unsigned>(d) << (envelope ? " ADSR" : " Off") << " offset " << o);
+        CHECK(spread(ref, 40) > 0.0);  // the LFO moves something: a comparison of two constants proves nothing
+      }
+    }
+  }
+}
+
+TEST_CASE("perform lfo: a slot that stores no audible amount (an old project, an OG file: 0, a negative amount) plays a triangle at 50 %, and the descriptor is left as it was") {
+  for (const Dest d : kAll) {
+    for (const float legacy : {0.0f, -0.4f, 0.01f}) {
+      for (const bool envelope : {false, true}) {
+        if (d == kAmp && envelope) {
+          continue;
+        }
+        for (const int o : {-8, 3}) {
+          const std::vector<double> ref = run(d, desc_for(d, lfo_at(d, 2, expect_index(d, 14, o), 0.5f)), 0, kRun);
+          const SampleDesc desc = desc_for(d, stored(5, legacy, envelope));  // (the stored shape is not used either: the fallback is a triangle)
+          const std::vector<double> got = run(d, desc, o, kRun);
+          REQ(ref.size() == kRun && got.size() == kRun);
+          CHECK_MESSAGE(got == ref, "dest " << static_cast<unsigned>(d) << " legacy amount " << legacy << (envelope ? " ADSR" : " Off") << " offset " << o);
+          const audio::FilterMod& m = d == kAmp ? desc.amp_mod : (d == kPan ? desc.pan_mod : (d == kTune ? desc.tune_mod : (d == kCut ? desc.filter.mod : desc.pos_mod)));
+          CHECK(m.lfo_amount == legacy);  // the shared descriptor is not patched
+        }
+      }
+    }
+  }
+}
+
+TEST_CASE("perform lfo: over an LFO slot the shape and amount stay and only the speed index moves, held to the table") {
+  for (const Dest d : kAll) {
+    const unsigned lo = d == kAmp ? audio::kAmpRateBase : 0u;
+    for (const int o : {-4, 2, 20, -28}) {
+      for (const std::uint8_t shape : {std::uint8_t{1}, std::uint8_t{3}, std::uint8_t{5}}) {
+        const unsigned own = 10;  // table index of the instrument's own speed (4 steps)
+        const std::vector<double> ref = run(d, desc_for(d, lfo_at(d, shape, expect_index(d, static_cast<int>(own), o), 0.7f)), 0, kRun);
+        const std::vector<double> got = run(d, desc_for(d, lfo_at(d, shape, own, 0.7f)), o, kRun);
+        REQ(ref.size() == kRun && got.size() == kRun);
+        CHECK_MESSAGE(got == ref, "dest " << static_cast<unsigned>(d) << " shape " << static_cast<unsigned>(shape) << " offset " << o << " lo " << lo);
+      }
+    }
+  }
+}
+
+TEST_CASE("perform lfo: the offset is held to +-28, the layer's slot is per track, and a 0, a step ModSet or a ModEnd lets it go") {
+  VoicePool& p = pool(0);
+  p.perf_clear();
+  const auto value = [&](unsigned t, unsigned g) { return p.perf_held(t, g) ? p.perf_value(t, g) : -999; };
+  p.fx_event(2, mod_set(audio::kModGroupLfoVolume, 2, 0, 0, audio::kLayerPerf, 1000));
+  p.fx_event(2, mod_set(audio::kModGroupLfoPanning, 2, 0, 0, audio::kLayerPerf, -1000));
+  p.fx_event(5, mod_set(audio::kModGroupLfoFinetune, 5, 0, 0, audio::kLayerPerf, 7));
+  p.fx_event(5, mod_set(audio::kModGroupLfoPosition, 5, 0, 0, audio::kLayerPerf, -3));
+  p.fx_event(5, mod_set(audio::kModGroupLfoFilter, 5, 0, 0, audio::kLayerPerf, 12));
+  CHECK(value(2, audio::kModGroupLfoVolume) == 28);
+  CHECK(value(2, audio::kModGroupLfoPanning) == -28);
+  CHECK(value(5, audio::kModGroupLfoFinetune) == 7);
+  CHECK(value(5, audio::kModGroupLfoPosition) == -3);
+  CHECK(value(5, audio::kModGroupLfoFilter) == 12);
+  CHECK(value(3, audio::kModGroupLfoVolume) == -999);  // another track: not held
+  CHECK(value(2, audio::kModGroupLfoFinetune) == -999);  // another destination: not held
+  CHECK(value(2, audio::kModGroupTune) == -999);         // and the other slots are not touched
+  // FxReset (the transport start) and Stopped leave the layer
+  p.restart_clock();
+  p.clear_filter_fxs();
+  p.clear_slide_fxs();
+  p.transport_stopped();
+  CHECK(value(2, audio::kModGroupLfoVolume) == 28);
+  CHECK(value(5, audio::kModGroupLfoFilter) == 12);
+  // a step ModSet of the group (the layer is not the winner) and a ModEnd let go
+  p.fx_event(2, mod_set(audio::kModGroupLfoVolume, 2, 23, 5, audio::kLayerFx1, 0));
+  p.fx_event(5, mod_end(5, audio::kModGroupLfoPosition));
+  CHECK(value(2, audio::kModGroupLfoVolume) == -999);
+  CHECK(value(5, audio::kModGroupLfoPosition) == -999);
+  CHECK(value(2, audio::kModGroupLfoPanning) == -28);
+  CHECK(value(5, audio::kModGroupLfoFilter) == 12);
+  // the export puts the slots away and gives them back
+  VoicePool::PerfSave save{};
+  p.perf_save(save);
+  p.perf_clear();
+  CHECK(value(2, audio::kModGroupLfoPanning) == -999);
+  p.perf_restore(save);
+  CHECK(value(2, audio::kModGroupLfoPanning) == -28);
+  CHECK(value(5, audio::kModGroupLfoFinetune) == 7);
+  p.perf_clear();
+}
+
+TEST_CASE("perform lfo: POS acts on a wavetable or granular instrument only, FLT only where a filter runs; a plain sampler note is what it was") {
+  // POS over a plain looping sampler: the descriptor has no position modulator, the note is bit for bit the one without the layer
+  {
+    const SampleDesc plain = desc_for(kAmp, audio::FilterMod{});
+    const std::vector<double> ref = run(kAmp, plain, 0, 60);
+    VoicePool& p = pool(0);
+    p.perf_clear();
+    p.set_sample(0, plain);
+    p.set_tempo_x100(kTempo);
+    p.restart_clock();
+    p.transport_stopped();
+    p.fx_event(0, mod_set(audio::kModGroupLfoPosition, 0, 0, 0, audio::kLayerPerf, 9));
+    REQ(p.note_on(0, 60, 0, audio::kVelocityDefault));
+    p.mark_live();
+    Probe pr{kAmp, 0};
+    std::vector<double> got;
+    for (unsigned b = 0; b < 60; ++b) {
+      got.push_back(step_block(p, pr));
+    }
+    CHECK(got == ref);
+    p.perf_clear();
+  }
+  // FLT over an instrument with no filter and none held: ignored; with a filter held by the layer (LOWPASS) it moves the cutoff
+  {
+    SampleDesc nofilter = desc_for(kCut, audio::FilterMod{});
+    nofilter.filter.enable = nofilter.filter.wanted = false;
+    const std::vector<double> ref = run(kCut, nofilter, 0, 80);
+    const std::vector<double> got = run(kCut, nofilter, 3, 80);
+    CHECK(got == ref);
+    VoicePool& p = pool(0);
+    p.perf_clear();
+    p.set_sample(0, nofilter);
+    p.set_tempo_x100(kTempo);
+    p.restart_clock();
+    p.transport_stopped();
+    p.set_filter(0, false, 0, 0, 1u, -20);  // the layer's LOWPASS at -20 (type + 1, offset)
+    hold(p, kCut, -2);
+    REQ(p.note_on(0, 60, 0, audio::kVelocityDefault));
+    p.mark_live();
+    Probe pr{kCut, 0};
+    std::vector<double> with_lfo;
+    for (unsigned b = 0; b < kRun; ++b) {
+      with_lfo.push_back(sb(p, pr));
+    }
+    p.perf_clear();
+    p.set_filter(0, false, 0, 0, 0u, 0);
+    p.cut(0);
+    p.set_filter(0, false, 0, 0, 1u, -20);
+    REQ(p.note_on(0, 60, 0, audio::kVelocityDefault));
+    p.mark_live();
+    std::vector<double> held_only;
+    for (unsigned b = 0; b < kRun; ++b) {
+      held_only.push_back(sb(p, pr));
+    }
+    p.set_filter(0, false, 0, 0, 0u, 0);
+    CHECK(spread(with_lfo, 40) > 0.05);   // the cutoff sweeps under the LFO ...
+    CHECK(spread(held_only, 40) < 1e-6);  // ... and the held filter alone keeps it where it is
+  }
+}
+
+TEST_CASE("perform lfo: the layer starts on the sounding voice, moves its speed with the phase kept, and ends back at the instrument's own modulator") {
+  for (const Dest d : {kAmp, kPan, kTune, kCut, kWt}) {
+    VoicePool& p = pool(0);
+    p.perf_clear();
+    p.set_sample(0, desc_for(d, stored(2, 1.0f, false)));
+    p.set_tempo_x100(kTempo);
+    p.restart_clock();
+    p.transport_stopped();
+    REQ(p.note_on(0, 60, 0, audio::kVelocityDefault));
+    p.mark_live();
+    Probe pr{d, 0};
+    std::vector<double> v;
+    for (unsigned b = 0; b < 40; ++b) {
+      v.push_back(sb(p, pr));
+    }
+    const double quiet = spread(v, 10);
+    hold(p, d, 6);  // starts
+    for (unsigned b = 0; b < 300; ++b) {
+      v.push_back(sb(p, pr));
+    }
+    CHECK_MESSAGE(spread(v, 40) > 20.0 * quiet + 1e-6, "dest " << static_cast<unsigned>(d) << " the LFO starts on the sounding voice");
+    p.fx_event(0, mod_end(0, group_of(d)));  // ends
+    const std::size_t at = v.size();
+    for (unsigned b = 0; b < 100; ++b) {
+      v.push_back(step_block(p, pr));
+    }
+    if (d == kPan) {
+      CHECK(p.pan_mod_value(0) == static_cast<unsigned>(desc_for(d, stored(2, 1.0f, false)).pan));  // the instrument's pan comes back
+    } else if (d == kAmp || d == kTune || d == kWt) {
+      std::vector<double> tail(v.begin() + static_cast<std::ptrdiff_t>(at) + 60, v.end());
+      CHECK_MESSAGE(spread(tail, 0) <= 1e-9 + 5.0 * quiet, "dest " << static_cast<unsigned>(d) << " the instrument's own state is back");
+    }
+    p.perf_clear();
+  }
+}
+
+TEST_CASE("perform lfo: a live edit of the slot's amount moves the sounding layer's LFO between the 50 % fallback and the stored amount, as a note with that amount does") {
+  static constexpr unsigned kSlotOf[kDests] = {0, 1, 5, 2, 3, 4};  // the instrument's modulation slot of each destination (audio_lfolive_test)
+  for (const Dest d : {kAmp, kPan, kTune, kCut, kWt}) {
+    for (const bool up : {true, false}) {
+      const float from = up ? 0.0f : 0.8f;
+      const float to = up ? 0.8f : 0.0f;
+      VoicePool& a = pool(0);
+      VoicePool& c = pool(2);
+      for (VoicePool* p : {&a, &c}) {
+        p->perf_clear();
+        p->set_sample(0, desc_for(d, stored(2, p == &a ? from : to, false)));
+        p->set_tempo_x100(kTempo);
+        p->restart_clock();
+        p->transport_stopped();
+        hold(*p, d, 3);
+        REQ(p->note_on(0, 60, 0, audio::kVelocityDefault));
+        p->mark_live();
+      }
+      Probe pa{d, 0}, pc{d, 0};
+      unsigned equal = 0, total = 0;
+      const unsigned at = d == kTune ? 0u : 70u;  // (the tune keeps its history in the sample position: only an edit before the first block gives the same series as a note that had the amount)
+      for (unsigned b = 0; b < 2 * kPeriodBlocks; ++b) {
+        if (b == at) {
+          std::uint32_t pan = 0;
+          CHECK(a.apply_param(0, ip::lfo(kSlotOf[d], ip::LfoAmount), to, pan));
+        }
+        const double xa = sb(a, pa);
+        const double xc = sb(c, pc);
+        if (b > at + 1u) {  // (the tremolo's multiplier walks to its new target over the first block)
+          ++total;
+          equal += xa == xc ? 1u : 0u;
+        }
+      }
+      CHECK_MESSAGE(equal == total, "dest " << static_cast<unsigned>(d) << " amount " << from << " -> " << to << ": " << equal << " of " << total << " blocks equal");
+      a.perf_clear();
+      c.perf_clear();
+    }
+  }
+}
+
+TEST_CASE("perform lfo: the layer's end puts the cutoff back at the unmodulated base (the filter pass no longer evaluates it), whatever the instrument's modulator was") {
+  for (const int kind : {0, 1}) {  // 0: Off, 1: an ADSR
+    VoicePool& p = pool(0);
+    p.perf_clear();
+    p.set_sample(0, desc_for(kCut, stored(2, 1.0f, kind == 1)));
+    p.set_tempo_x100(kTempo);
+    p.restart_clock();
+    p.transport_stopped();
+    REQ(p.note_on(0, 60, 0, audio::kVelocityDefault));
+    p.mark_live();
+    Probe pr{kCut, 0};
+    hold(p, kCut, 4);
+    float lo = 9.0f, hi = -9.0f;
+    for (unsigned b = 0; b < 300; ++b) {
+      (void)step_block(p, pr);
+      lo = std::min(lo, p.filter_cutoff(0));
+      hi = std::max(hi, p.filter_cutoff(0));
+    }
+    CHECK(hi - lo > 0.1f);  // the LFO sweeps the cutoff
+    p.fx_event(0, mod_end(0, audio::kModGroupLfoFilter));
+    for (unsigned b = 0; b < 3; ++b) {
+      (void)step_block(p, pr);
+    }
+    if (kind == 0) {
+      const float c0 = p.filter_cutoff(0);
+      for (unsigned b = 0; b < 40; ++b) {
+        (void)step_block(p, pr);
+        CHECK(p.filter_cutoff(0) == c0);  // stays: no modulator is left
+      }
+      CHECK(std::fabs(c0 - 0.5f) < 1.0e-6f);
+    }
+    p.perf_clear();
+  }
+}
+
+TEST_CASE("perform lfo: a retrigger and a steal with the layer held start the LFO again; a gated track and the Filter LFO FX's end (FxReset) leave it") {
+  for (const Dest d : {kAmp, kPan, kTune, kCut}) {
+    VoicePool& p = pool(0);
+    p.perf_clear();
+    p.set_sample(0, desc_for(d, stored(2, 1.0f, false)));
+    p.set_sample(1, desc_for(d, stored(2, 1.0f, false)));
+    p.set_tempo_x100(kTempo);
+    p.restart_clock();
+    p.transport_stopped();
+    hold(p, d, 5);
+    Probe pr{d, 0};
+    std::vector<double> v;
+    REQ(p.note_on(0, 60, 0, audio::kVelocityDefault));
+    p.mark_live();
+    for (unsigned b = 0; b < 60; ++b) {
+      v.push_back(sb(p, pr));
+    }
+    REQ(p.note_on(0, 62, 0, audio::kVelocityDefault));  // a retrigger of the track's voice
+    p.mark_live();
+    for (unsigned b = 0; b < 300; ++b) {
+      v.push_back(sb(p, pr));
+    }
+    CHECK_MESSAGE(spread(v, 100) > 0.0, "dest " << static_cast<unsigned>(d) << " retrigger");
+    REQ(p.note_on(0, 64, 1, audio::kVelocityDefault));  // another instrument on the track
+    p.mark_live();
+    std::vector<double> w;
+    for (unsigned b = 0; b < 300; ++b) {
+      w.push_back(sb(p, pr));
+    }
+    CHECK_MESSAGE(spread(w, 20) > 0.0, "dest " << static_cast<unsigned>(d) << " another instrument");
+    // a gated track: the voice skips its post stages for a while, and the layer is still there when it is heard again
+    p.set_gate(1u);
+    for (unsigned b = 0; b < 30; ++b) {
+      p.begin_block();
+      p.render(0, kBlk);
+      p.end_block();
+    }
+    p.set_gate(0u);
+    // the end of the Filter LFO FX 35 (FxReset: lfo_set_ for every track) does not take the layer's FLT LFO
+    p.clear_filter_fxs();
+    std::vector<double> x;
+    for (unsigned b = 0; b < 300; ++b) {
+      x.push_back(sb(p, pr));
+    }
+    CHECK_MESSAGE(spread(x, 20) > 0.0, "dest " << static_cast<unsigned>(d) << " after the gate and FxReset");
+    p.perf_clear();
+  }
+}
+
+TEST_CASE("perform lfo: the group 14 keeps the Filter LFO FX's rules - a ModSet starts its LFO only when a is 35 (b the rate), the layer alone does not, a ModEnd ends it") {
+  const auto run14 = [&](unsigned how) {
+    VoicePool& p = pool(0);
+    p.perf_clear();
+    p.set_filter_lfo(0, false, 0);
+    p.set_sample(0, desc_for(kCut, audio::FilterMod{}));
+    p.set_tempo_x100(kTempo);
+    p.restart_clock();
+    p.transport_stopped();
+    if (how == 1u) {
+      p.fx_event(0, mod_set(audio::kModGroupLfoFilter, 0, audio::kFxFilterLfo, 8, audio::kLayerFx1, 0));  // the FX
+    } else if (how == 2u) {
+      p.fx_event(0, mod_set(audio::kModGroupLfoFilter, 0, 0, 0, audio::kLayerFx1, 0));  // a ModSet with no FX 35 in it: no LFO
+    } else if (how == 3u) {
+      p.fx_event(0, mod_set(audio::kModGroupLfoFilter, 0, audio::kFxFilterLfo, 8, audio::kLayerFx1, 0));
+      p.fx_event(0, mod_end(0, audio::kModGroupLfoFilter));  // started, then ended
+    } else if (how == 4u) {
+      p.fx_event(0, mod_set(audio::kModGroupLfoFilter, 0, audio::kFxFilterLfo, 8, audio::kLayerFx1, 0));
+      p.fx_event(0, mod_set(audio::kModGroupLfoFilter, 0, 0, 0, audio::kLayerPerf, 0));  // the layer's ModSet with no FX underneath (a == 0) ends the FX's LFO
+    }
+    (void)p.note_on(0, 60, 0, audio::kVelocityDefault);
+    p.mark_live();
+    Probe pr{kCut, 0};
+    std::vector<double> v;
+    for (unsigned b = 0; b < kRun; ++b) {
+      v.push_back(sb(p, pr));
+    }
+    p.set_filter_lfo(0, false, 0);
+    return v;
+  };
+  const std::vector<double> plain = run14(0);
+  CHECK(spread(run14(1), 40) > 10.0 * spread(plain, 40) + 1e-6);
+  CHECK(run14(2) == plain);
+  CHECK(run14(3) == plain);
+  CHECK(run14(4) == plain);
+}
+
+TEST_CASE("perform lfo: FLT over the step FX 35 - the layer's speed wins, the FX's comes back with the layer's end, and the FX alone is as it was") {
+  // a filter with no modulator; the step FX 35 at index 8 on track 0, then the layer's FLT LFO +3 over it (the FX's type and rate stay in a and b), then the layer ends (the step ModSet again)
+  const auto cut_run = [&](bool step, int layer_offset, bool layer_end) {
+    VoicePool& p = pool(0);
+    p.perf_clear();
+    p.set_filter_lfo(0, false, 0);
+    p.set_sample(0, desc_for(kCut, audio::FilterMod{}));
+    p.set_tempo_x100(kTempo);
+    p.restart_clock();
+    p.transport_stopped();
+    if (step) {
+      p.fx_event(0, mod_set(audio::kModGroupLfoFilter, 0, audio::kFxFilterLfo, 8, audio::kLayerFx1, 0));
+    }
+    if (layer_offset != 0) {
+      p.fx_event(0, mod_set(audio::kModGroupLfoFilter, 0, step ? audio::kFxFilterLfo : 0, step ? 8 : 0, audio::kLayerPerf, layer_offset));
+    }
+    p.note_on(0, 60, 0, audio::kVelocityDefault);
+    p.mark_live();
+    Probe pr{kCut, 0};
+    std::vector<double> v;
+    for (unsigned b = 0; b < kRun; ++b) {
+      v.push_back(sb(p, pr));
+    }
+    if (layer_end) {
+      p.fx_event(0, mod_set(audio::kModGroupLfoFilter, 0, audio::kFxFilterLfo, 8, audio::kLayerFx1, 0));  // the control table's winner is the step FX again
+      for (unsigned b = 0; b < kRun; ++b) {
+        v.push_back(sb(p, pr));
+      }
+    }
+    p.set_filter_lfo(0, false, 0);
+    p.perf_clear();
+    return v;
+  };
+  const std::vector<double> fx_only = cut_run(true, 0, false);
+  const std::vector<double> layer_only = cut_run(false, 3, false);
+  const std::vector<double> both = cut_run(true, 3, false);
+  const std::vector<double> ended = cut_run(true, 3, true);
+  REQ(fx_only.size() == kRun && both.size() == kRun && ended.size() == 2u * kRun);
+  CHECK(both == layer_only);  // the layer wins whatever the FX holds underneath: index 14 + 3, not 8
+  CHECK(both != fx_only);
+  const std::vector<double> fx_alone_long = cut_run(true, 0, false);
+  // after the layer's end the cutoff LFO runs at the FX's rate again: the tail has the FX-only series' spread, within the filter's own memory
+  std::vector<double> tail(ended.begin() + static_cast<std::ptrdiff_t>(kRun) + 40, ended.end());
+  std::vector<double> ref(fx_alone_long.begin() + 40, fx_alone_long.end());
+  CHECK(std::fabs(spread(tail, 0) - spread(ref, 0)) < 0.25 * spread(ref, 0));
+  // and the step FX without the layer is untouched by the change of the group's route (the old Engine branch)
+  CHECK(spread(fx_only, 40) > 0.0);
+}
+
+// ---- the export ---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+namespace {
+
+SeqEvent g_script[8];
+std::uint32_t g_script_n = 0;
+std::uint32_t scripted(void*, std::uint64_t, std::uint32_t, SeqEvent* out, std::uint32_t cap) noexcept {
+  std::uint32_t n = 0;
+  for (; n < g_script_n && n < cap; ++n) {
+    out[n] = g_script[n];
+  }
+  g_script_n = 0;
+  return n;
+}
+std::uint32_t g_cycles = 0;
+std::uint32_t fake_cycles() noexcept { return g_cycles += 5u; }
+
+SeqEvent note_on_ev() {
+  SeqEvent on{};
+  on.kind = EventKind::NoteOn;
+  on.a = 60;
+  on.b = 0;
+  on.c = 127;
+  return on;
+}
+
+std::uint32_t export_step(void*, std::uint64_t start, std::uint32_t n, SeqEvent* out, std::uint32_t cap) noexcept {
+  const std::uint32_t block = static_cast<std::uint32_t>(start / n);
+  std::uint32_t k = 0;
+  if (block == 0u && cap >= 2u) {
+    // the sequencer's start, as an export's source gives it: the FX reset (it restarts the LFOs' tick count: without it the export's LFO phase would be the live clock's) and the first step
+    SeqEvent reset{};
+    reset.kind = EventKind::FxReset;
+    reset.track = audio::kNoTrack;
+    SeqEvent step{};
+    step.kind = EventKind::Step;
+    step.track = audio::kNoTrack;
+    out[k++] = reset;
+    out[k++] = step;
+  }
+  if (block == 1u && k < cap) {
+    out[k++] = note_on_ev();
+  }
+  return k;
+}
+
+struct Rig {
+  Rig() : engine(slot.make(&fake_cycles, taps)), p(pool(1)) {
+    fill();
+    SampleDesc d = desc_for(kCut, lfo(2, 6, 0.5f));
+    d.filter.mod = audio::FilterMod{};
+    d.pan_mod = lfo(2, 3, 0.5f);
+    d.tune_mod = lfo(2, 5, 0.3f);
+    p.set_sample(0, d);
+    engine.attach_voices(&p);
+    audio::EventSource src;
+    src.step = &scripted;
+    src.buffer = events;
+    src.capacity = audio::kMaxEventsPerBlock;
+    engine.attach_events(src);
+  }
+  void live(std::initializer_list<SeqEvent> list) {
+    g_script_n = 0;
+    for (const SeqEvent& s : list) {
+      g_script[g_script_n++] = s;
+    }
+    haudio::BlockReport report{};
+    const haudio::BlockIo io{in, out, 0, &report};
+    engine.render_block(io);
+  }
+  static inline o3os::test::StaticSlot<audio::Engine> slot;
+  static inline audio::TapMem taps;
+  static inline SeqEvent events[audio::kMaxEventsPerBlock];
+  alignas(8) static inline std::int16_t in[haudio::kBlockSamples] = {};
+  alignas(8) static inline std::int16_t out[haudio::kBlockSamples] = {};
+  audio::Engine& engine;
+  VoicePool& p;
+};
+
+struct ExportRun {
+  std::vector<std::int16_t> exported;
+  std::vector<std::int16_t> live_note;
+};
+
+ExportRun export_run(bool held, bool export_between) {
+  ExportRun run;
+  Rig r;
+  r.p.perf_clear();
+  r.p.cut(0);
+  r.live({});
+  r.live({});
+  if (held) {
+    r.live({mod_set(audio::kModGroupLfoVolume, 0, 0, 0, audio::kLayerPerf, 4), mod_set(audio::kModGroupLfoPanning, 0, 0, 0, audio::kLayerPerf, -5),
+            mod_set(audio::kModGroupLfoFinetune, 0, 0, 0, audio::kLayerPerf, 6), mod_set(audio::kModGroupLfoFilter, 0, 0, 0, audio::kLayerPerf, 2),
+            mod_set(audio::kModGroupLfoPosition, 0, 0, 0, audio::kLayerPerf, 3)});
+    r.live({});
+  }
+  r.live({note_on_ev()});  // a note sounding under the layer when the export is asked: its layer-driven pan / tune / LFO state must not reach the export (offline_enter) nor outlive it
+  for (unsigned b = 0; b < 8; ++b) {
+    r.live({});
+  }
+  if (export_between) {
+    audio::EventSource src;
+    src.step = &export_step;
+    src.buffer = r.events;
+    src.capacity = audio::kMaxEventsPerBlock;
+    r.engine.offline_request();
+    CHECK(r.engine.offline_ready(false));
+    r.engine.offline_enter(src);
+    CHECK(r.engine.offline_entered());
+    for (std::uint32_t b = 0; b < 40; ++b) {
+      haudio::BlockReport report{};
+      const haudio::BlockIo io{Rig::in, Rig::out, 0, &report};
+      r.engine.render_offline(io);
+      run.exported.insert(run.exported.end(), Rig::out, Rig::out + haudio::kBlockSamples);
+    }
+    r.engine.offline_leave();
+    r.live({});
+    r.live({});
+  } else {  // (the same without the export: the note ends here, as offline_enter ends it, and its declick fade is out before the next note)
+    r.p.cut(0);
+    r.live({});
+    r.live({});
+  }
+  SeqEvent reset{};  // (a transport start in both flows: the LFOs' tick count is the same at the note, the export's own start having restarted it)
+  reset.kind = EventKind::FxReset;
+  reset.track = audio::kNoTrack;
+  r.live({reset, note_on_ev()});
+  for (unsigned b = 0; b < 60; ++b) {
+    run.live_note.insert(run.live_note.end(), Rig::out, Rig::out + haudio::kBlockSamples);
+    r.live({});
+  }
+  r.live({mod_end(0, audio::kModGroupLfoVolume), mod_end(0, audio::kModGroupLfoPanning), mod_end(0, audio::kModGroupLfoFinetune), mod_end(0, audio::kModGroupLfoFilter),
+          mod_end(0, audio::kModGroupLfoPosition)});
+  r.p.perf_clear();
+  return run;
+}
+
+}  // namespace
+
+TEST_CASE("perform lfo: an export with the five rows held is byte for byte the export with Perform off, and the live note after it is as it is without an export") {
+  const ExportRun plain = export_run(false, true);
+  const ExportRun held = export_run(true, true);
+  const ExportRun no_export = export_run(true, false);
+  CHECK(plain.exported.size() == held.exported.size());
+  NEED(plain.exported.size() == held.exported.size() && plain.exported.size() > haudio::kBlockSamples);
+  // (the first export block carries the declick fade of the note that sounded when the export was asked, which is live audio and differs with the layer: the export proper starts at block 1)
+  CHECK(std::equal(plain.exported.begin() + haudio::kBlockSamples, plain.exported.end(), held.exported.begin() + haudio::kBlockSamples));
+  std::int32_t peak = 0;
+  for (const std::int16_t v : plain.exported) {
+    peak = std::max<std::int32_t>(peak, v < 0 ? -v : v);
+  }
+  CHECK(peak > 1000);  // the export sounded: a comparison of silence proves nothing
+  NEED(held.live_note.size() == no_export.live_note.size());
+  CHECK(held.live_note == no_export.live_note);  // the layer is back after the export
+  CHECK(held.live_note != plain.live_note);      // ... and it acts
+  const ExportRun again = export_run(true, true);
+  CHECK(again.exported == held.exported);  // deterministic
+  CHECK(again.live_note == held.live_note);
+}

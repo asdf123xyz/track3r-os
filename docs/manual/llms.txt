@@ -1,0 +1,44 @@
+# track3r-os
+
+> Community operating system for the Polyend Tracker hardware. Unofficial: not affiliated with or endorsed by Polyend. This is the user manual, one chapter per screen; read the chapter of the screen you are asked about.
+
+Key notation: keys are written in code style, for example `Shift` + `F3` or hold `Instr`; `F1` to `F8` are the soft keys under the screen. If a thing is not in the manual, it is not known: say so.
+
+## Reference
+
+- [Full manual](llms-full.txt): every chapter in one file, for loading whole into a context window
+
+## Chapters
+
+- [Installing track3r-os](install.md): installing an update, what is verified, and going back to the official firmware
+- [Getting started](getting_started.md): what the OS is, the card, first boot, the keys and the screen layout
+- [The panel](panel.md): Use this page to find a key on the unit and to see what it does.
+- [Song](song.md): Use Song to arrange patterns in time.
+- [Mixer](mixer.md): track levels, mute and solo, naming a track, the master page
+- [Perform](perform.md): the three scenes and the live effects
+- [Perform: the DJ page](perform_dj.md): Use the DJ page to play a set from one pattern after another: drums on A and a melody on B, a filter sweep into the next pattern, a stutt...
+- [Sample load](sample_load.md): Use Sample load to put a sound file from the card into an instrument.
+- [Sample edit](sample_edit.md): Use Sample edit to change a loaded sample: crop, normalize, reverse, fade, change its volume, remove its DC offset, filter it, compress i...
+- [Wave and Chop](wave.md): Use Wave to see how a sample plays: its mode and the part of it that sounds.
+- [Record](record.md): Use Record to capture sound into a sample, or to build a loop over the pattern.
+- [File](file.md): Use the File screen to work with projects on the card.
+- [USB disk](usb_disk.md): Use it to copy samples, modules and projects to and from the card without taking it out of the unit.
+- [Modules](modules.md): installing .tmod modules from the card and the bundled apps
+- [TB-303, FM and Chip: new parameters](module-sounds.md): the new parameters of the TB-303 (MODS page), FM (16 algorithms, Detune) and Chip (learnable wave and duty)
+- [Step FX on module instruments](module-instrument-fx.md): which step FX a module instrument obeys
+- [Config](config.md): Use the Config screen to change the unit's settings.
+- [Computer tools](computer_tools.md): the USB console on a computer: connect, screenshots, firmware path, diagnostics, key injection
+- [Glossary](glossary.md): every term of the manual, one entry each
+- [Cheat sheet](cheat_sheet.md): The keys on one page.
+- [Export](export.md): Export writes what the unit plays to files on the card, in the folder Export/<PROJECT>.
+- [Effects in the pattern](fx.md): Use a step effect when one note needs its own treatment and a new instrument would be too much.
+- [Input test](input_test.md): Use Input test to check that every key and pad of your unit answers, and how fast.
+- [Instrument](instrument.md): Use Instrument to set how an instrument sounds and plays.
+- [App pages](module_app.md): Use this page to find your way around any app.
+- [Pattern](pattern.md): Use Pattern to write the notes of the current pattern, live or one step at a time, and to copy, delete and undo parts of it.
+- [Fill and tools](pattern_tools.md): Use FILL to lay down a rhythm, a fade or a run of random notes in one go, then play with the result.
+- [Quick start](quick_start.md): This page is for owners who know the official firmware, and it shows what is different in track3r-os in about five minutes.
+
+## Optional
+
+- [Manual index](index.md): the chapter list and how the manual is written

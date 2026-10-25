@@ -1,0 +1,77 @@
+# Manual images (OS-MANUALTOOLS). Read by tools/manual_images.py; the PNGs it writes to img/ are committed (OS-MANUALIMG); ctest o3sim_manual_images fails when one is stale.
+# <name>.png <scenario> <snap>           snap of sim/scenarios/qa/<scenario>.txt (or sim/scenarios/<scenario>.txt)
+# <name>.png <folder>/<scenario> <snap>  snap of sim/scenarios/<folder>/<scenario>.txt: a chapter's walk-through is manual/<screen>_walk, its pictures <screen>_walk_<step>.png (OS-MANUAL2 M2-4)
+# <name>.png gallery <screen>_<state>    Amiga-theme picture of `o3sim --gallery`
+# A line ending in `# MISSING` names a source that does not exist yet.
+# The name of a picture is the one its chapter shows (often the QA row it illustrates); the source is the state that shows it best, a QA snap or a
+# gallery state (a QA snap often has no engine or no sample: check the PNG against its caption after every change of a source).
+
+config_qa_cfg_003.png qa_config qa_cfg_003
+config_qa_cfg_016.png qa_config qa_cfg_016
+file_typical.png gallery file_recent
+mixer_qa_mix_001.png gallery mixer_typical
+mixer_qa_mix_002.png qa_mixer qa_mix_002
+modules_qa_mod_001.png gallery modules_list
+perform_qa_prf_001.png gallery perform_typical
+record_loop_overdub.png gallery record_loop_overdub
+record_loop_review.png gallery record_loop_review
+record_loop_row.png gallery record_loop_row
+sample_edit_qa_sed_001.png gallery sampleedit_shift
+sample_edit_typical.png gallery sampleedit_typical
+sample_load_formats.png gallery sampleload_formats
+sample_load_stereo.png gallery sampleload_stereo
+song_qa_sng_001.png qa_song qa_sng_001
+wave_qa_wav_003.png gallery wave_modes
+wave_qa_wav_004.png gallery wave_wavetable
+wave_typical.png gallery wave_typical
+instrument_qa_ins_005.png gallery source_oneshot
+pattern_qa_pat_006.png qa_pattern qa_pat_001
+pattern_qa_pat_011.png qa_pattern qa_pat_011
+pattern_qa_pat_086.png qa_pattern qa_pat_086_n4
+pattern_qa_pat_300.png qa_pattern qa_pat_300
+file_export.png gallery file_export
+perform_walk_2.png manual/perform_walk walk_2
+perform_walk_4.png manual/perform_walk walk_4
+perform_walk_5.png manual/perform_walk walk_5
+perform_walk_7.png manual/perform_walk walk_7
+perform_dj_walk_1.png manual/perform_dj_walk walk_1
+perform_dj_walk_3.png manual/perform_dj_walk walk_3
+perform_dj_walk_5.png manual/perform_dj_walk walk_5
+perform_dj_walk_7.png manual/perform_dj_walk walk_7
+fx_walk_1.png manual/fx_walk walk_1
+fx_walk_2.png manual/fx_walk walk_2
+fx_walk_4.png manual/fx_walk walk_4
+fx_walk_5.png manual/fx_walk walk_5
+modules_walk_1.png manual/modules_walk walk_1
+modules_walk_2.png manual/modules_walk walk_2
+modules_walk_4.png manual/modules_walk walk_4
+modules_walk_5.png manual/modules_walk walk_5
+song_qa_sng_023.png qa_song qa_sng_023
+song_walk_1.png manual/song_walk walk_1
+song_walk_2.png manual/song_walk walk_2
+song_walk_3.png manual/song_walk walk_3
+song_walk_4.png manual/song_walk walk_4
+song_walk_5.png manual/song_walk walk_5
+mixer_walk_1.png manual/mixer_walk walk_1
+mixer_walk_2.png manual/mixer_walk walk_2
+mixer_walk_3.png manual/mixer_walk walk_3
+mixer_walk_4.png manual/mixer_walk walk_4
+mixer_walk_5.png manual/mixer_walk walk_5
+mixer_walk_6.png manual/mixer_walk walk_6
+config_walk_2.png manual/config_walk walk_2
+config_walk_4.png manual/config_walk walk_4
+config_walk_5.png manual/config_walk walk_5
+config_walk_6.png manual/config_walk walk_6
+instrument_walk_4.png manual/instrument_walk walk_4
+instrument_walk_5.png manual/instrument_walk walk_5
+export_walk_2.png manual/export_walk walk_2
+export_walk_3.png manual/export_walk walk_3
+pattern_walk_3.png manual/pattern_walk walk_3
+pattern_walk_4.png manual/pattern_walk walk_4
+pattern_walk_5.png manual/pattern_walk walk_5
+pattern_tools_walk_2.png manual/pattern_tools_walk walk_2
+pattern_tools_walk_3.png manual/pattern_tools_walk walk_3
+pattern_tools_walk_4.png manual/pattern_tools_walk walk_4
+pattern_tools_walk_6.png manual/pattern_tools_walk walk_6
+quick_start_walk_3.png manual/quick_start_walk walk_3
+quick_start_walk_4.png manual/quick_start_walk walk_4

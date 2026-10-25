@@ -1,0 +1,15 @@
+# mutant:   M13
+# class:    3
+# twin:     OS-BUG-SLICEPITCH (a pad pressed just after an edit plays the old descriptor)
+# expected: C
+# revert:   OS-BUG-SLICEPITCH (8c0a934e: the fix stages with voices sounding; this puts the old silence-only wait back)
+# effect:   The bank stages the new descriptor of an edited slot only when no voice sounds: a pad pressed while a note rings, soon after an edit, plays the old sound
+diff --git a/app/src/sample_bank.cpp b/app/src/sample_bank.cpp
+index b7ecb4f1..671c73ac 100644
+--- a/app/src/sample_bank.cpp
++++ b/app/src/sample_bank.cpp
+@@ -677,3 +677,3 @@ bool SampleBank::stage_step(std::uint64_t now_ms, bool params_idle) noexcept {
+   }
+-  if (todo_ == 0u || !params_idle || wav_file_.is_open() || mem_->take_held) {  // (a slice table is taken from the arena's tail, which an import or a recording holds)
++  if (todo_ == 0u || !params_idle || voices_->voices_in_use() != 0u || wav_file_.is_open() || mem_->take_held) {  // (a slice table is taken from the arena's tail, which an import or a recording holds)
+     return false;

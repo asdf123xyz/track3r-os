@@ -1,0 +1,2 @@
+# OS-E2E-1a: an empty regular expression (`key=~`) matches every value, so it is refused when the script is read.
+assert state screen=~

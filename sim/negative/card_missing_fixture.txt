@@ -1,0 +1,3 @@
+# OS-E2E-1b: a fixture folder that is not there is exit 2 (a relative one is looked up in the --cards folder).
+document
+card no_such_card

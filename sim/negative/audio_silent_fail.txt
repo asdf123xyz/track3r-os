@@ -1,0 +1,8 @@
+# OS-E2E-2: a render that sounds is not silent.
+document sound
+audio on
+wait 30
+render n 150
+pad 12 hold 100
+wait 49
+assert audio n silent

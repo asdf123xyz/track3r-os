@@ -1,0 +1,20 @@
+{
+ "steps": [
+  {
+   "keys": [
+    "play"
+   ],
+   "gap": 0.2,
+   "if_state": {
+    "playing": "1"
+   }
+  },
+  {
+   "state": {
+    "playing": "0"
+   },
+   "within": 4,
+   "poll": 0.3
+  }
+ ]
+}

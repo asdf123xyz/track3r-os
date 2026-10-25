@@ -1,0 +1,22 @@
+# OS-MUTEVIS (new Community OS behaviour): a muted or soloed track says so inside its own column, in the top slot of the grid (an inverted MUTE or SOLO tag over the dimmed rows), fixed to the slot so that it
+# stays while the pattern scrolls under it. The header keeps the track name and the small M / S chip. While the play bar is in the top slot the tag moves to the bottom slot, so it never hides it (the cursor is always on the centre slot since OS-PATCENTER, never in the top one).
+# A document: 12 tracks of 64 steps; the cursor starts on row 0, on the centre slot: the seven slots above it are blank and the tag sits over the top one (the snap names are the older ones).
+document
+action track.mute 1
+snap cursor_in_top_slot
+
+# Down three rows: the pattern scrolls up under the cursor, the tag stays on the top slot.
+tap down 3
+snap tag_on_top
+
+# Scrolled: the tag does not move with the rows, the data of the track runs under it.
+action nav.scroll 25
+snap scrolled
+
+# Solo on another track: its own tag, SOLO (the muted track keeps MUTE).
+action track.solo 3
+snap solo_and_mute
+
+# Back at the top: both tags are on the top slot again, over the blank slots above the first row.
+action cursor.jump_fraction 0
+snap back_at_top

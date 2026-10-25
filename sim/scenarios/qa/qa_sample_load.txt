@@ -1,0 +1,35 @@
+# OS-FINALQA (docs/specs/OS-FINALQA.md): the Sample load screen's QA rows, docs/qa/catalogue/sample_load.md. One `snap qa_sld_NNN` per row with a visible result; the goldens are keyed qa_sample_load/qa_sld_NNN.
+# OS-SHIFTROW: with Shift held the key row shows the Shift layer: a label only on a key that does something, "-" elsewhere; Shift + F never falls through to the plain key.
+
+# QA-SLD-001: Sample load with Shift held: 0/4 1/4 2/4 3/4 END - INST - INST +.
+tap sampleload
+press shift
+snap qa_sld_001
+release shift
+
+# FQA-1a: ENTER and WT need a card. The card e2e_og (a generated fixture) has two entries at its root (ITEMS 2, the first is Projects). `document` first, then `card`, as the simulator's grammar asks.
+document
+card e2e_og
+tap sampleload
+wait 500
+
+# QA-SLD-017: F3 ENTER goes into the folder under the cursor (DIR / -> DIR /Projects, ITEMS 1).
+tap f3
+wait 300
+snap qa_sld_017
+
+# QA-SLD-018: F7 WT AUTO -> WT LEN, a second press WT 256 (the label is the way a WAV is read as a wavetable on the next load).
+tap f7
+snap qa_sld_018
+
+# QA-SLD-025 (OS-QAFIX-RESCAN): F6 RESCAN reads the folder again and the strip tells the count when the scan has ended (READ AGAIN: n ITEMS). The notice of the F7 press has run out first.
+wait 2500
+tap f6
+wait 700
+snap qa_sld_025
+
+# QA-SLD-021 (OS-SLDTARGET): Shift + F8 INST + moves the target instrument on: the header reads TARGET INSTRUMENT 02, the card is that slot's.
+press shift
+tap f8
+snap qa_sld_021
+release shift

@@ -1,0 +1,8 @@
+# OS-E2E-2: a window past the end of the render has no frames to measure.
+document sound
+audio on
+wait 30
+render n 150
+pad 12 hold 100
+wait 49
+assert audio n in=500-900 silent

@@ -1,0 +1,31 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+name: Feature request
+description: An idea for track3r-os.
+title: "[idea] "
+labels: ["idea"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ideas go to the project backlog as IDEA rows. The maintainer decides which ideas are approved, parked or dropped, so an idea is not a promise. A request that names the problem it solves is easier to judge than one that names only a solution.
+
+        Please do not describe or attach code, assets or material from the official firmware.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What do you want to do, and what stops you today?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: The idea
+      description: "How you would like it to work: the screen, the keys, the result."
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Other ways you thought of or tried
+    validations:
+      required: false

@@ -1,0 +1,388 @@
+{
+ "name": "qa_instrmidi",
+ "title": "OS-INSTRMIDI, Pattern > Instr column: the encoder reaches 49..64 (the MIDI channels 1..16) in this OS's order, the list names them, the cell keeps 64; the notes go out on MIDI channels 1 and 16 (read on a monitor). Edits the loaded OG project in RAM only (nothing is saved)",
+ "steps": [
+  {
+   "say": "OS-INSTRMIDI, rows QA-PAT-120..123 of docs/qa/catalogue/pattern.md (docs/specs/OS-INSTRMIDI.md). The Instr column takes 1..64; 49..64 are the MIDI channels 1..16 (the reader creates the 16 MIDI instruments in those slots when it loads an OG project; a native project has them only if it was saved from one). The encoder walks this OS's order: MIDI channels first, so DOWN from 1 reaches 49 and UP from 1 stops at 48. The loaded project is edited in RAM only (nothing is saved). The notes of a step on instrument 49 / 64 leave on the DIN and USB MIDI out on channel 1 / 16: read them on a MIDI monitor (`amidi -d -p hw:1,0,0`, or the scenario pfx_midi for the way to capture them by itself); the test files on the card are at its root."
+  },
+  {
+   "run": "_load_tv16"
+  },
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.2,
+   "note": "(Shift released, in case a former run left it down)"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "NAVIGATOR"
+   },
+   "note": "(a leftover Navigator is closed: F7 is CLOSE, F8 would GO since OS-NAV2)"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "~^(LEARN|PATTERN_CHOOSER|LENGTH_CHOOSER|JUMP_CHOOSER|MODULE_PICKER|STEP_POPUP|FILL)$"
+   },
+   "note": "(a leftover overlay is put away: F8 is Back)"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "TEXT_ENTRY"
+   },
+   "note": "(the on-screen keyboard is cancelled with F7, never accepted)"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.4
+  },
+  {
+   "state": {
+    "screen": "PATTERN"
+   },
+   "within": 3
+  },
+  {
+   "run": "_stop"
+  },
+  {
+   "keys": [
+    "rec"
+   ],
+   "gap": 0.4,
+   "if_state": {
+    "mode": "3"
+   },
+   "note": "(Rec toggles Browse <-> Edit: only when it is in Browse)"
+  },
+  {
+   "state": {
+    "mode": "0"
+   },
+   "within": 2,
+   "note": "mode 0 = Edit"
+  },
+  {
+   "keys": [
+    "+shift",
+    "insert",
+    "-shift"
+   ],
+   "gap": 0.3
+  },
+  {
+   "state": {
+    "row": "0"
+   },
+   "within": 2
+  },
+  {
+   "keys": [
+    "note"
+   ],
+   "gap": 0.4
+  },
+  {
+   "state": {
+    "col": "NOTE"
+   },
+   "within": 2
+  },
+  {
+   "pad": 17,
+   "note": "a note on step 1 (the cursor moves on by JUMP); the cursor goes back to step 1 below"
+  },
+  {
+   "keys": [
+    "+shift",
+    "insert",
+    "-shift"
+   ],
+   "gap": 0.3
+  },
+  {
+   "state": {
+    "row": "0"
+   },
+   "within": 2
+  },
+  {
+   "keys": [
+    "instr"
+   ],
+   "gap": 0.4
+  },
+  {
+   "state": {
+    "col": "INSTR"
+   },
+   "within": 2
+  },
+  {
+   "pad": 0,
+   "note": "QA-PAT-120: pad 0 in the INSTR column picks instrument 1 (pad + 1, OS-AUDIT E-PAT-12) and writes no note of its own: the instrument stays 1"
+  },
+  {
+   "keys": [
+    "up"
+   ],
+   "gap": 0.3,
+   "note": "the pad moved the cursor on by JUMP (0.4.14 unit run): back to step 1, the cell with the note"
+  },
+  {
+   "state": {
+    "row": "0"
+   },
+   "within": 2
+  },
+  {
+   "state": {
+    "instrument": "1"
+   },
+   "within": 2
+  },
+  {
+   "enc": -1,
+   "note": "QA-PAT-120: one detent DOWN from 1 is the next place in this OS's order: instrument 49 (MIDI channel 1)"
+  },
+  {
+   "state": {
+    "instrument": "49"
+   },
+   "within": 2,
+   "note": "the cell of step 1 reads 49 (the last used instrument follows the cell)"
+  },
+  {
+   "shot": "instr_49",
+   "non_blank": true
+  },
+  {
+   "enc": -1
+  },
+  {
+   "state": {
+    "instrument": "50"
+   },
+   "within": 2,
+   "note": "50 = MIDI channel 2"
+  },
+  {
+   "enc": 1
+  },
+  {
+   "enc": 1
+  },
+  {
+   "state": {
+    "instrument": "1"
+   },
+   "within": 2,
+   "note": "up from 49 is instrument 1: the order runs from the MIDI channels into the samples"
+  },
+  {
+   "enc": -1,
+   "repeat": 20,
+   "gap": 0.25,
+   "note": "one detent at a time (the unit accelerates a burst): 20 places down from 1 stops at the start of the order"
+  },
+  {
+   "state": {
+    "instrument": "64"
+   },
+   "within": 3,
+   "note": "QA-PAT-120: the last place, instrument 64 (MIDI channel 16), and it does not wrap"
+  },
+  {
+   "shot": "instr_64",
+   "non_blank": true
+  },
+  {
+   "enc": 1
+  },
+  {
+   "state": {
+    "instrument": "63"
+   },
+   "within": 2
+  },
+  {
+   "enc": -1
+  },
+  {
+   "state": {
+    "instrument": "64"
+   },
+   "within": 2
+  },
+  {
+   "say": "QA-PAT-121: the instrument list (the held Instr button) has 64 entries and 49..64 read MIDI CH 1..16 for the MIDI instruments the reader creates for an OG project. The shot is read by a person."
+  },
+  {
+   "keys": [
+    "+instr"
+   ],
+   "gap": 0.9
+  },
+  {
+   "state": {
+    "overlay": "STEP_POPUP"
+   },
+   "within": 3
+  },
+  {
+   "shot": "instr_list",
+   "non_blank": true
+  },
+  {
+   "enc": 1,
+   "note": "one detent further toward the end (+1) holds on the last entry, 64 MIDI CH 16 (-1 would move to 63; 0.4.14 unit run)"
+  },
+  {
+   "state": {
+    "instrument": "64"
+   },
+   "within": 2
+  },
+  {
+   "keys": [
+    "-instr"
+   ],
+   "gap": 0.4,
+   "note": "the release enters the choice in the cell (one undo unit)"
+  },
+  {
+   "state": {
+    "overlay": "~^(NONE|NOTIFY)$",
+    "instrument": "64"
+   },
+   "within": 3
+  },
+  {
+   "say": "QA-PAT-122: the cell keeps instrument 64 (nothing is saved here: the save and load round trip is the host test native_format_test; on the unit save_test_card + persistence cover the card). QA-PAT-123: play step 1 and watch the MIDI monitor: the pad's note on MIDI channel 16, no sample voice."
+  },
+  {
+   "keys": [
+    "play"
+   ],
+   "gap": 0.6
+  },
+  {
+   "state": {
+    "playing": "1"
+   },
+   "within": 3
+  },
+  {
+   "voices": {
+    "max_steals": 0
+   }
+  },
+  {
+   "run": "_stop"
+  },
+  {
+   "shot": "instr_played",
+   "non_blank": true
+  },
+  {
+   "say": "undo: the edits of this scenario are undone so that the pattern is the one that was loaded"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.25,
+   "until": {
+    "msg": "~^NOTHING_TO_UNDO_HERE$"
+   },
+   "max": 120,
+   "note": "(the journal may hold more than 19 units after the 20-detent walk: F8 is pressed until the strip says there is nothing left, OS-UNDOGRP)"
+  },
+  {
+   "state": {
+    "msg": "~^NOTHING_TO_UNDO_HERE$"
+   },
+   "within": 3
+  }
+ ],
+ "finally": [
+  {
+   "keys": [
+    "-instr",
+    "-shift"
+   ],
+   "gap": 0.2
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "NAVIGATOR"
+   }
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "~^(LEARN|PATTERN_CHOOSER|LENGTH_CHOOSER|JUMP_CHOOSER|MODULE_PICKER|STEP_POPUP|FILL)$"
+   },
+   "note": "(a leftover overlay is put away: F8 is Back)"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "TEXT_ENTRY"
+   }
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.4
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.25,
+   "until": {
+    "msg": "~^NOTHING_TO_UNDO_HERE$"
+   },
+   "max": 120
+  },
+  {
+   "keys": [
+    "rec"
+   ],
+   "gap": 0.4,
+   "if_state": {
+    "mode": "0"
+   }
+  },
+  {
+   "run": "_stop"
+  }
+ ]
+}

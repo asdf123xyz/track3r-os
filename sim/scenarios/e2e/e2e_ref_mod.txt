@@ -1,0 +1,42 @@
+# OS-E2E-9: a ProTracker module played in the simulator and compared with libopenmpt (tests/e2e_openmpt_ref.py, ctest e2e_ref_openmpt_mod). A deep user's session: put a card in, open File > IMPORT,
+# import the module (F1), press Play. The card e2e_ref_mod is GENERATED (tools/e2e_ref_cards.py: one channel of a 32-byte sine at period 428, 259 Hz,
+# seven cases of two rows on a fresh note at speed 6 and 125 BPM, a tick of 20 ms, never committed). The render `song` is what the test hands to libopenmpt's comparison, tick by tick: the pitch
+# to 1.5 cents and the level to 0.03 + 2 % of the song's (the tolerances, the closed forms the slides are pinned to and their reasons are in the test's header and in docs/specs/OS-E2E.md "E2E-9").
+#
+# OS-BUG-MODENGINE: the import binds the sample with the engine its instrument names (AUTO is the Amiga engine at a Paula rate: SampleBank::engine_for), so the song's engine commands (128 + a
+# MED command) reach an Amiga voice at once and the journey takes no engine step (QA-FIL-005). Before the fix the sample was on the sampler until PLAY ENGINE was stepped on the instrument.
+document
+wait 20
+card e2e_ref_mod
+audio on
+wait 20
+
+# File > IMPORT (F6 toggles the page): the card's module is listed, F1 imports it; the strip says so, and the report is one F8 away.
+tap file
+wait 50
+tap f6
+wait 100
+assert state screen=FILE sel=ref.mod
+tap f1
+wait 800
+assert state msg=~IMPORTED_REF.MOD
+assert model tempo=12500
+assert model order.len=1
+assert model pat.1.0.0.note=61
+assert model pat.1.0.0.instr=1
+assert model inst.1.name=sine
+
+# Play from the first row, with no engine step: 15 rows of 120 ms are measured, 1,800 ms. What is compared with libopenmpt is the master as a whole (tests/e2e_openmpt_ref.py), and that is where
+# the arpeggio 037 of rows 0 and 1 is pinned: THREE pitches, a tick (20 ms) each, the note, +3 and +7 semitones (259.0, 308.0, 389.0 Hz), each tick to 1.5 cents of libopenmpt's (the case
+# "arpeggio 037"; a tick is too short for `assert audio pitch=`, whose YIN wants 40 ms or more). On the sampler (before OS-BUG-MODENGINE, until PLAY ENGINE was stepped) these ticks held one
+# steady 259 Hz and that case failed. What is asserted here is the part a one-line measurement can say: the fine slide E13 on rows 4 and 5 raises the note by 3 period units of 428
+# (258.97 Hz to 260.80 Hz), and the note cut EC3 of row 13 is silence from its tick 3.
+render song 1850
+tap play
+assert state playing=1
+wait 1850
+assert audio song in=490-710 pitch=260.8+-3c
+assert audio song in=1560-1615 sound
+assert audio song in=1630-1790 silent
+assert audio song sound
+tap play

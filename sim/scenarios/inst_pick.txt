@@ -1,0 +1,23 @@
+# OS-INSTPICK: on Wave and on Sample edit a held Instr shows the instrument list (the step popup of Params) and the choice is the instrument in view; only the samples can be
+# chosen, the rest of the list is dimmed (the demo document has ten sample instruments, the other slots are empty) and the encoder and the arrows skip them.
+document
+action nav.screen 3
+press instr
+wait 700
+snap wave_open
+encoder 3
+snap wave_picked
+encoder 6
+encoder 5
+snap wave_last_sample
+release instr
+wait 10
+snap wave_closed
+action nav.screen 4
+press instr
+wait 700
+snap sedit_open
+encoder -2
+snap sedit_picked
+release instr
+wait 10

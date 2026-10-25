@@ -1,0 +1,32 @@
+# OS-002a: actions run by name (no key involved), and the Learn chord. Since OS-002b Learn is an overlay that captures the
+# keys: the F2 below is swallowed by it (no label is posted), and the chord again closes it.
+snap initial
+
+# Actions by name: the registry, with their arguments. 5 steps down, column 3 (FX1), 2 steps back up.
+action nav.scroll 5
+action nav.right
+action nav.right
+action pattern.column 3
+action nav.scroll -2
+action instrument.select 12
+snap by_action
+
+# FX1 + FX2 pressed together (two simulated milliseconds apart): the Learn overlay.
+press vol
+press fx
+snap learn_on
+release fx
+release vol
+
+# Learn captures: an F-key is not bound there, so no label is posted, and the picture does not change.
+tap f2
+snap learn_over_label
+wait 2100
+snap learn_back
+
+# The same chord the other way round leaves Learn: the picture is the one before it, exactly.
+press fx
+press vol
+release vol
+release fx
+snap learn_off

@@ -1,0 +1,349 @@
+{
+ "name": "qa_ratepitch",
+ "title": "OS-RATEPITCH, rows QA-SLD-007..009 of docs/qa/catalogue/sample_load.md: samples that are not 44,100 Hz play at the pitch of their recorded rate (measured over the USB AUDIO capture)",
+ "needs": [
+  "audio"
+ ],
+ "vars": {
+  "CH": "7",
+  "CHANNELS": "8"
+ },
+ "steps": [
+  {
+   "say": "OS-RATEPITCH (bug fix). A sample must play at the pitch of its recorded rate. Needs the USB AUDIO device (usb mode audio, profile 8: the capture channel of MASTER L is 7; with another profile pass --var CH=<n> --var CHANNELS=<count>) and the maintainer's test files at the card ROOT (/8SVX, /AIFF; PC copy build-sdtest/O3TEST, never committed). The default pad board: pad 12 is note 60, the root note."
+  },
+  {
+   "cmd": "usb mode",
+   "expect": [
+    "usb mode: AUDIO, profile \\d+"
+   ],
+   "note": "precondition: the unit presents USB AUDIO"
+  },
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.2
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "~^(LEARN|NAVIGATOR|PATTERN_CHOOSER|LENGTH_CHOOSER|JUMP_CHOOSER|MODULE_PICKER|STEP_POPUP)$"
+   }
+  },
+  {
+   "keys": [
+    "instr"
+   ],
+   "gap": 0.4
+  },
+  {
+   "pad": 1,
+   "note": "(instrument 2 is the load target of QA-RP-001: a pad on the Instrument screen picks it)"
+  },
+  {
+   "keys": [
+    "sampleload"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "screen": "SAMPLE_LOAD"
+   },
+   "within": 4
+  },
+  {
+   "keys": [
+    "f6"
+   ],
+   "gap": 0.5,
+   "note": "RESCAN"
+  },
+  {
+   "wait": 2.0
+  },
+  {
+   "keys": [
+    "f2"
+   ],
+   "gap": 0.8,
+   "note": "UP to the root (the list keeps the last folder)"
+  },
+  {
+   "keys": [
+    "up"
+   ],
+   "gap": 0.12,
+   "repeat": 40,
+   "note": "(the cursor to the first entry)"
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.15,
+   "until": {
+    "sel": "~(?i)^8SVX$"
+   },
+   "max": 60,
+   "if_state": {
+    "sel": "~(?i)^(?!8SVX$)"
+   },
+   "note": "select the 8SVX folder by name (OS-HILNAV: the state line's sel; a count of Down presses breaks when the card holds one more file)"
+  },
+  {
+   "state": {
+    "sel": "~(?i)^8SVX$"
+   },
+   "within": 2
+  },
+  {
+   "keys": [
+    "f3"
+   ],
+   "gap": 0.8,
+   "note": "F3 enters 8SVX"
+  },
+  {
+   "keys": [
+    "up"
+   ],
+   "gap": 0.12,
+   "repeat": 40,
+   "note": "(the cursor to the first entry)"
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.15,
+   "until": {
+    "sel": "~(?i)^gen-loop-16726\\.8svx$"
+   },
+   "max": 60,
+   "if_state": {
+    "sel": "~(?i)^(?!gen-loop-16726\\.8svx$)"
+   },
+   "note": "select gen-loop-16726.8svx by name (OS-HILNAV: the state line's sel; a count of Down presses breaks when the card holds one more file)"
+  },
+  {
+   "state": {
+    "sel": "~(?i)^gen-loop-16726\\.8svx$"
+   },
+   "within": 2
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.5,
+   "note": "F1 LOAD"
+  },
+  {
+   "state": {
+    "msg": "~^PEAKS_GEN-LOOP-16726.*_DONE$"
+   },
+   "within": 8,
+   "note": "loaded; no PITCH IS OFF warning any more"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.5,
+   "note": "on Sample Load a pad picks an instrument: leave it for Pattern before the note"
+  },
+  {
+   "keys": [
+    "note"
+   ],
+   "gap": 0.2
+  },
+  {
+   "pad": 12,
+   "gesture": "down",
+   "vel": 110,
+   "note": "the root note (60), held: the sample loops"
+  },
+  {
+   "wait": 0.6
+  },
+  {
+   "audio": {
+    "seconds": 1.5,
+    "channels": "${CHANNELS}",
+    "channel": "${CH}",
+    "pitch_hz": 130.7,
+    "cents": 60
+   },
+   "note": "qa_rp_001: 16726 / 128 = 130.7 Hz. Before the fix this sounded at 345 Hz (+17 semitones). A failure line shows the pitch that was heard"
+  },
+  {
+   "pad": 12,
+   "gesture": "up"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "keys": [
+    "sampleload"
+   ],
+   "gap": 0.5
+  },
+  {
+   "pad": 2,
+   "note": "(instrument 3 for the 44,100 Hz control)"
+  },
+  {
+   "keys": [
+    "f2"
+   ],
+   "gap": 0.8,
+   "note": "UP to the root"
+  },
+  {
+   "keys": [
+    "up"
+   ],
+   "gap": 0.12,
+   "repeat": 40,
+   "note": "(the cursor to the first entry)"
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.15,
+   "until": {
+    "sel": "~(?i)^AIFF$"
+   },
+   "max": 60,
+   "if_state": {
+    "sel": "~(?i)^(?!AIFF$)"
+   },
+   "note": "select the AIFF folder by name (OS-HILNAV: the state line's sel; a count of Down presses breaks when the card holds one more file)"
+  },
+  {
+   "state": {
+    "sel": "~(?i)^AIFF$"
+   },
+   "within": 2
+  },
+  {
+   "keys": [
+    "f3"
+   ],
+   "gap": 0.8,
+   "note": "F3 enters AIFF"
+  },
+  {
+   "keys": [
+    "up"
+   ],
+   "gap": 0.12,
+   "repeat": 40,
+   "note": "(the cursor to the first entry)"
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.15,
+   "until": {
+    "sel": "~(?i)^gen-24bit-loop\\.aif$"
+   },
+   "max": 60,
+   "if_state": {
+    "sel": "~(?i)^(?!gen-24bit-loop\\.aif$)"
+   },
+   "note": "select gen-24bit-loop.aif by name (OS-HILNAV: the state line's sel; a count of Down presses breaks when the card holds one more file)"
+  },
+  {
+   "state": {
+    "sel": "~(?i)^gen-24bit-loop\\.aif$"
+   },
+   "within": 2
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.5
+  },
+  {
+   "state": {
+    "msg": "~^PEAKS_GEN-24BIT-LOOP\\.AIF_DONE$"
+   },
+   "within": 8
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.5,
+   "note": "on Sample Load a pad picks an instrument: leave it for Pattern before the note"
+  },
+  {
+   "keys": [
+    "note"
+   ],
+   "gap": 0.2
+  },
+  {
+   "pad": 12,
+   "gesture": "down",
+   "vel": 110
+  },
+  {
+   "wait": 0.6
+  },
+  {
+   "audio": {
+    "seconds": 1.5,
+    "channels": "${CHANNELS}",
+    "channel": "${CH}",
+    "pitch_hz": 689.1,
+    "cents": 60
+   },
+   "note": "qa_rp_002: a 44,100 Hz sample is unchanged: 689.1 Hz"
+  },
+  {
+   "pad": 12,
+   "gesture": "up"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "say": "QA-RP-003, by ear: load /8SVX/ff_mensaje_22095.8svx (22,095 Hz speech, 1.33 s) into another instrument and tap pad 12 (note 60). It must sound as a natural speaking voice, not an octave high and not squeaky; it lasts about 1.3 s. Then load /AIFF/gen-aifc-sowt.aifc (22,050 Hz, a short 344.5 Hz tone) and tap pad 12: a low, short beep, an octave below the 44,100 Hz control (689 Hz) of the step above. Report what you heard."
+  },
+  {
+   "say": "QA-RP-004, optional, Sample edit: on the 22,050 Hz instrument open Sample edit and run AMIGA 8287; the converted sample, now on the Amiga voice, must sound at the same pitch (344.5 Hz) as before the conversion, because the conversion resamples from the sample's own rate."
+  }
+ ],
+ "finally": [
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.2
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.3
+  }
+ ]
+}

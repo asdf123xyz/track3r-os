@@ -1,0 +1,40 @@
+# OS-MANUAL2 C2: the walk-through of the FX chapter's "Try it" (docs/manual/fx.md). Each `snap walk_<n>` is the picture of step n, `fx_walk_<n>.png` in docs/manual/img/
+# (the manifest is docs/manual/images.txt; tools/manual_images.py renders it, ctest o3sim_manual_images keeps the committed pictures in step). A new step or a changed key means a changed
+# picture: edit the chapter's step and this line together.
+#
+# The effect is Reverse (letter Q), the first effect the list reaches from an empty cell: 14 detents from None. The list's picker order is the order the chapter's table shows.
+# The simulator has no sound, so the chapter's step that listens has no picture and no line here.
+document
+wait 20
+
+# Step 1. Press `Pattern`, then `Rec` (STEP), then `Fx`. The cursor is on the first effect cell, FX1, of step 1 of track 1.
+tap pattern
+wait 20
+tap rec
+wait 20
+tap fx
+wait 20
+assert state screen=PATTERN
+snap walk_1
+
+# Step 2. Hold `Vol`. The FX list opens with a description under it. Turn the encoder 14 detents: Reverse is highlighted, and its description says what it does.
+press vol
+wait 700
+encoder 14
+wait 20
+snap walk_2
+
+# Step 3. Let go of `Vol`. The effect is entered: the cell shows its letter, Q.
+release vol
+wait 50
+snap walk_3
+
+# Step 4. Turn the encoder up. The value stops at its last value, 01, and does not wrap.
+encoder 5
+wait 20
+snap walk_4
+
+# Step 5. Press `Fx` again. The cursor moves to the second effect cell, FX2; FX1 keeps Q01.
+tap fx
+wait 20
+snap walk_5

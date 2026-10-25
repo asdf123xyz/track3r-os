@@ -1,0 +1,15 @@
+# clangd, the server behind the LSP tool of the clangd-lsp plugin: the host build's compile database. Each worktree configures it before
+# its first edit (`cmake -S . -B build-os-host`, firmware-engineer step 1); the index goes to build-os-host/.cache/clangd/.
+CompileFlags:
+  CompilationDatabase: build-os-host
+---
+# Target code that the host build does not compile (platform/mk66, platform/qemu: 34 files) has no compile command here, so clangd
+# would report false errors after each edit. Its diagnostics stay off; the syntax-check hook compiles it with its real build.
+If:
+  PathMatch: platform/(mk66|qemu)/.*
+CompileFlags:
+  Add: [-ferror-limit=0]
+Diagnostics:
+  Suppress: '*'
+  UnusedIncludes: None
+  MissingIncludes: None

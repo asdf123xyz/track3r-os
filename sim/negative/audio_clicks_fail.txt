@@ -1,0 +1,8 @@
+# OS-E2E-2: a clean render has no click to find: clicks=1 is exit 2.
+document sound
+audio on
+wait 30
+render n 150
+pad 12 hold 100
+wait 49
+assert audio n clicks=1

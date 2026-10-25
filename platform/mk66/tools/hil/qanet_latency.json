@@ -1,0 +1,616 @@
+{
+ "name": "qanet_latency",
+ "title": "OS-QANET D4: the latency budgets of the host test (preview first sound, the preview of a long clip, the cursor move while F5 is held, the screen switch, the File and Sample load listings) measured on the unit; every measured step is soft, it gates nothing",
+ "needs": [
+  "card",
+  "audio"
+ ],
+ "vars": {
+  "CH": "7",
+  "CHANNELS": "8"
+ },
+ "steps": [
+  {
+   "say": "OS-QANET D4 (docs/specs/OS-QANET.md section 7, Q1): the latency budgets of tests/qanet/budgets.cpp on the unit. It GATES NOTHING: every measured step is soft, so one run prints all the numbers. Each measured step is `within` the budget; the number to write down is that step's `seconds` in the --report (about 10 ms resolution; the key's own round trip is not in it). Card: the four qanet_ clips in the card root, and the large card for the listings (README.md of this folder). Read-only: it writes nothing to the card."
+  },
+  {
+   "card": {}
+  },
+  {
+   "keys": [
+    "-f5",
+    "-shift"
+   ],
+   "gap": 0.2
+  },
+  {
+   "say": "preview.first_sound: F5 held on a 1 s mono clip; budget 150 ms to the first voice"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.4
+  },
+  {
+   "keys": [
+    "sampleload"
+   ],
+   "gap": 0
+  },
+  {
+   "state": {
+    "screen": "SAMPLE_LOAD"
+   },
+   "within": 3,
+   "poll": 0.05
+  },
+  {
+   "state": {
+    "sel": "~^[^-]"
+   },
+   "within": 10,
+   "poll": 0.05,
+   "note": "the listing is there (an entry is under the cursor); the cursor is on its first entry"
+  },
+  {
+   "wait": 0.4
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.06,
+   "until": {
+    "sel": "qanet_1_short.wav"
+   },
+   "max": 200,
+   "note": "down to qanet_1_short.wav by name (the cursor is on the first entry; the clips are consecutive in the listing)"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "cmd": "voices",
+   "expect": [
+    "voices\\s+in use 0"
+   ],
+   "within": 1,
+   "poll": 0.05,
+   "note": "no voice before the key: a voice still ringing would pass the first-sound step at once"
+  },
+  {
+   "keys": [
+    "+f5"
+   ],
+   "gap": 0,
+   "note": "MEASURED from here: the key, then `voices` polled every 10 ms until a voice is in use (the engine has started the preview: the sound follows within one block, about 1.5 ms)"
+  },
+  {
+   "cmd": "voices",
+   "expect": [
+    "voices\\s+in use [1-9]"
+   ],
+   "within": 0.15,
+   "poll": 0.01,
+   "soft": true,
+   "note": "preview.first_sound: first sound within 150 ms"
+  },
+  {
+   "audio": {
+    "seconds": 0.5,
+    "channels": "${CHANNELS}",
+    "channel": "${CH}",
+    "silent": false,
+    "min_rms_db": -50
+   },
+   "soft": true,
+   "note": "and it is heard on the USB capture (a level check: the capture starts after the key, it is no timestamp)"
+  },
+  {
+   "keys": [
+    "-f5"
+   ],
+   "gap": 0.3
+  },
+  {
+   "cmd": "voices",
+   "expect": [
+    "voices\\s+in use 0"
+   ],
+   "within": 3,
+   "poll": 0.1,
+   "soft": true,
+   "note": "the preview stops when F5 is let go"
+  },
+  {
+   "say": "preview.long_clip: F5 held on a 6 s stereo clip: the preview streams, it does not wait for the whole clip; budget 150 ms to the first voice"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.4
+  },
+  {
+   "keys": [
+    "sampleload"
+   ],
+   "gap": 0
+  },
+  {
+   "state": {
+    "screen": "SAMPLE_LOAD"
+   },
+   "within": 3,
+   "poll": 0.05
+  },
+  {
+   "state": {
+    "sel": "~^[^-]"
+   },
+   "within": 10,
+   "poll": 0.05,
+   "note": "the listing is there (an entry is under the cursor); the cursor is on its first entry"
+  },
+  {
+   "wait": 0.4
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.06,
+   "until": {
+    "sel": "qanet_2_long.wav"
+   },
+   "max": 200,
+   "note": "down to qanet_2_long.wav by name (the cursor is on the first entry; the clips are consecutive in the listing)"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "cmd": "voices",
+   "expect": [
+    "voices\\s+in use 0"
+   ],
+   "within": 1,
+   "poll": 0.05,
+   "note": "no voice before the key: a voice still ringing would pass the first-sound step at once"
+  },
+  {
+   "keys": [
+    "+f5"
+   ],
+   "gap": 0,
+   "note": "MEASURED from here: the key, then `voices` polled every 10 ms until a voice is in use (the engine has started the preview: the sound follows within one block, about 1.5 ms)"
+  },
+  {
+   "cmd": "voices",
+   "expect": [
+    "voices\\s+in use [1-9]"
+   ],
+   "within": 0.15,
+   "poll": 0.01,
+   "soft": true,
+   "note": "preview.long_clip: first sound within 150 ms"
+  },
+  {
+   "audio": {
+    "seconds": 0.5,
+    "channels": "${CHANNELS}",
+    "channel": "${CH}",
+    "silent": false,
+    "min_rms_db": -50
+   },
+   "soft": true,
+   "note": "and it is heard on the USB capture (a level check: the capture starts after the key, it is no timestamp)"
+  },
+  {
+   "keys": [
+    "-f5"
+   ],
+   "gap": 0.3
+  },
+  {
+   "cmd": "voices",
+   "expect": [
+    "voices\\s+in use 0"
+   ],
+   "within": 3,
+   "poll": 0.1,
+   "soft": true,
+   "note": "the preview stops when F5 is let go"
+  },
+  {
+   "say": "preview.cursor_move: F5 held on qanet_3_tone_a.wav (210 Hz), then one step down to qanet_4_tone_b.wav (882 Hz); budget 150 ms from the move to the new file's first sound"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.4
+  },
+  {
+   "keys": [
+    "sampleload"
+   ],
+   "gap": 0
+  },
+  {
+   "state": {
+    "screen": "SAMPLE_LOAD"
+   },
+   "within": 3,
+   "poll": 0.05
+  },
+  {
+   "state": {
+    "sel": "~^[^-]"
+   },
+   "within": 10,
+   "poll": 0.05,
+   "note": "the listing is there (an entry is under the cursor); the cursor is on its first entry"
+  },
+  {
+   "wait": 0.4
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.06,
+   "until": {
+    "sel": "qanet_3_tone_a.wav"
+   },
+   "max": 200,
+   "note": "down to qanet_3_tone_a.wav by name (the cursor is on the first entry; the clips are consecutive in the listing)"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "cmd": "voices",
+   "expect": [
+    "voices\\s+in use 0"
+   ],
+   "within": 1,
+   "poll": 0.05,
+   "note": "no voice before the key: a voice still ringing would pass the first-sound step at once"
+  },
+  {
+   "keys": [
+    "+f5"
+   ],
+   "gap": 0
+  },
+  {
+   "cmd": "voices",
+   "expect": [
+    "voices\\s+in use [1-9]"
+   ],
+   "within": 4,
+   "poll": 0.02,
+   "soft": false,
+   "note": "the first file sounds (not a budget: the move is made while it plays)"
+  },
+  {
+   "wait": 0.3
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0,
+   "note": "MEASURED from here. `voices` cannot tell the old file from the new: the old voice is expected to stop (step 1), the new to start (step 2); the move's number is the two steps' seconds added"
+  },
+  {
+   "cmd": "voices",
+   "expect": [
+    "voices\\s+in use 0"
+   ],
+   "within": 0.15,
+   "poll": 0.005,
+   "soft": true,
+   "note": "1: the old file's voice has stopped (fails when the old voice went on, or when the new one began inside the first poll: read it with the next steps)"
+  },
+  {
+   "cmd": "voices",
+   "expect": [
+    "voices\\s+in use [1-9]"
+   ],
+   "within": 0.15,
+   "poll": 0.005,
+   "soft": true,
+   "note": "2: a voice is in use again: the new file began (budget: steps 1 and 2 together within 150 ms)"
+  },
+  {
+   "state": {
+    "sel": "qanet_4_tone_b.wav"
+   },
+   "within": 0.1,
+   "poll": 0.01,
+   "soft": true,
+   "note": "the cursor is on the new file"
+  },
+  {
+   "audio": {
+    "seconds": 1.5,
+    "channels": "${CHANNELS}",
+    "channel": "${CH}",
+    "pitch_hz": 882,
+    "cents": 60,
+    "silent": false,
+    "min_rms_db": -50
+   },
+   "soft": true,
+   "note": "the new file is what sounds (882 Hz); a silence or 210 Hz here is the finding of the host (OS-BUG-PREVLAT: the move stops the audition)"
+  },
+  {
+   "keys": [
+    "-f5"
+   ],
+   "gap": 0.3
+  },
+  {
+   "say": "screen.switch: each screen button to the state line's new screen; budget 100 ms (the state is the app's screen: the frame that shows it follows within one frame, 16 ms; `shot` is the check of the picture)"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.6
+  },
+  {
+   "keys": [
+    "song"
+   ],
+   "gap": 0
+  },
+  {
+   "state": {
+    "screen": "SONG"
+   },
+   "within": 0.1,
+   "poll": 0.01,
+   "soft": true,
+   "note": "screen.switch: song to SONG within 100 ms"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "keys": [
+    "master"
+   ],
+   "gap": 0
+  },
+  {
+   "state": {
+    "screen": "MIXER"
+   },
+   "within": 0.1,
+   "poll": 0.01,
+   "soft": true,
+   "note": "screen.switch: master to MIXER within 100 ms"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "keys": [
+    "params"
+   ],
+   "gap": 0
+  },
+  {
+   "state": {
+    "screen": "INSTRUMENT"
+   },
+   "within": 0.1,
+   "poll": 0.01,
+   "soft": true,
+   "note": "screen.switch: params to INSTRUMENT within 100 ms"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "keys": [
+    "sampleplay"
+   ],
+   "gap": 0
+  },
+  {
+   "state": {
+    "screen": "WAVE"
+   },
+   "within": 0.1,
+   "poll": 0.01,
+   "soft": true,
+   "note": "screen.switch: sampleplay to WAVE within 100 ms"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "keys": [
+    "sampleedit"
+   ],
+   "gap": 0
+  },
+  {
+   "state": {
+    "screen": "SAMPLE_EDIT"
+   },
+   "within": 0.1,
+   "poll": 0.01,
+   "soft": true,
+   "note": "screen.switch: sampleedit to SAMPLE_EDIT within 100 ms"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "keys": [
+    "sampleload"
+   ],
+   "gap": 0
+  },
+  {
+   "state": {
+    "screen": "SAMPLE_LOAD"
+   },
+   "within": 0.1,
+   "poll": 0.01,
+   "soft": true,
+   "note": "screen.switch: sampleload to SAMPLE_LOAD within 100 ms"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "keys": [
+    "samplerec"
+   ],
+   "gap": 0
+  },
+  {
+   "state": {
+    "screen": "RECORD"
+   },
+   "within": 0.1,
+   "poll": 0.01,
+   "soft": true,
+   "note": "screen.switch: samplerec to RECORD within 100 ms"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "keys": [
+    "performance"
+   ],
+   "gap": 0
+  },
+  {
+   "state": {
+    "screen": "PERFORM"
+   },
+   "within": 0.1,
+   "poll": 0.01,
+   "soft": true,
+   "note": "screen.switch: performance to PERFORM within 100 ms"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "keys": [
+    "config"
+   ],
+   "gap": 0
+  },
+  {
+   "state": {
+    "screen": "CONFIG"
+   },
+   "within": 0.1,
+   "poll": 0.01,
+   "soft": true,
+   "note": "screen.switch: config to CONFIG within 100 ms"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0
+  },
+  {
+   "state": {
+    "screen": "PATTERN"
+   },
+   "within": 0.1,
+   "poll": 0.01,
+   "soft": true,
+   "note": "screen.switch: pattern to PATTERN within 100 ms"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "say": "listing.file: the press of file to the FIRST ENTRY under the cursor (DirScan's first step), not the time to the full listing; budget 500 ms"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.6
+  },
+  {
+   "keys": [
+    "file"
+   ],
+   "gap": 0
+  },
+  {
+   "state": {
+    "screen": "FILE",
+    "sel": "~^[^-]"
+   },
+   "within": 0.5,
+   "poll": 0.01,
+   "soft": true,
+   "note": "listing.file: the first entry under the cursor within 500 ms (not the full listing)"
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "say": "listing.sample_load: the press of sampleload to the FIRST ENTRY under the cursor (DirScan's first step), not the time to the full listing; budget 500 ms"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.6
+  },
+  {
+   "keys": [
+    "sampleload"
+   ],
+   "gap": 0
+  },
+  {
+   "state": {
+    "screen": "SAMPLE_LOAD",
+    "sel": "~^[^-]"
+   },
+   "within": 0.5,
+   "poll": 0.01,
+   "soft": true,
+   "note": "listing.sample_load: the first entry under the cursor within 500 ms (not the full listing)"
+  },
+  {
+   "wait": 0.5
+  }
+ ],
+ "finally": [
+  {
+   "keys": [
+    "-f5"
+   ],
+   "gap": 0.2
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.3
+  }
+ ]
+}

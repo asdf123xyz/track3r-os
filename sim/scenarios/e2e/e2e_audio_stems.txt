@@ -1,0 +1,30 @@
+# OS-E2E-2: the stems add up to the master. Two pads down at once: the live notes take two tracks (T1 and T2) and the stem tap, which is what the USB stems carry, copies each track's post-fader block. With
+# every strip at the centre, no sends and the master at unity, the master is the sum of the tracks (the saturating sum of the stem tap) 63 frames later: the master limiter looks 63 samples ahead
+# (MasterLimiter::kLatency) and is transparent while the sum stays under its ceiling. Instrument 1 is at volume 40 so that two sines of 0.5 sum to under 0.97 and the limiter does nothing.
+document sound
+audio on
+wait 30
+tap params
+tap f2
+encoder -10
+assert model inst.1.volume=40
+render mix 800 stems
+pad 12 down
+pad 14 down
+wait 400
+pad 12 up
+pad 14 up
+wait 396
+# Each pad is its own note on its own track: C-5 (441.18 Hz) on T1, D-5 (a whole tone up, 495.20 Hz) on T2; nothing on T3.
+assert audio mix sound
+assert audio mix.t1 in=20-400 sound pitch=441.18+-2c rms=-13.83+-0.3
+assert audio mix.t2 in=20-400 sound pitch=495.20+-2c rms=-13.83+-0.3
+assert audio mix.t3 silent
+# The master is the two of them, summed, 63 frames on; the residual is under the 16-bit floor (a null at -200 is exact).
+assert audio mix null=mix.t1+mix.t2,-90,lag=63
+# The master pair of the stem tap is the master the codec gets, sample for sample.
+assert audio mix.m null=mix,-120
+# OS-E2E-4: the audio fingerprint (tests/audio_fingerprints/e2e_audio_stems.json): the master and the two tracks that sound.
+fingerprint mix nof0
+fingerprint mix.t1
+fingerprint mix.t2

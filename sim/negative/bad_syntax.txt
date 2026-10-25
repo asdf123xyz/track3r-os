@@ -1,0 +1,3 @@
+# Not a valid scenario: o3sim must refuse it with exit 2 and a line number.
+snap fine
+frobnicate 3

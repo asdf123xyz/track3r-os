@@ -1,0 +1,2 @@
+# One snapshot, used with a goldens file that holds the wrong hash: o3sim --check must fail with exit 1.
+snap initial

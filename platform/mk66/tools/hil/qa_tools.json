@@ -1,0 +1,998 @@
+{
+ "name": "qa_tools",
+ "title": "OS-H3A and OS-H3B (ADR 0014 slices H3a and H3b, ABI 1.5 and 1.6, new Community OS behaviour): Pattern F7 TOOLS and the RHYTHM GEN app from /modules/apps of a test card: the list of tool apps, the first-launch question, a block of 2 tracks x 16 rows as the app's context, APPLY (one undo unit), the 3/8 Euclid cycle, ROTATE, two lanes of different LENGTH, the exit chord back to Pattern with the block kept, UNDO and REDO naming the app. The notes are read from the shots (the app's text is not in the state line). The project is changed and put back by UNDO; nothing is written to the card. The second half (OS-H3B, QA-MOD-080..089 and QA-PAT-210..213) runs CHORDS, HUMANIZE, MUTATE and MORPH from the same card: a 3-track block, the chord progression written (CHORD FX), HUMANIZE over it, UNDO twice, MUTATE on the current sample instrument (the Params page before, after and after UNDO), MORPH to a second instrument and RESET",
+ "needs": [
+  "card"
+ ],
+ "steps": [
+  {
+   "say": "OS-H3A rows QA-PAT-160..167 (Pattern F7 TOOLS) and QA-MOD-070..079 (RHYTHM GEN) of docs/qa/catalogue/pattern.md and modules.md (ADR 0014 slice H3a, ABI 1.5, new Community OS behaviour). Precondition: a TEST card with rhythmgen.tmod in /modules/apps (the packed file of o3m_rhythmgen_tmod: build-os-*/modules/rhythmgen.tmod; Tap Calc, if it is also there, is a tool too and is listed after it), a project loaded whose pattern 1 has at least 16 rows on tracks 1 and 2 and is EMPTY on them (use File NEW if unsure), the transport STOPPED, and a fresh `reset` just before the run when you want to see the first-launch question (QA-PAT-162: the unit asks once per boot per app). The list opens with the cursor on EXPORT PATTERN (the OS's own entry, above a rule): press Down once to put the cursor on the first tool app before F1 (F1 on EXPORT PATTERN starts a WAV export, QA-PAT-180). RHYTHM GEN is the first app below the rule when it is the only tool app but Tap Calc; with the four OS-H3B apps on the card (chords, humanize, morph, mutate) it sorts AFTER them: press Down until the cursor is on RHYTHMGEN before F1 (the list is EXPORT PATTERN, EXPORT SELECTION when there is a block, a rule, then the apps by name). Nothing is written to the card; the project is changed by the app and put back by UNDO"
+  },
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.2,
+   "note": "(Shift released, in case a former run left it down)"
+  },
+  {
+   "keys": [
+    "+f7",
+    "+f8",
+    "-f8",
+    "-f7"
+   ],
+   "burst": true,
+   "gap": 0.1,
+   "if_state": {
+    "screen": "APP"
+   },
+   "note": "leave a leftover app first"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "NAVIGATOR"
+   },
+   "note": "(a leftover Navigator is closed: F7 is CLOSE)"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "~^(LEARN|PATTERN_CHOOSER|LENGTH_CHOOSER|JUMP_CHOOSER|MODULE_PICKER|STEP_POPUP|FILL|PLAY_MODE|TOOLS)$"
+   },
+   "note": "(a leftover overlay is put away: F8 is Back)"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.6,
+   "note": "the Pattern screen"
+  },
+  {
+   "state": {
+    "screen": "PATTERN",
+    "overlay": "NONE"
+   },
+   "within": 4
+  },
+  {
+   "say": "Put the cursor on ROW 1 of TRACK 1 (Up and Left, or the Navigator). Browse mode, the transport stopped. The key row now reads PATTERN LENGTH JUMP FILL PREVIEW INVERT TOOLS UNDO (QA-PAT-167)."
+  },
+  {
+   "shot": "qa_pat_167_key_row",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-PAT-167: F7 is labelled TOOLS"
+  },
+  {
+   "keys": [
+    "+shift",
+    "right",
+    "-shift"
+   ],
+   "gap": 0.3,
+   "note": "QA-PAT-163: the block, track 1 and 2 ..."
+  },
+  {
+   "keys": [
+    "+shift",
+    "down",
+    "-shift"
+   ],
+   "gap": 0.2,
+   "repeat": 15,
+   "note": "... and 16 rows (rows 1..16)"
+  },
+  {
+   "shot": "qa_pat_163_block",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-PAT-163: a block of 2 tracks x 16 rows"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.5,
+   "note": "QA-PAT-160: F7 TOOLS"
+  },
+  {
+   "state": {
+    "overlay": "TOOLS"
+   },
+   "within": 3
+  },
+  {
+   "shot": "qa_pat_160_tools",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-PAT-160: the list: EXPORT PATTERN first, a rule, then the tool apps (RHYTHMGEN, and TAPCALC if it is on the card), a modal list with F1 RUN and F8 BACK; read-only apps (MIDI Monitor, Loudness VU) are not in it"
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.3,
+   "repeat": 5,
+   "note": "QA-PAT-160: the cursor leaves the fixed entries (EXPORT PATTERN, DUPLICATE x2, EXPAND x2, SHRINK /2, and EXPORT SELECTION, because the block is up: PAT-OPS-A) for the first tool app (RHYTHMGEN)"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.6,
+   "note": "QA-PAT-162: the first launch of an app that edits the project asks first (after a fresh reset)"
+  },
+  {
+   "shot": "qa_pat_162_confirm",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-PAT-162: the list says EDITS THE PROJECT (UNDOABLE): F1 AGAIN (on a boot where RHYTHMGEN was already confirmed this step shows the app page instead)"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.8,
+   "if_state": {
+    "screen": "PATTERN"
+   },
+   "note": "F1 again: the app starts"
+  },
+  {
+   "state": {
+    "screen": "APP",
+    "overlay": "NONE"
+   },
+   "within": 4
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "shot": "qa_mod_070_page",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-MOD-070 / QA-PAT-163: RHYTHM GEN, LANES 2, BLOCK TRACK 1-2 ROWS 1-16, page 1 with HITS 4 / LENGTH 16 / ROTATE 0 / NOTE C-4 / PROB 100 %, the cycle X...X...X...X..."
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.6,
+   "note": "QA-MOD-071: F1 APPLY"
+  },
+  {
+   "shot": "qa_mod_071_applied",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-MOD-071: 2 LANES WRITTEN (UNDO TO TAKE BACK)"
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.3,
+   "note": "QA-MOD-072: LENGTH row"
+  },
+  {
+   "enc": -8,
+   "repeat": 1,
+   "gap": 0.3,
+   "note": "LENGTH 16 -> 8"
+  },
+  {
+   "keys": [
+    "up"
+   ],
+   "gap": 0.3,
+   "note": "HITS row"
+  },
+  {
+   "enc": -1,
+   "repeat": 1,
+   "gap": 0.3,
+   "note": "HITS 4 -> 3: 3 of 8"
+  },
+  {
+   "shot": "qa_mod_072_3_of_8",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-MOD-072: 3/8, the cycle X..X..X. (the Fill dialog's Euclid)"
+  },
+  {
+   "keys": [
+    "down",
+    "down"
+   ],
+   "gap": 0.3,
+   "note": "ROTATE is the next row after LENGTH"
+  },
+  {
+   "enc": 2,
+   "repeat": 1,
+   "gap": 0.3,
+   "note": "ROTATE 2"
+  },
+  {
+   "shot": "qa_mod_072_rotate",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-MOD-072: the cycle moved two steps later: X.X..X.."
+  },
+  {
+   "keys": [
+    "right"
+   ],
+   "gap": 0.3,
+   "note": "QA-MOD-075: lane 2 (page 2)"
+  },
+  {
+   "keys": [
+    "up",
+    "up",
+    "up",
+    "up",
+    "up"
+   ],
+   "gap": 0.1,
+   "note": "back on the first row"
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.3
+  },
+  {
+   "enc": -3,
+   "repeat": 1,
+   "gap": 0.3,
+   "note": "lane 2 LENGTH 16 -> 13: a polyrhythm against lane 1's 8"
+  },
+  {
+   "shot": "qa_mod_075_lane2",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-MOD-075: lane 2 with its own LENGTH"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.6,
+   "note": "APPLY: both lanes, one undo unit"
+  },
+  {
+   "keys": [
+    "+f7",
+    "+f8",
+    "-f8",
+    "-f7"
+   ],
+   "burst": true,
+   "gap": 0.1,
+   "note": "QA-PAT-165: the exit chord"
+  },
+  {
+   "state": {
+    "screen": "PATTERN",
+    "overlay": "NONE"
+   },
+   "within": 4
+  },
+  {
+   "shot": "qa_pat_165_back",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-PAT-165: back on Pattern, the cursor and the block as they were, the hits on tracks 1 and 2 (3/8 rotated by 2 on track 1, 16 rows of a cycle of 13 on track 2)"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.6,
+   "note": "QA-PAT-166: F8 UNDO takes the whole group"
+  },
+  {
+   "shot": "qa_pat_166_undo",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-PAT-166 / QA-MOD-078: the strip says UNDO RHYTHM GEN and the two tracks are empty again"
+  },
+  {
+   "keys": [
+    "+shift",
+    "f8",
+    "-shift"
+   ],
+   "gap": 0.6,
+   "note": "REDO"
+  },
+  {
+   "shot": "qa_pat_166_redo",
+   "non_blank": true,
+   "soft": true,
+   "note": "the hits are back (one REDO)"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.6,
+   "note": "UNDO again, to leave the project as it was"
+  },
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.2
+  },
+  {
+   "say": "QA-PAT-161: start the song (Play) and press F7 while the Pattern view follows the play line (WATCH): the list does NOT open and the strip says STOP PLAYING TO OPEN TOOLS. Stop the transport; F7 opens it again. QA-PAT-164: with NO block (clear it: it is cleared by moving the cursor without Shift and using Delete? just select none) F7, Down, F1 (F1 twice the first time) and the app page says AT THE CURSOR with the cursor's track and row. QA-MOD-074: shared page (Right x4): INSTR, VOL, MODE ADD keeps the notes already there. QA-MOD-073: PROB and VARY (F2): another variation, another undo unit, the same SEED the same notes. QA-MOD-077: open RHYTHM GEN from MODULES (not from TOOLS): the page says OPEN IT FROM PATTERN F7 TOOLS and F1 writes nothing"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "TOOLS"
+   },
+   "note": "(the list is put away if a manual step left it up)"
+  },
+  {
+   "say": "OS-H3B rows QA-MOD-080..089 and QA-PAT-210..213 (ADR 0014 slice H3b: ABI 1.6, CHORDS, HUMANIZE, MUTATE, MORPH; new Community OS behaviour). Precondition: a TEST card with chords.tmod, humanize.tmod, morph.tmod, mutate.tmod and rhythmgen.tmod in /modules/apps (the packed files of o3m_*_tmod: build-os-*/modules/*.tmod), a project whose pattern 1 has at least 16 rows on tracks 1 to 3 and is EMPTY on them, the transport STOPPED. The CURRENT instrument (the one in the Pattern's instrument field) must be a SAMPLE instrument (any sample, even a short one) for MUTATE and MORPH, and a SECOND sample instrument with the same play engine (INST page: PLAY ENGINE, the default AUTO is fine) must exist for MORPH to have a SOURCE; if the current instrument is a MIDI instrument CHORDS starts in CHORD FX mode, on a sample instrument in SPREAD (the steps below set CHORD FX by hand either way). Every editing app asks once per boot on its first launch (F1 again): the steps press F1 twice and the second press is ignored when it is not needed. The list is EXPORT PATTERN, EXPORT SELECTION (with a block), a rule, then CHORDS, HUMANIZE, MORPH, MUTATE, RHYTHMGEN by name: the Down counts below assume exactly those and a block that stays selected while the Params page is looked at (if the block was lost, F7 has no EXPORT SELECTION and every count is one too many: check the cursor in the shot of the list before F1). The project is changed by the apps and put back by UNDO; nothing is written to the card"
+  },
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.2,
+   "note": "(Shift released, in case a former run left it down)"
+  },
+  {
+   "keys": [
+    "+f7",
+    "+f8",
+    "-f8",
+    "-f7"
+   ],
+   "burst": true,
+   "gap": 0.1,
+   "if_state": {
+    "screen": "APP"
+   },
+   "note": "leave a leftover app first"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "~^(LEARN|PATTERN_CHOOSER|LENGTH_CHOOSER|JUMP_CHOOSER|MODULE_PICKER|STEP_POPUP|FILL|PLAY_MODE|TOOLS)$"
+   },
+   "note": "(a leftover overlay is put away)"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.6,
+   "note": "the Pattern screen"
+  },
+  {
+   "state": {
+    "screen": "PATTERN",
+    "overlay": "NONE"
+   },
+   "within": 4
+  },
+  {
+   "keys": [
+    "+shift",
+    "right",
+    "-shift"
+   ],
+   "gap": 0.3,
+   "repeat": 2,
+   "note": "the block: tracks 1 to 3 ..."
+  },
+  {
+   "keys": [
+    "+shift",
+    "down",
+    "-shift"
+   ],
+   "gap": 0.2,
+   "repeat": 15,
+   "note": "... rows 1 to 16"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.5,
+   "note": "QA-PAT-210: F7 TOOLS"
+  },
+  {
+   "state": {
+    "overlay": "TOOLS"
+   },
+   "within": 4
+  },
+  {
+   "shot": "qa_pat_210_tools",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-PAT-210: EXPORT PATTERN, EXPORT SELECTION, a rule, then CHORDS, HUMANIZE, MORPH, MUTATE, RHYTHMGEN"
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.3,
+   "repeat": 5,
+   "note": "the cursor on CHORDS (past the four fixed entries and EXPORT SELECTION)"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.6,
+   "note": "the first launch asks"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.8,
+   "if_state": {
+    "screen": "PATTERN"
+   },
+   "note": "F1 again: CHORDS starts"
+  },
+  {
+   "state": {
+    "screen": "APP",
+    "overlay": "NONE"
+   },
+   "within": 4
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "shot": "qa_mod_082_page",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-MOD-082: CHORDS, BLOCK TRACK 1-3 ROWS 1-16, KEY C, SCALE MAJOR, PROG I-V-vi-IV, RATE 4 AUTO, OCTAVE 4, SEVENTHS OFF, INSTR, MODE (CHORD FX AUTO on a MIDI instrument, SPREAD AUTO on a sample); the chord names C G Am F on the right"
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.15,
+   "repeat": 7,
+   "note": "the MODE row"
+  },
+  {
+   "enc": -1,
+   "repeat": 1,
+   "gap": 0.3,
+   "note": "MODE: CHORD FX by hand (the root and the Chord FX 14)"
+  },
+  {
+   "shot": "qa_mod_082_mode",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-MOD-082: MODE CHORD FX"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.6,
+   "note": "QA-MOD-082: F1 APPLY"
+  },
+  {
+   "shot": "qa_mod_082_chords",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-MOD-082: 4 CHORDS WRITTEN (UNDO TO TAKE BACK)"
+  },
+  {
+   "keys": [
+    "+f7",
+    "+f8",
+    "-f8",
+    "-f7"
+   ],
+   "burst": true,
+   "gap": 0.1,
+   "note": "the exit chord"
+  },
+  {
+   "state": {
+    "screen": "PATTERN",
+    "overlay": "NONE"
+   },
+   "within": 4
+  },
+  {
+   "shot": "qa_pat_212_chords",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-PAT-212: C-4, G-4, A-4, F-4 on rows 1, 5, 9, 13 of track 1 with the Chord FX (value 5, 5, 4, 5) in an FX column; the block is still selected"
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.5,
+   "note": "QA-MOD-080: HUMANIZE over the chords"
+  },
+  {
+   "state": {
+    "overlay": "TOOLS"
+   },
+   "within": 4
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.3,
+   "repeat": 6,
+   "note": "the cursor on HUMANIZE"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.6,
+   "note": "the first launch asks"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.8,
+   "if_state": {
+    "screen": "PATTERN"
+   },
+   "note": "F1 again: HUMANIZE starts"
+  },
+  {
+   "state": {
+    "screen": "APP",
+    "overlay": "NONE"
+   },
+   "within": 4
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "shot": "qa_mod_080_page",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-MOD-080: HUMANIZE, BLOCK TRACK 1-3 ROWS 1-16, TIME 20, VOL +/- 8, SEED 0000"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.6,
+   "note": "QA-MOD-080: F1 APPLY"
+  },
+  {
+   "shot": "qa_mod_080_applied",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-MOD-080: 4 STEPS HUMANIZED (the steps with a note: the four chord roots)"
+  },
+  {
+   "keys": [
+    "+f7",
+    "+f8",
+    "-f8",
+    "-f7"
+   ],
+   "burst": true,
+   "gap": 0.1,
+   "note": "the exit chord"
+  },
+  {
+   "state": {
+    "screen": "PATTERN",
+    "overlay": "NONE"
+   },
+   "within": 4
+  },
+  {
+   "shot": "qa_pat_211_humanize",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-PAT-211: Micro-move (FX 2) on the noted steps, volumes within 8 of the old ones, the notes and the Chord FX as they were"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.6,
+   "note": "QA-PAT-213: F8 UNDO takes the HUMANIZE group"
+  },
+  {
+   "shot": "qa_pat_213_undo_humanize",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-PAT-213: the strip says UNDO HUMANIZE; the chords are back without the humanizing"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.6,
+   "note": "UNDO again: the CHORDS group"
+  },
+  {
+   "shot": "qa_pat_213_undo_chords",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-PAT-213: UNDO CHORDS; the three tracks are empty again"
+  },
+  {
+   "keys": [
+    "params"
+   ],
+   "gap": 0.6,
+   "note": "QA-MOD-085: the Params page of the current instrument before MUTATE (its VOICE page: VOLUME, PANNING, TUNE ...)"
+  },
+  {
+   "shot": "qa_mod_085_params_before",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-MOD-085: the Params page before"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.6
+  },
+  {
+   "state": {
+    "screen": "PATTERN"
+   },
+   "within": 4
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.5,
+   "note": "QA-MOD-085: MUTATE"
+  },
+  {
+   "state": {
+    "overlay": "TOOLS"
+   },
+   "within": 4
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.3,
+   "repeat": 8,
+   "note": "the cursor on MUTATE (the four fixed entries, EXPORT SELECTION, CHORDS, HUMANIZE, MORPH, MUTATE)"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.6,
+   "note": "the first launch asks"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.8,
+   "if_state": {
+    "screen": "PATTERN"
+   },
+   "note": "F1 again: MUTATE starts"
+  },
+  {
+   "state": {
+    "screen": "APP",
+    "overlay": "NONE"
+   },
+   "within": 4
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "shot": "qa_mod_085_page",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-MOD-085: MUTATE, INSTRUMENT nn SAMPLE 61 WRITABLE, AMOUNT 20 %, GROUP ALL, SEED 0000, 61 PARAMETERS IN THE GROUP"
+  },
+  {
+   "enc": 16,
+   "repeat": 1,
+   "gap": 0.3,
+   "note": "AMOUNT 100 (5 a detent; the unit accelerates a burst, the value stops at 100)"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.6,
+   "note": "QA-MOD-085: F1 APPLY"
+  },
+  {
+   "shot": "qa_mod_085_applied",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-MOD-085: N PARAMETERS CHANGED (UNDO TO TAKE BACK)"
+  },
+  {
+   "keys": [
+    "+f7",
+    "+f8",
+    "-f8",
+    "-f7"
+   ],
+   "burst": true,
+   "gap": 0.1,
+   "note": "the exit chord"
+  },
+  {
+   "state": {
+    "screen": "PATTERN",
+    "overlay": "NONE"
+   },
+   "within": 4
+  },
+  {
+   "keys": [
+    "params"
+   ],
+   "gap": 0.6,
+   "note": "the Params page after MUTATE"
+  },
+  {
+   "shot": "qa_mod_085_params_after",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-MOD-085: VOLUME, PANNING, TUNE ... are not the values of qa_mod_085_params_before (Left / Right turn the pages: ENV and MOD moved as well); PLAY ENGINE and the source page did not"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.6
+  },
+  {
+   "state": {
+    "screen": "PATTERN"
+   },
+   "within": 4
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.6,
+   "note": "QA-PAT-213: F8 UNDO takes the whole MUTATE group"
+  },
+  {
+   "keys": [
+    "params"
+   ],
+   "gap": 0.6
+  },
+  {
+   "shot": "qa_mod_085_params_undone",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-MOD-085 / QA-PAT-213: the Params page is exactly as it was before (UNDO MUTATE was on the strip in Pattern)"
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.6
+  },
+  {
+   "state": {
+    "screen": "PATTERN"
+   },
+   "within": 4
+  },
+  {
+   "keys": [
+    "f7"
+   ],
+   "gap": 0.5,
+   "note": "QA-MOD-088: MORPH"
+  },
+  {
+   "state": {
+    "overlay": "TOOLS"
+   },
+   "within": 4
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.3,
+   "repeat": 7,
+   "note": "the cursor on MORPH"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.6,
+   "note": "the first launch asks"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.8,
+   "if_state": {
+    "screen": "PATTERN"
+   },
+   "note": "F1 again: MORPH starts"
+  },
+  {
+   "state": {
+    "screen": "APP",
+    "overlay": "NONE"
+   },
+   "within": 4
+  },
+  {
+   "wait": 0.5
+  },
+  {
+   "shot": "qa_mod_088_page",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-MOD-088: MORPH, A = INSTRUMENT nn SAMPLE, SOURCE B the first other sample instrument of the same engine, POS 50 % (NO MATCHING INSTRUMENT if there is none)"
+  },
+  {
+   "keys": [
+    "down"
+   ],
+   "gap": 0.3,
+   "note": "the POS row"
+  },
+  {
+   "enc": 10,
+   "repeat": 1,
+   "gap": 0.3,
+   "note": "POS 100 (5 a detent; stops at 100)"
+  },
+  {
+   "keys": [
+    "f1"
+   ],
+   "gap": 0.6,
+   "note": "QA-MOD-088: F1 APPLY at POS 100: A takes B's sound"
+  },
+  {
+   "shot": "qa_mod_088_morph_100",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-MOD-088: N PARAMETERS CHANGED; A's writable parameters are B's (open Params of A after the exit to see them)"
+  },
+  {
+   "keys": [
+    "f3"
+   ],
+   "gap": 0.6,
+   "note": "QA-MOD-088: F3 RESET: A back to the values it had when the page opened"
+  },
+  {
+   "shot": "qa_mod_088_morph_reset",
+   "non_blank": true,
+   "soft": true,
+   "note": "QA-MOD-088: N PARAMETERS PUT BACK, POS 0 %"
+  },
+  {
+   "keys": [
+    "+f7",
+    "+f8",
+    "-f8",
+    "-f7"
+   ],
+   "burst": true,
+   "gap": 0.1,
+   "note": "the exit chord"
+  },
+  {
+   "state": {
+    "screen": "PATTERN",
+    "overlay": "NONE"
+   },
+   "within": 4
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.6,
+   "note": "UNDO the RESET"
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.6,
+   "note": "UNDO the APPLY: the project is as it was before the run"
+  },
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.2
+  },
+  {
+   "say": "By hand (not scripted): QA-MOD-081 (VARY, TIME/VOL 0, a full FX column), QA-MOD-083 (SPREAD on a sample instrument, SEVENTHS, the default MODE), QA-MOD-084 (KEY, SCALE, PROG, RATE, OCTAVE), QA-MOD-086 (GROUP, AMOUNT 0, SEED, VARY), QA-MOD-087 (MUTATE on the TB-303 while a note sounds), QA-MOD-089 (a MIDI or empty instrument: SAMPLE OR MODULE INSTRUMENTS ONLY). Also read `diag cpu` while an APPLY runs on a full instrument (61 parameter writes) and note the time of the main loop stall."
+  },
+  {
+   "keys": [
+    "f8"
+   ],
+   "gap": 0.3,
+   "if_state": {
+    "overlay": "TOOLS"
+   },
+   "note": "(the list is put away if a manual step left it up)"
+  }
+ ],
+ "finally": [
+  {
+   "keys": [
+    "-shift"
+   ],
+   "gap": 0.2
+  },
+  {
+   "keys": [
+    "+f7",
+    "+f8",
+    "-f8",
+    "-f7"
+   ],
+   "burst": true,
+   "gap": 0.1,
+   "if_state": {
+    "screen": "APP"
+   }
+  },
+  {
+   "keys": [
+    "pattern"
+   ],
+   "gap": 0.3
+  }
+ ]
+}

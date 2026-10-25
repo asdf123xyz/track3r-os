@@ -1,0 +1,4 @@
+# OS-E2E-2: a `card` after `audio on` would leave the engine's voices on the wrong pool: refused.
+document
+audio on
+card e2e_card

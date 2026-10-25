@@ -1,0 +1,14 @@
+# mutant:   M05
+# class:    1
+# twin:     OS-BUG-SLDOVER (a destructive action asks nothing)
+# expected: none (a card file is not in the document's digest: no rule and no invariant reads it)
+# effect:   File DELETE of a project folder removes it on the first press, with no question
+diff --git a/app/src/file_ops_actions.cpp b/app/src/file_ops_actions.cpp
+index 649286e0..8dce1e71 100644
+--- a/app/src/file_ops_actions.cpp
++++ b/app/src/file_ops_actions.cpp
+@@ -136,3 +136,3 @@ bool file_delete(ActionContext& ctx, core::ActionArg) noexcept {
+   const std::uint32_t generation = ctx.model.files->index().generation();
+-  const bool armed = pending && key == ctx.view.file.target_key && generation == ctx.view.file.target_generation;
++  const bool armed = (pending && key == ctx.view.file.target_key && generation == ctx.view.file.target_generation) || key != 0xFFFFu;
+   if (!armed) {
