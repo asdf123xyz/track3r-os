@@ -75,8 +75,6 @@ No rows.
 
 | ID | What | Parity | Cost | Note |
 |---|---|---|---|---|
-| Publication | The public repository and the v1.0.0 release (the `.ptf`, `SHA256SUMS`, the manual) | — | M | The maintainer publishes. USB identity: the official Tracker pair 16D0:0E9F (accepted risks in `docs/specs/OS-USBDISK.md` section 3.1). |
-| OS-HILCARD | Test data kept out of git: the original `t-v16` project and the old sample folders pack into one release asset (`fixtures-1`, pinned by SHA-256 in `tools/testdata/testdata_manifest.json`); `testdata.py fetch` unpacks them into `build-fixtures/`; files that cannot be redistributed are fetched from their sources | — | S | Left: upload the asset with the release. Spec: `tools/testdata/README.md`. |
 | OS-AUDIT10 | The remaining minor rows of the audit of what an owner of the official firmware expects (`docs/qa/og-user-audit/triage.md`) | N | M-L | Done: batches A1 to A9, B1 to B6, rows 13, 62, 68, 72. Row 59 (Perform SMP POS, SMP END, PLAYBACK and the LFO speeds) shipped in v1.0.0: OS-PERF-SMP, OS-PERF-REVERSE and OS-PERF-LFO are UNIT PENDING above. |
 | OS-BUG-HOTSWAP | Swapping the SD card with a project loaded can crash the unit | R | ? | Seen once with the Dense8 project loaded after about 90 minutes: a memory-protection fault in the render interrupt, then a restart. A swap with an empty project worked. Cause unknown. Workaround: switch off before changing the card. Known issue of v1.0.0. Planned after v1.0.0. |
 

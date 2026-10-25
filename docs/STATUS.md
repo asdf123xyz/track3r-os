@@ -6,7 +6,7 @@ Every behaviour carries one of three labels: **verified parity** (compared with 
 
 ## Where things stand
 
-**v1.0.0, scope frozen on 2026-10-25, built and gated from the release commit.** Perform PLAYBACK and the five Perform LFO rows are in. The release is ready to publish; what is open is a check on the unit (below), not work in the tree.
+**v1.0.0 is published (2026-10-25), the first release.** Perform PLAYBACK and the five Perform LFO rows are in. Downloads on the Releases page: `v1.0.0` (the firmware file and `SHA256SUMS`), `apps-v1.0.0` (the app modules) and `fixtures-1` (test data for `tools/testdata`). What is open is checks on the unit (below), not work in the tree.
 
 | Item | State |
 |---|---|
@@ -81,9 +81,8 @@ Not yet verified on a unit (host and simulator tests exist for most). The rows m
 
 Ordered for a fresh session:
 
-1. Publish v1.0.0: create the GitHub release from the tag `v1.0.0`, attach `track3r-os-v1.0.0.ptf` and `SHA256SUMS`, upload the `fixtures-1` test-data asset (OS-HILCARD, `tools/testdata/README.md`).
-2. A person presses INSTALL in Update from the unit on the release file, and runs the checks under "Open on the unit"; record each result as PASS, FAIL or NOT RUN in the backlog rows.
-3. After 1.0: OS-BUG-HOTSWAP (the card-swap crash), OS-PERF-CPU2 (the Perform costs), OS-BUG-FWLIST, then the pending rows in `docs/roadmap/BACKLOG.md` and the latent issues below.
+1. A person presses INSTALL in Update from the unit on the release file, and runs the checks under "Open on the unit"; record each result as PASS, FAIL or NOT RUN in the backlog rows.
+2. After 1.0: OS-BUG-HOTSWAP (the card-swap crash), OS-PERF-CPU2 (the Perform costs), OS-BUG-FWLIST, then the pending rows in `docs/roadmap/BACKLOG.md` and the latent issues below.
 
 Outside contributors: issues come in through the forms in `.github/ISSUE_TEMPLATE/`; pull requests target `dev` (see `CONTRIBUTING.md`).
 
