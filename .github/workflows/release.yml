@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Release mechanism (OS-RELEASE-ptf): a pushed tag v* builds the MK66 device image twice from clean build directories, refuses to go on unless
-# the two images are byte-identical and pass the static image checks, and creates a DRAFT pre-release with the update file
+# the two images are byte-identical and pass the static image checks, and creates a DRAFT release with the update file
 # (track3r-os-<tag>.ptf, the image's Intel HEX under a .ptf name) and its SHA256SUMS. Nothing is published by this workflow: the maintainer
 # reads the draft and publishes it by hand. The image is never flashed; docs/manual/install.md says how a person installs it.
 #
@@ -86,7 +86,7 @@ jobs:
           cat > ../notes.md <<NOTES
           track3r-os ${TAG}: a community operating system for the Polyend Tracker hardware, written from scratch. Update file: \`${PTF}\`.
 
-          > **Pre-release, at your own risk.** This is unofficial community firmware. It is not affiliated with or endorsed by Polyend. Back up your SD card first and keep the official firmware at hand to go back.
+          > **At your own risk.** This is unofficial community firmware. It is not affiliated with or endorsed by Polyend. Back up your SD card first and keep the official firmware at hand to go back.
 
           Install guide, including how to go back to the official firmware: [docs/manual/install.md](https://github.com/${GITHUB_REPOSITORY}/blob/${TAG}/docs/manual/install.md)
 
@@ -101,10 +101,10 @@ jobs:
           Source: this tag (GPL-3.0-or-later).
           NOTES
           cat ../notes.md
-      - name: Create the draft pre-release
+      - name: Create the draft release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           gh release create "$TAG" "release/$PTF" release/SHA256SUMS \
-            --draft --prerelease --verify-tag --title "track3r-os $TAG (pre-release)" --notes-file notes.md
+            --draft --verify-tag --title "track3r-os $TAG" --notes-file notes.md

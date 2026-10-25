@@ -5,7 +5,7 @@ Status: draft
 
 The release file is an Intel HEX image under a `.ptf` name, which is what the Tracker's bootloader flashes, and the bootloader itself is not touched by an update. Once track3r-os runs, later updates can also be sent from a computer with `o3console.py`, and the official firmware can be put back. This page says what has been checked and marks the rest **not yet verified**. <!-- og: open -->
 
-> **Unofficial, pre-release, at your own risk.** track3r-os is community firmware. It is not affiliated with or endorsed by Polyend. Installing it replaces the firmware in your unit. The bootloader that flashes it is separate from the firmware and is not touched by an update (`docs/hw/tracker-hardware-notes.md`, section 3), but nothing here is a guarantee. Read the whole page first.
+> **Unofficial, at your own risk.** track3r-os is community firmware. It is not affiliated with or endorsed by Polyend. Installing it replaces the firmware in your unit. The bootloader that flashes it is separate from the firmware and is not touched by an update (`docs/hw/tracker-hardware-notes.md`, section 3), but nothing here is a guarantee. Read the whole page first.
 
 This page says what is established by observation on the maintainer's unit and by the repository's own tests, and marks the rest **not yet verified**. Where a step is not verified, do it only if you accept that risk and have a way back (see [Going back](#going-back-to-the-official-firmware)).
 

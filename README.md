@@ -12,7 +12,7 @@
   <a href="module/sdk/LICENSE"><img src="https://img.shields.io/badge/module%20SDK-MIT-green.svg" alt="Module SDK: MIT"></a>
   <img src="https://img.shields.io/badge/C%2B%2B-17-00599C.svg" alt="C++17">
   <img src="https://img.shields.io/badge/target-MK66%20Cortex--M4F-lightgrey.svg" alt="Target: MK66 Cortex-M4F">
-  <img src="https://img.shields.io/badge/status-pre--release-orange.svg" alt="Status: pre-release">
+  <a href="https://github.com/trak3r-os/track3r-os/releases/latest"><img src="https://img.shields.io/github/v/release/trak3r-os/track3r-os" alt="Latest release"></a>
 </p>
 
 <p align="center">
@@ -29,7 +29,7 @@ track3r-os replaces the software that runs on the Tracker. You keep the hardware
 - **You can add to it from the SD card.** New instruments, effects and small apps load as modules.
 - **It is open.** Anyone can read the code, build it and improve it.
 
-It is a **pre-release**: it runs on real hardware and is tested on a unit, but some parts are still being built. The list of what's done and what's next is in [docs/roadmap/BACKLOG.md](docs/roadmap/BACKLOG.md).
+**v1.0.0** is the first release. It runs on real hardware and is tested on a unit. The known issues are in the [release notes](docs/release/v1.0.0.md); what is open and what comes next is in [docs/roadmap/BACKLOG.md](docs/roadmap/BACKLOG.md).
 
 ## Screens
 
@@ -94,7 +94,7 @@ It is a **pre-release**: it runs on real hardware and is tested on a unit, but s
 
 ### Modules and apps
 - **Extend the Tracker from the SD card** with `.tmod` modules: instruments, effects, file importers and **apps**.
-- **Apps included:** tap tempo and BPM calculator, MIDI monitor, loudness meter, rhythm generator (Euclidean, polyrhythms, probability), chord progressions, humanize, mutate and morph.
+- **Apps:** tap tempo and BPM calculator, MIDI monitor, loudness meter, tuner, scope and spectrum, rhythm generator (Euclidean, polyrhythms, probability), chord progressions, humanize, mutate, morph and MIDI file export. They are a separate download: the `apps-v1.0.0` release.
 - **Every app edit is undoable**, and apps can never touch your files.
 - **Write your own:** the module SDK is MIT-licensed and documented in [docs/guides/app-modules.md](docs/guides/app-modules.md).
 
@@ -111,8 +111,9 @@ It is a **pre-release**: it runs on real hardware and is tested on a unit, but s
 
 ## Get started
 
+- **Download:** the [latest release](https://github.com/trak3r-os/track3r-os/releases/latest) has the firmware file (`track3r-os-v1.0.0.ptf`) and its checksum. The app modules are the [`apps-v1.0.0`](https://github.com/trak3r-os/track3r-os/releases/tag/apps-v1.0.0) release.
 - **Install:** read the [install guide](docs/manual/install.md) first. It covers installing from the official firmware, updating, and going back.
-- **Learn it:** the [user manual](docs/manual/index.md) is being written, one chapter per screen.
+- **Learn it:** the [user manual](docs/manual/index.md), one chapter per screen.
 
 ## Build it yourself
 
