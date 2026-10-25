@@ -14,7 +14,7 @@ This page says what is established by observation on the maintainer's unit and b
 
 A release (GitHub, "Releases") has two files:
 
-- `track3r-os-<version>.ptf`: the update file. It is the device image in Intel HEX form under a `.ptf` name, which is what the Tracker's bootloader flashes. Its name never starts with `Polyend`, so it cannot be mistaken for an official file.
+- `track3r-os-<version>.ptf`: the update file. It is the device image in Intel HEX form under a `.ptf` name, which is what the Tracker's bootloader flashes. Its name never starts with `Polyend`, so it cannot be mistaken for an official file. For a first install through the reset button you rename your copy on the card (section 1).
 - `SHA256SUMS`: the checksum of the update file. Check the download before using it: `sha256sum -c SHA256SUMS`. The release notes also give the CRC-32 that `o3console.py --update --crc` asks for.
 
 The optional starter content (samples, wavetables, songs, starter projects, the bundled apps, licences) is a separate zip, `track3r-os-<version>.zip`. It is not part of this release. When you have it, unpack it into the root of the card. Its `README.txt` says what goes where.
@@ -36,18 +36,21 @@ The same image shows its version in Config, INFO (BUILD ID, for example `v0.5.0 
 What is established:
 
 - The bootloader flashes a `.ptf` (Intel HEX) from `Firmware/` on the card. It does flash a file whose name does not start with `PolyendTracker_` (observed on the unit, 2026-10-12, with a track3r-os test build started from the running track3r-os; `platform/mk66/README.md`, "Firmware update over USB").
-- The official firmware's update menu has a file-name filter. Official 1.9.0 lists only names starting with `PolyendTracker` (observed on the unit; the filter of other versions is not known). **A track3r-os file is therefore not shown in the official update menu.** Do not rename it to look like an official file: track3r-os treats such names as official and the release file is deliberately named differently.
-- The hidden reset button flashes the **first** `.ptf` in `Firmware/` in directory order. This is how the maintainer's unit was recovered from every hung test image.
+- The official firmware's update menu has a file-name filter. Official 1.9.0 lists only names starting with `PolyendTracker` (observed on the unit; the filter of other versions is not known). **A track3r-os file named `track3r-os-<version>.ptf` is therefore not shown in the official update menu.** The release file is deliberately named differently, so that it cannot be mistaken for an official file. For the first install the copy on the card is renamed to start with `PolyendTracker` (see the steps below). The name changes two things. The official update menu lists the file. And track3r-os treats every name starting with `PolyendTracker` as official, so `fw rm` does not remove it: delete it from the computer if you want it gone.
+- The hidden reset button flashes the **first** `.ptf` in `Firmware/` in directory order. This is how the maintainer's unit was recovered from every hung test image. The images it flashed there were named `PolyendTracker_0.0.x.ptf` (24 characters).
+- The Polyend Tool app is **not supported** for this. It accepts only official files and answered "invalid firmware" to a track3r-os file. Two units were reported stuck on the "emergency update" screen with the file `track3r-os-v1.0.0.ptf`. Install straight from the SD card, as below.
 
 The steps this leaves:
 
 1. Back up the card (above).
-2. Copy `track3r-os-<version>.ptf` into the `Firmware/` folder of the card.
+2. Copy `track3r-os-<version>.ptf` into the `Firmware/` folder of the card, and rename the copy to `PolyendTracker_0.0.1.ptf`. The new name must start with `PolyendTracker` and be at most 24 characters; `PolyendTracker_0.0.1.ptf` is exactly 24. Do not change the content of the file. Do not use the Polyend Tool app.
 3. Make it the **only** `.ptf` in `Firmware/`: move any other `.ptf` (including the official one) out to your computer. With several files the button picks the first in directory order, which you cannot easily predict.
 4. Put the card in the unit and use the hidden reset button as the vendor's emergency-flashing page describes. The position of the button is not recorded in this repository.
-5. When the unit has restarted, open Config, INFO and check that BUILD ID shows the version you installed. If the display looks corrupted on the first boot, power-cycle the unit: this was seen once after the bootloader flashed an early test image and a power cycle fixed it.
+5. When the unit has restarted, open Config, INFO and check that BUILD ID shows the version you installed (the file name does not say what is installed; BUILD ID does). If the display looks corrupted on the first boot, power-cycle the unit: this was seen once after the bootloader flashed an early test image and a power cycle fixed it.
 
-**Not yet verified:** steps 2 to 4 with a release file on a unit that runs the official firmware. The reset button was observed flashing `PolyendTracker_0.0.x.ptf` test images; a non-`PolyendTracker` name was observed only through the USB update path from a running track3r-os. If the button does not flash the file, nothing is changed on the unit; say so in an issue with the file name you used.
+**Not yet verified:** steps 2 to 4 with the release file, renamed, on a unit that runs the official firmware. The reset button was observed flashing `PolyendTracker_0.0.x.ptf` images (24 characters); a name not starting with `PolyendTracker` was flashed only through the USB update path from a running track3r-os. The rename is the maintainer's fix for the report of the two units above. If the button does not flash the file, nothing is changed on the unit; say so in an issue with the file name you used.
+
+Later updates from a running track3r-os (section 2, or Config, INFO, `F8`) keep the plain `track3r-os-<version>.ptf` name.
 
 ## 2. Updating track3r-os to a newer track3r-os
 <!-- sync: src=platform/mk66/tools/o3console.py spec=docs/specs/OS-006-usb.md -->
@@ -95,6 +98,7 @@ track3r-os has no firmware update menu on the device: updates come from the comp
 
 - The unit does not start after an update: do the steps of [Going back](#going-back-to-the-official-firmware). It is the same recovery used for every hung test image.
 - The reset button flashed a file you did not expect: there was more than one `.ptf` in `Firmware/`. Leave exactly one.
+- The unit sits on the "emergency update" screen and does not flash: check that the file on the card is named `PolyendTracker_0.0.1.ptf` (not `track3r-os-<version>.ptf`) and that it is the only `.ptf` in `Firmware/`. Do not use the Polyend Tool app.
 - The unit is not found by `o3console.py`: check the USB cable, and that the unit runs track3r-os (the `diag` console is part of track3r-os).
 - Report problems with the version string from Config, INFO (or the `version` command) and the file name and SHA-256 you installed.
 
@@ -102,7 +106,7 @@ track3r-os has no firmware update menu on the device: updates come from the comp
 
 | Item | Status |
 |---|---|
-| Reset button flashes a track3r-os release file from the official firmware | not yet verified |
+| Reset button flashes the release file renamed to `PolyendTracker_0.0.1.ptf` from the official firmware | not yet verified |
 | Position of the hidden reset button | not recorded here; see the vendor page |
 | Time the flashing takes and what the screen shows | not recorded |
 | Full USB update sequence with a release file, and checklist FW-3 to FW-10 | not yet verified |
