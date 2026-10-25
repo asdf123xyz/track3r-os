@@ -47,12 +47,15 @@ track3r-os replaces the software that runs on the Tracker. You keep the hardware
     <td align="center"><img src="docs/img/readme/perform_typical.png" alt="Perform" width="400"><br><sub><b>Perform</b>: scenes and live effects</sub></td>
   </tr>
   <tr>
+    <td align="center"><img src="docs/img/readme/perform_dj.png" alt="DJ page" width="400"><br><sub><b>DJ</b>: crossfade two groups of tracks, filter, stutter, scratch</sub></td>
     <td align="center"><img src="docs/img/readme/record_recording.png" alt="Record" width="400"><br><sub><b>Record</b>: sample from line in, mic, radio or the mix</sub></td>
-    <td align="center"><img src="docs/img/readme/file_export_stems.png" alt="Export" width="400"><br><sub><b>File</b>: export WAV, one file per track</sub></td>
   </tr>
   <tr>
+    <td align="center"><img src="docs/img/readme/file_export_stems.png" alt="Export" width="400"><br><sub><b>File</b>: export WAV, one file per track</sub></td>
     <td align="center"><img src="docs/img/readme/modules_app.png" alt="An app running" width="400"><br><sub><b>Apps</b>: small tools that run on the device</sub></td>
-    <td align="center">
+  </tr>
+  <tr>
+    <td align="center" colspan="2">
       <img src="docs/img/readme/theme_black.png" alt="Black theme" width="196">
       <img src="docs/img/readme/theme_white.png" alt="White theme" width="196"><br><sub><b>Themes</b>: Amiga, Black and White</sub>
     </td>
@@ -84,6 +87,7 @@ track3r-os replaces the software that runs on the Tracker. You keep the hardware
 ### Mix and perform
 - **Mixer:** levels, mute and solo, a delay send and a reverb send per track, and a master limiter.
 - **Perform screen:** scenes you can store and recall, plus live effects.
+- **DJ page:** put some tracks in group A and some in group B, then mix them live with a crossfader, a filter, band kills, stutters, a scratch and tape stop, and move to the next pattern from the pads. Nothing is written into the song. Open Perform, then press `Perform` again ([manual](docs/manual/perform_dj.md)).
 - **Record screen:** sample from line in, the microphone, the FM radio or the Tracker's own output (resampling).
 
 ### Files and compatibility
