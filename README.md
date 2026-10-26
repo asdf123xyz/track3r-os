@@ -119,6 +119,40 @@ track3r-os replaces the software that runs on the Tracker. You keep the hardware
 - **Install:** read the [install guide](docs/manual/install.md) first. It covers installing from the official firmware, updating, and going back.
 - **Learn it:** the [user manual](docs/manual/index.md), one chapter per screen.
 
+## First steps
+
+New to track3r-os? Start here: these are the keys worth learning first. The [quick start](docs/manual/quick_start.md) and the [cheat sheet](docs/manual/cheat_sheet.md) have more.
+
+| To | Do this |
+|---|---|
+| **get help on any screen** | `Shift` + `Config` opens the help page of the screen you are on. `Left` and `Right` turn the pages, `Up`, `Down` and the encoder scroll, any other key closes it. |
+| **change the volume** | Hold `Master` and turn the encoder, on any screen. |
+| **change the tempo** | Hold `Pattern` and turn the encoder, on any screen: one BPM a click, a tenth of a BPM with `Shift` held first. Tap pads while you hold `Pattern` to tap the tempo. |
+| **jump to any screen** | `Shift` + `Pattern` opens the Navigator, a list of every screen. |
+| **look at the song** | Hold `Song`. Let go and you are back where you were. |
+| **write notes** | `Rec` turns step entry on; `Shift` + `Rec` turns live recording on. |
+| **switch patterns while playing** | On Pattern, hold `F1` and pick a pattern. It takes over at the next step, with no stop. |
+| **learn a MIDI control** | Press `Vol` and `Fx` together. |
+| **open a screen's second page** | Press its button again: the DJ page of Perform, the FX page of Sample edit. |
+| **change the look** | `Shift` + `Master` steps through the themes: Amiga, Black and White. |
+| **take a screenshot** | `Shift` + `Power` saves the screen to the card as a picture. |
+
+**Save before you switch off.** track3r-os never saves by itself, not even when you turn it off. Press `F4` (**SAVE**) on the File screen first. To turn the unit off, hold `Power` for 2 seconds; if something is not saved, the strip warns **UNSAVED WORK** while you hold. Projects saved by track3r-os may not open on the official firmware yet (not verified), so keep a copy of your old projects.
+
+**Go Amiga.** track3r-os is a tribute to the Amiga as much as to the Tracker:
+- **Load Amiga samples.** Sample load reads IFF 8SVX files, next to WAV and AIFF.
+- **Play them like Paula.** The **PLAY ENGINE** row on Instrument picks **Modern**, **Amiga**, **12-bit** or **8-bit**. The Amiga engine plays a sample the way the Amiga's sound chip, Paula, did: it holds each value until the next one, and uses 8 bits of it. **Auto** picks it for a one-shot or forward-loop sample at the Paula rate.
+- **Convert to an Amiga rate.** On Sample edit, `Shift` + `F1` converts the sample to 8,287 Hz and `Shift` + `F2` to 16,574 Hz; `Shift` + `F3` turns 8-bit on for the next conversion. The sample keeps its pitch, and at 8,287 Hz it needs about a fifth of the memory it took at 44.1 kHz.
+- **Import the songs.** On File, `F6` (**IMPORT**) brings in MOD, S3M and MED songs, with a report of what was kept and what changed.
+
+**Sample memory.** About 10 MB holds the samples of a project: about two minutes of mono 16-bit sound at 44.1 kHz. A sample keeps its own rate, so a lower rate takes less room. Sample load shows the used and free KB.
+
+**Record a loop.** On the Record screen you can record a loop of 1 to 16 bars that plays in time with the pattern, and add layers on top ([manual](docs/manual/record.md)).
+
+**At power-on.** Hold these keys while you turn the unit on, until the strip shows the mode:
+- `Shift`, `F1` and `F7`: the card shows on your computer as a disk. The **CARD AS DISK** row in Config does the same while the unit keeps playing; the computer can only read the card unless you turn **READ ONLY** off first.
+- `Shift`, `F1` and `F8`: Input test, which shows every key and pad you press. If a key or a pad does not answer, run it and add what you see to your bug report.
+
 ## Build it yourself
 
 You need CMake 3.20 or newer and a C++17 compiler. For the device you also need the **Arm GNU Toolchain 15.3.Rel1**, and QEMU (`qemu-system-arm`) for the emulator tests. Details are in [docs/toolchain.md](docs/toolchain.md).
