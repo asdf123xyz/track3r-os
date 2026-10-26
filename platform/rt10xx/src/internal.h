@@ -25,7 +25,10 @@ void dcache_enable() noexcept;          // invalidate, then on (nothing valid is
 void dcache_disable() noexcept;         // clean and invalidate, then off (main thread only; interrupts masked meanwhile)
 void init_dma() noexcept;               // the eDMA's global state (audio_config.h kCrValue) and the channel priorities of resources.h; the channels stay idle
 void init_interrupts() noexcept;        // VTOR, NVIC priorities from hal/irq.h, fault handlers enabled, divide-by-zero traps
-void start_systick() noexcept;          // 1 kHz tick; the clock reads valid from here
+void start_systick() noexcept;          // (re)starts the tick at the delays' clock (core_hz())
+std::uint32_t core_hz() noexcept;       // the clock the delays and SysTick use: kBootHz, then kCoreHz after init_clocks, or the adopted one
+void adopt_running_clocks() noexcept;   // safe boot: core_hz() from the CCM's words as the bootloader left them (clock_config.h running_core_hz)
+void disable_memory_protection() noexcept;  // safe boot: the MPU off (the default memory map), whatever the bootloader left          // 1 kHz tick; the clock reads valid from here
 void capture_reset_cause() noexcept;    // SRC_SRSR, read and cleared
 
 // Busy-wait delays on the cycle counter, bounded whatever the counter does. Sized for clock_config.h kBootHz until init_clocks() has

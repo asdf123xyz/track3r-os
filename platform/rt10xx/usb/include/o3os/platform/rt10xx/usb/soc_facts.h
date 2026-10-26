@@ -96,6 +96,14 @@ inline constexpr std::uintptr_t kUsbncOtg1Ctrl = 0x402E0200u;
 inline constexpr std::uint32_t kUsbncOverCurrentDisable = 1u << 7;
 
 // ---- The unique id (OCOTP HW_OCOTP_CFG0 and CFG1: 64 bits) ----------------------------------------------------------------------
+// The bring-up's other words (the vendor's and the hobbyist ecosystem's proven RT10xx USB sequence):
+inline constexpr std::uintptr_t kCcgr2 = 0x400FC070u;
+inline constexpr std::uint32_t kCcgr2Ocotp = 0x3u << 12;  // CG6: the OCOTP, whose fuses give the serial (opened before the first read)
+inline constexpr std::uintptr_t kPmuReg3p0 = 0x400D8120u;  // the USB 3.0 V regulator: OUTPUT_TRG 12:8, BO_OFFSET 6:4, ENABLE_LINREG 0
+inline constexpr std::uint32_t kPmuReg3p0Value = (0x0Fu << 8) | (6u << 4) | 1u;
+inline constexpr std::uintptr_t kUsb1ChrgDetectSet = 0x400D81B4u;  // USB_ANALOG_USB1_CHRG_DETECT_SET: EN_B 20, CHK_CHRG_B 19 (charger detection off)
+inline constexpr std::uint32_t kChrgDetectOff = (1u << 20) | (1u << 19);
+inline constexpr std::uintptr_t kCscmr1 = 0x400FC01Cu;     // FLEXSPI_CLK_SEL 30:29: 1 = PLL3, 3 = PLL3 PFD0
 inline constexpr std::uintptr_t kOcotpCfg0 = 0x401F4410u;
 inline constexpr std::uintptr_t kOcotpCfg1 = 0x401F4420u;
 

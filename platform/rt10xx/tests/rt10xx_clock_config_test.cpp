@@ -38,3 +38,22 @@ TEST_CASE("rt10xx clock: the tree's clock") {
   CHECK(clock::kTreeIsRt10xx);
 #endif
 }
+
+TEST_CASE("rt10xx clock: the running clock read back from the CCM's words") {
+  using clock::ClockWords;
+  constexpr std::uint32_t kLocked = 1u << 31;
+  // This port's tree: the ARM PLL at x100 / 2 = 1.2 GHz, ARM_PODF 1 (/2), AHB /1.
+  CHECK(clock::running_core_hz(ClockWords{0, 3u << 18, 1u, kLocked | (1u << 13) | 100u, 0, 0, 0}) == 600'000'000u);
+  // The same tree with the ARM PLL bypassed: the oscillator / 2.
+  CHECK(clock::running_core_hz(ClockWords{0, 3u << 18, 1u, kLocked | (1u << 16) | 100u, 0, 0, 0}) == 12'000'000u);
+  // periph_clk2 from the oscillator (the switch-over state of init_clocks()).
+  CHECK(clock::running_core_hz(ClockWords{1u << 25, 1u << 12, 0, 0, 0, 0, 0}) == 24'000'000u);
+  // periph_clk2 from PLL3, PERIPH_CLK2_PODF 3 (/4): 120 MHz.
+  CHECK(clock::running_core_hz(ClockWords{(1u << 25) | (3u << 27), 0, 0, 0, 0, 0, kLocked}) == 120'000'000u);
+  // pre_periph = PLL2 PFD2 at its reset fraction 24 (396 MHz), AHB /2.
+  CHECK(clock::running_core_hz(ClockWords{1u << 10, 1u << 18, 0, 0, kLocked | 1u, 24u << 16, 0}) == 198'000'000u);
+  // pre_periph = PLL2 (528 MHz).
+  CHECK(clock::running_core_hz(ClockWords{0, 0, 0, 0, kLocked | 1u, 0, 0}) == 528'000'000u);
+  CHECK(clock::pfd_hz(480'000'000u, 12) == 720'000'000u);
+  CHECK(clock::pfd_hz(480'000'000u, 5) == 0u);
+}

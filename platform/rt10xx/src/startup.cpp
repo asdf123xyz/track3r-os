@@ -56,6 +56,10 @@ void Default_Handler() noexcept;
 // `main` is reached through an asm label: C++ does not let a program call ::main by its own name.
 extern "C" int o3os_target_main() __asm__("main");
 
+#ifndef O3OS_RT10XX_SAFE_BOOT
+#define O3OS_RT10XX_SAFE_BOOT 0
+#endif
+
 namespace rt10xx = o3os::platform::rt10xx;
 
 // ---- Exception entry stubs ---------------------------------------------------------------------------------------------------------
@@ -153,6 +157,18 @@ extern "C" [[noreturn]] void o3os_reset_sequence() {
   boot::capture_reset_cause();
   boot::capture_boot_record();
 
+#if O3OS_RT10XX_SAFE_BOOT
+  // The safe-boot (diagnostic) image: the MPU off, the bootloader's clocks kept and measured, no SDRAM, the data cache off (USB's memory
+  // must not be cached without the MPU table). Each skipped step is a console command (`boot clocks|mpu|sdram|caches`).
+  boot::disable_memory_protection();
+  rt10xx::set_stage(rt10xx::crash::Stage::Clocks);
+  boot::enable_dwt();
+  boot::adopt_running_clocks();
+  if (boot::dcache_enabled()) {
+    boot::dcache_disable();
+  }
+  boot::init_dma();
+#else
   // 5. The MPU table.
   boot::init_memory_protection();
 
@@ -166,6 +182,7 @@ extern "C" [[noreturn]] void o3os_reset_sequence() {
   boot::init_sdram();
   boot::enable_caches();
   boot::init_dma();
+#endif
 
   // 8. Interrupts.
   rt10xx::set_stage(rt10xx::crash::Stage::Interrupts);

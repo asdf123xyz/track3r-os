@@ -41,6 +41,7 @@ endif()
 # ---- The image -------------------------------------------------------------------------------------------------------------------
 option(O3OS_RT10XX_FAULT_DRILL "Probe image: raise one deliberate UsageFault 10 s after power-up, to prove the crash record round trip on hardware (a separate image)" OFF)
 option(O3OS_RT10XX_DCACHE "Image: enable the data cache after the SDRAM tests (the SDRAM and the flash are write-back cacheable; TCMs and OCRAM are not cached). OFF for an A/B on the unit" ON)
+option(O3OS_RT10XX_SAFE_BOOT "Diagnostic image: keep the bootloader's clocks, no MPU, no SDRAM, data cache off, then USB; the skipped steps are console commands (`boot ...`)" OFF)
 option(O3OS_RT10XX_AUDIO_AUTOSTART "Image: start the audio path (muted) at boot instead of on the console's `audio start`; an A/B image for a unit whose pads are known to be right" OFF)
 option(O3OS_RT10XX_SDRAM_FULL_TEST "Image: the boot's SDRAM capacity test covers every word (several seconds) instead of every 256th; `diag sdram test full` runs it on request either way" OFF)
 
@@ -70,7 +71,8 @@ target_compile_definitions(o3os PRIVATE
   O3OS_RT10XX_FAULT_DRILL=$<BOOL:${O3OS_RT10XX_FAULT_DRILL}>
   O3OS_RT10XX_DCACHE=$<BOOL:${O3OS_RT10XX_DCACHE}>
   O3OS_RT10XX_SDRAM_FULL_TEST=$<BOOL:${O3OS_RT10XX_SDRAM_FULL_TEST}>
-  O3OS_RT10XX_AUDIO_AUTOSTART=$<BOOL:${O3OS_RT10XX_AUDIO_AUTOSTART}>)
+  O3OS_RT10XX_AUDIO_AUTOSTART=$<BOOL:${O3OS_RT10XX_AUDIO_AUTOSTART}>
+  O3OS_RT10XX_SAFE_BOOT=$<BOOL:${O3OS_RT10XX_SAFE_BOOT}>)
 # The reset sequence is the C runtime: its copy and zero loops must stay loops, not become memcpy / memset calls.
 set_source_files_properties(src/startup.cpp PROPERTIES COMPILE_OPTIONS -fno-tree-loop-distribute-patterns)
 set_target_properties(o3os PROPERTIES OUTPUT_NAME o3os SUFFIX .elf)

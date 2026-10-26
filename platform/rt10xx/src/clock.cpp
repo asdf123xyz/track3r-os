@@ -12,10 +12,11 @@
 namespace o3os::platform::rt10xx {
 namespace {
 
-constexpr std::uint32_t kReload = clock::kSysTickReload + 1u;  // counts per millisecond
-constexpr std::uint32_t kCountsPerUs = clock::kCoreHz / 1'000'000u;
 constexpr std::uint32_t kWrapRaceCounts = 64;
-static_assert(kReload == clock::kCoreHz / clock::kSysTickHz, "one reload per millisecond");
+static_assert(clock::kSysTickReload + 1u == clock::kCoreHz / clock::kSysTickHz, "one reload per millisecond");
+// SysTick counts at the core clock the boot settled on (boot::core_hz(): kCoreHz, or the bootloader's in the safe-boot image).
+std::uint32_t reload() noexcept { return boot::core_hz() / clock::kSysTickHz; }
+std::uint32_t counts_per_us() noexcept { const std::uint32_t c = boot::core_hz() / 1'000'000u; return c == 0u ? 1u : c; }
 
 volatile std::uint64_t g_uptime_ms = 0;  // written by SysTick_Handler only; read with interrupts masked
 core::Tick g_last_now = 0;               // inside now()'s critical section only
@@ -39,8 +40,8 @@ core::Tick SysTickClock::now() const noexcept {
   if (wrapped && count > kWrapRaceCounts) {
     ms += 1u;
   }
-  const std::uint32_t elapsed_counts = (kReload - 1u) - count;
-  const core::Tick candidate = ms * core::kTicksPerMs + elapsed_counts / kCountsPerUs;
+  const std::uint32_t elapsed_counts = (reload() - 1u) - count;
+  const core::Tick candidate = ms * core::kTicksPerMs + elapsed_counts / counts_per_us();
   const core::Tick result = core::tick_reached(candidate, g_last_now) ? candidate : g_last_now;
   g_last_now = result;
   irq_restore(primask);

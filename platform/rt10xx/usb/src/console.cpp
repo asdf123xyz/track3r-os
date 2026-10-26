@@ -59,6 +59,10 @@
 
 #include "o3os_build_info.h"
 
+#ifndef O3OS_RT10XX_SAFE_BOOT
+#define O3OS_RT10XX_SAFE_BOOT 0
+#endif
+
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -87,7 +91,12 @@ shell::LogRecord g_log_records[kLogRecords];
 shell::LogRing g_log;
 static_assert(sizeof(shell::LogRecord) == 64 && (kLogRecords & (kLogRecords - 1u)) == 0u, "a power-of-two number of 64-byte records");
 
-constexpr char kBanner[] = "Track3r diag - o3os " O3OS_BUILD_LABEL " (rt10xx probe, phase 3) - 'help' lists the commands";
+#if O3OS_RT10XX_SAFE_BOOT
+#define O3OS_RT10XX_PROBE_KIND ", SAFE BOOT"
+#else
+#define O3OS_RT10XX_PROBE_KIND ""
+#endif
+constexpr char kBanner[] = "Track3r diag - o3os " O3OS_BUILD_LABEL " (rt10xx probe" O3OS_RT10XX_PROBE_KIND ") - 'help' lists the commands";
 
 // ---- Output ----------------------------------------------------------------------------------------------------------------------------
 void sink_write(void*, const char* data, std::size_t n) { usb1::cdc_writer().write(data, n); }
@@ -258,7 +267,7 @@ void cmd_cpu(shell::Shell& sh, const shell::Args& a) {
     return;
   }
   const auto& c = usb1::counters();
-  sh.out().text("core clock configured ").dec(clock::kCoreHz / 1000000u).text(" MHz (IPG ").dec(clock::kIpgHz / 1000000u).text(", PERCLK ").dec(clock::kPerclkHz / 1000000u).text("), SysTick reload ").dec(clock::kSysTickReload).nl();
+  sh.out().text("core clock in use ").dec(boot::core_hz() / 1000000u).text(" MHz; configured ").dec(clock::kCoreHz / 1000000u).text(" MHz (IPG ").dec(clock::kIpgHz / 1000000u).text(", PERCLK ").dec(clock::kPerclkHz / 1000000u).text("), SysTick reload ").dec(clock::kSysTickReload).nl();
   sh.out().text("cycles per USB frame (the host's 1 ms): ").dec(c.sof_cycles).text(" -> about ").dec(c.sof_cycles / 1000u).text(" MHz measured against the host\n");
   sh.out().text("uptime ").dec(uptime_ms32()).text(" ms, cycle counter ").hex(regs::dwt_cyccnt()).nl();
   if (audio_running()) {  // phase 3: the audio path's figures (audio/diag.h, the MK66's `cpu` lines) once blocks run
@@ -851,6 +860,65 @@ void cmd_fw(shell::Shell& sh, const shell::Args& a) {
   }
 }
 
+// ---- `clocks` and `boot` (the safe-boot diagnostic): the clock tree as the board runs it, and the reset sequence's skipped steps on command.
+// Each step is logged BEFORE it runs: if the unit stops answering, the log and the crash stage (after a reset, if the DTCM holds) name it.
+void cmd_clocks(shell::Shell& sh, const shell::Args&) {
+  struct Word {
+    const char* name;
+    std::uintptr_t address;
+  };
+  constexpr Word kWords[] = {
+      {"CCM_CACRR", 0x400FC010u},  {"CCM_CBCDR", 0x400FC014u},  {"CCM_CBCMR", 0x400FC018u},  {"CCM_CSCMR1", 0x400FC01Cu}, {"CCM_CSCMR2", 0x400FC020u},
+      {"CCM_CSCDR1", 0x400FC024u}, {"CCM_CS1CDR", 0x400FC028u}, {"CCM_CSCDR2", 0x400FC038u}, {"CCM_CCGR0", 0x400FC068u},  {"CCM_CCGR1", 0x400FC06Cu},
+      {"CCM_CCGR2", 0x400FC070u},  {"CCM_CCGR3", 0x400FC074u},  {"CCM_CCGR4", 0x400FC078u},  {"CCM_CCGR5", 0x400FC07Cu},  {"CCM_CCGR6", 0x400FC080u},
+      {"PLL_ARM", 0x400D8000u},    {"PLL_USB1", 0x400D8010u},   {"PLL_SYS", 0x400D8030u},    {"PLL_AUDIO", 0x400D8070u},  {"PFD_480", 0x400D80F0u},
+      {"PFD_528", 0x400D8100u},    {"PMU_3P0", 0x400D8120u},    {"DCDC_REG0", 0x40080000u},  {"DCDC_REG3", 0x4008000Cu},  {"MPU_CTRL", 0xE000ED94u},
+      {"SCB_CCR", 0xE000ED14u},    {"GPR16", 0x400AC040u},      {"GPR17", 0x400AC044u},
+  };
+  for (const Word& w : kWords) {
+    sh.out().text(w.name).text(" ").hex(regs::at<std::uint32_t>(w.address)).nl();
+  }
+  sh.out().text("core clock in use ").dec(boot::core_hz() / 1000u).text(" kHz (").text(O3OS_RT10XX_SAFE_BOOT ? "safe boot: the bootloader's, measured from the CCM" : "this port's tree")
+      .text("), FlexSPI root select ").dec((regs::at<std::uint32_t>(0x400FC01Cu) >> 29) & 3u).text(" (1 PLL3, 3 PLL3 PFD0, 2 PLL2 PFD2, 0 semc_clk_root_pre)\n");
+}
+
+bool g_booted_mpu = !O3OS_RT10XX_SAFE_BOOT;
+void cmd_boot(shell::Shell& sh, const shell::Args& a) {
+  if (a.argc != 2) {
+    sh.out().text("usage: boot mpu | clocks | sdram | caches   (the reset sequence's steps the safe-boot image skipped; each is logged first)\n");
+    return;
+  }
+  const char* step = a.argv[1];
+  sh.out().text("boot ").text(step).text(": running...\n");
+  sh.out().flush();
+  usb1::kick();
+  boot::delay_ms(20);
+  if (same(step, "mpu")) {
+    log("boot step: mpu");
+    boot::init_memory_protection();
+    g_booted_mpu = true;
+  } else if (same(step, "clocks")) {
+    log("boot step: clocks");
+    boot::init_clocks();
+    boot::start_systick();  // the tick at the new core clock
+  } else if (same(step, "sdram")) {
+    log("boot step: sdram");
+    boot::init_sdram();
+  } else if (same(step, "caches")) {
+    if (!g_booted_mpu) {
+      sh.out().text("boot caches: refused, run `boot mpu` first (USB's memory must be non-cacheable)\n");
+      return;
+    }
+    log("boot step: caches");
+    boot::enable_caches();
+  } else {
+    sh.out().text("boot: unknown step\n");
+    return;
+  }
+  log("boot step: survived");
+  sh.out().text("boot ").text(step).text(": done, the unit is still here (core ").dec(boot::core_hz() / 1000000u).text(" MHz)\n");
+}
+
 void cmd_drill(shell::Shell& sh, const shell::Args&) {
   sh.out().text("raising a UsageFault now: the unit resets, `crash` shows the record after\n");
   sh.out().flush();
@@ -888,6 +956,8 @@ constexpr shell::Command kCommands[] = {
     shell::command("i2c", "i2c scan <1|3|4>: the addresses that answer on LPI2Cn (candidate pads)", &cmd_i2c),
     shell::command("input", "input [start [pad control] | encoder <port> <a> <b> | leds <0..255>]: keys, pads, encoder, pad LEDs (start without a pad bus probes and muxes every candidate bus)", &cmd_input),
     shell::command("fw", "fw [check <name> | arm <name> | update <token> | clear]: the Tracker+ update path", &cmd_fw),
+    shell::command("clocks", "the clock tree's registers as the board runs them, and the core clock in use", &cmd_clocks),
+    shell::command("boot", "boot mpu|clocks|sdram|caches: run a reset step the safe-boot image skipped", &cmd_boot),
     shell::command("drill", "one deliberate UsageFault: the crash record round trip", &cmd_drill),
     shell::command("reset", "restart the unit (SYSRESETREQ)", &cmd_reset),
 };

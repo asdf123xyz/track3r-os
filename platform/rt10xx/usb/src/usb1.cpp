@@ -118,7 +118,8 @@ void Hw::controller_reinit() noexcept {
 
 bool start() noexcept {
   g_failure = "";
-  // The unique id, for the serial (the OCOTP's clock gate is the boot ROM's, left on; read-only registers).
+  // The unique id, for the serial. The OCOTP's clock gate is opened first: a bootloader that closed it would make the read a bus fault.
+  regs::at<std::uint32_t>(soc::kCcgr2) = regs::at<std::uint32_t>(soc::kCcgr2) | soc::kCcgr2Ocotp;
   hex16(at<std::uint32_t>(soc::kOcotpCfg1), at<std::uint32_t>(soc::kOcotpCfg0), g_serial);
 
   // The descriptors and the control pipe: STANDARD mode, full speed, no USB RETURN (there is no audio yet).
@@ -139,12 +140,30 @@ bool start() noexcept {
   // The clocks: the USB controller's gate, then PLL3's USB clock output (the PLL itself is already running: the FlexSPI the code runs from
   // takes its clock from PLL3's PFD0, so it is enabled, powered and not bypassed; the SET alias adds the USB clock without touching the rest).
   regs::ccm_ccgr6() = regs::ccm_ccgr6() | regs::kCcgr6Usboh3;
+  // The 3.0 V regulator of the PHY on, the charger detection off (it loads the data lines), as the proven RT10xx sequences do.
+  at<std::uint32_t>(soc::kPmuReg3p0) = soc::kPmuReg3p0Value;
+  at<std::uint32_t>(soc::kUsb1ChrgDetectSet) = soc::kChrgDetectOff;
   at<std::uint32_t>(soc::kPllUsb1 + 4u) = soc::kPllUsb1EnUsbClks | soc::kPllUsb1Power | soc::kPllUsb1Enable;
   if (!wait_until([] { return (at<std::uint32_t>(soc::kPllUsb1) & soc::kPllUsb1Lock) != 0u; })) {
     g_failure = "pll3 lock";
     return false;
   }
-  // The PHY: out of soft reset and clock gating, powered up, the UTMI levels on (RM "USB PHY" initialisation).
+  if ((at<std::uint32_t>(soc::kPllUsb1) & soc::kPllUsb1Bypass) != 0u) {
+    // A bypassed PLL3 gives the PHY 24 MHz, not 480. Taken out of bypass unless the FlexSPI the code runs from is clocked from it.
+    const std::uint32_t flexspi_sel = (at<std::uint32_t>(soc::kCscmr1) >> 29) & 3u;
+    if (flexspi_sel == 1u || flexspi_sel == 3u) {
+      g_failure = "pll3 bypassed under the FlexSPI";
+      return false;
+    }
+    at<std::uint32_t>(soc::kPllUsb1 + 8u) = soc::kPllUsb1Bypass;
+  }
+  // The PHY held in soft reset while the controller resets (whatever the bootloader left running), then out of reset and clock gating,
+  // powered up, the UTMI levels on (RM "USB PHY" initialisation).
+  at<std::uint32_t>(soc::kPhyCtrl + 4u) = soc::kPhyCtrlSoftReset;
+  at<std::uint32_t>(soc::kUsbcmd) = at<std::uint32_t>(soc::kUsbcmd) & ~soc::kCmdRunStop;
+  at<std::uint32_t>(soc::kUsbcmd) = soc::kCmdReset;
+  (void)wait_until([] { return (at<std::uint32_t>(soc::kUsbcmd) & soc::kCmdReset) == 0u; });
+  regs::nvic_icpr(kIrqLine / 32u) = 1u << (kIrqLine % 32u);
   at<std::uint32_t>(soc::kPhyCtrl + 8u) = soc::kPhyCtrlSoftReset;
   at<std::uint32_t>(soc::kPhyCtrl + 8u) = soc::kPhyCtrlClockGate;
   at<std::uint32_t>(soc::kPhyPwd) = 0u;

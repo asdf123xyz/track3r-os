@@ -293,9 +293,26 @@ void init_interrupts() noexcept {
   asm volatile("dsb\n\tisb" ::: "memory");
 }
 
+std::uint32_t core_hz() noexcept { return g_core_hz; }
+
+// The safe-boot image: the clock the bootloader left, read from the CCM, becomes the delays' and SysTick's clock.
+void adopt_running_clocks() noexcept {
+  using namespace regs;
+  const clock::ClockWords w{ccm_cbcdr(), ccm_cbcmr(), ccm_cacrr(), pll_arm(), at<std::uint32_t>(0x400D8030u), at<std::uint32_t>(0x400D8100u),
+                            at<std::uint32_t>(0x400D8010u)};
+  const std::uint32_t hz = clock::running_core_hz(w);
+  g_core_hz = hz >= 1'000'000u ? hz : clock::kBootHz;
+}
+
+void disable_memory_protection() noexcept {
+  asm volatile("dmb" ::: "memory");
+  regs::mpu_ctrl() = 0;
+  asm volatile("dsb\n\tisb" ::: "memory");
+}
+
 void start_systick() noexcept {
   using namespace regs;
-  syst_rvr() = clock::kSysTickReload;
+  syst_rvr() = g_core_hz / clock::kSysTickHz - 1u;
   syst_cvr() = 0;
   syst_csr() = kSystCsrEnable | kSystCsrTickint | kSystCsrClksource;
 }

@@ -74,4 +74,51 @@ static_assert(kPerclkHz == 75'000'000u, "PERCLK 75 MHz");
 static_assert(kSysTickReload <= 0x00FFFFFFu, "the SysTick reload fits 24 bits");
 static_assert(kCoreHz % 1'000'000u == 0u, "whole counts per microsecond (clock.cpp)");
 
+// ---- The clock the core runs at, read from the CCM (OS-PORT-RT10XX: the safe-boot image runs on the bootloader's clocks) ------------
+// The AHB (core) clock from the words as they are: PERIPH_CLK_SEL picks periph_clk2 (PLL3, the oscillator or PLL2's bypass, divided by
+// PERIPH_CLK2_PODF + 1) or pre_periph (PRE_PERIPH_CLK_SEL: PLL2, PLL2 PFD2, PLL2 PFD0, or the ARM PLL divided by ARM_PODF + 1); then
+// AHB_PODF + 1. A PLL that is not locked, powered down or bypassed counts as the oscillator. Sources: the RM's "CCM" clock tree.
+struct ClockWords {
+  std::uint32_t cbcdr;    // CCM_CBCDR
+  std::uint32_t cbcmr;    // CCM_CBCMR
+  std::uint32_t cacrr;    // CCM_CACRR
+  std::uint32_t pll_arm;  // CCM_ANALOG_PLL_ARM
+  std::uint32_t pll_sys;  // CCM_ANALOG_PLL_SYS (PLL2)
+  std::uint32_t pfd_528;  // CCM_ANALOG_PFD_528
+  std::uint32_t pll_usb1; // CCM_ANALOG_PLL_USB1 (PLL3)
+};
+constexpr bool pll_running(std::uint32_t word) noexcept {
+  return (word & (1u << 31)) != 0u && (word & ((1u << 12) | (1u << 16))) == 0u;  // LOCK, not POWERDOWN, not BYPASS
+}
+constexpr std::uint32_t pfd_hz(std::uint32_t pll_hz, std::uint32_t frac) noexcept {
+  return frac < 12u || frac > 35u ? 0u : static_cast<std::uint32_t>(static_cast<std::uint64_t>(pll_hz) * 18u / frac);
+}
+constexpr std::uint32_t running_core_hz(const ClockWords& w) noexcept {
+  const std::uint32_t pll2 = pll_running(w.pll_sys) ? ((w.pll_sys & 1u) != 0u ? 528'000'000u : 480'000'000u) : kCrystalHz;
+  const std::uint32_t pll3 = pll_running(w.pll_usb1) ? 480'000'000u : kCrystalHz;
+  std::uint32_t periph = 0;
+  if ((w.cbcdr & (1u << 25)) != 0u) {
+    const std::uint32_t sel = (w.cbcmr >> 12) & 3u;
+    const std::uint32_t src = sel == 0u ? pll3 : (sel == 3u ? 0u : kCrystalHz);
+    periph = src / (((w.cbcdr >> 27) & 7u) + 1u);
+  } else {
+    const std::uint32_t sel = (w.cbcmr >> 18) & 3u;
+    if (sel == 0u) {
+      periph = pll2;
+    } else if (sel == 1u) {
+      periph = pfd_hz(pll2, (w.pfd_528 >> 16) & 0x3Fu);
+    } else if (sel == 2u) {
+      periph = pfd_hz(pll2, w.pfd_528 & 0x3Fu);
+    } else {
+      const std::uint32_t arm = pll_running(w.pll_arm) ? kCrystalHz * (w.pll_arm & 0x7Fu) / 2u : kCrystalHz;
+      periph = arm / ((w.cacrr & 7u) + 1u);
+    }
+  }
+  return periph / (((w.cbcdr >> 10) & 7u) + 1u);
+}
+// This port's own tree reads back as kCoreHz.
+static_assert(running_core_hz(ClockWords{(kAhbPodf << 10) | (kIpgPodf << 8), kPrePeriphClkSel << 18, kArmPodf, (1u << 31) | (1u << 13) | kArmPllDivSelect,
+                                         0, 0, 0}) == kCoreHz,
+              "the target tree reads back as the core clock");
+
 }  // namespace o3os::platform::rt10xx::clock

@@ -56,6 +56,10 @@ int main() {
   namespace console = rt10xx::console;
   console::init_log();
   console::log("boot: main reached");
+#if defined(O3OS_RT10XX_SAFE_BOOT) && O3OS_RT10XX_SAFE_BOOT
+  console::log("boot: SAFE BOOT (bootloader clocks, no MPU, no SDRAM)");
+  console::log_dec("boot: core kHz", rt10xx::boot::core_hz() / 1000u);
+#endif
   g_reset_sources = rt10xx::boot_info().reset_sources;
   console::log_hex("boot: reset sources", g_reset_sources);
   if (const rt10xx::crash::CrashRecord* record = rt10xx::boot_crash_record()) {
