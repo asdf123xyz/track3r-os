@@ -1,0 +1,190 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later
+ *
+ * Linker script template for the rt10xx image (OS-PORT-RT10XX, the Tracker+). Do not edit the generated rt10xx.ld: tools/gen_ld.py
+ * (platform/mk66/tools, chip-neutral) replaces every placeholder below (a constant's name between two at-signs) with the value of that
+ * constant in include/o3os/platform/rt10xx/mem_map.h, the single source of the memory map, and refuses a name the header does not
+ * define or a placeholder left over; platform/rt10xx/tools/check_ld.py checks the result against the header.
+ *
+ * Regions:
+ *   FLASH         the image's part of the FlexSPI NOR: from 0x6003_0000 (below it the bootloader, never touched) to the 8 MiB the
+ *                 bootloader is known to program. Vector table at the image base (VTOR), code and constants, then the load images of
+ *                 .ramfunc_l and .data, each starting where the one before ends: one contiguous run with no hole (asserted at the end;
+ *                 the .ptf tool and the image check back it up).
+ *   ITCM          hot code (`.ramfunc_l`, the MK66 name the audio layer uses) and the audio taps' data (`.tapmem_l`, NOLOAD). The top
+ *                 32 KiB is the module slab (ADR 0002) and is not in the region, so nothing else can land in it.
+ *   DTCM          352 KiB: .noinit (the crash record first), the fault stack, the DMA rings, .data, .bss; the main stack grows down
+ *                 from the top, 0x2005_8000.
+ *   OCRAM         32 KiB: objects every bus master must reach (`.noinit_ocram`), not cached (mpu_config.h).
+ *   SDRAM_STATIC  the 1 MiB slack window at the top of the 64 MiB SDRAM map: objects placed in `.noinit_sdram`. The SDRAM controller
+ *                 is not set up by the phase-1 image: nothing may be placed here until phase 2 (the build reports the use).
+ *
+ * The `.bss.noinit...` input-section rule and the `.noinit*`-before-`.bss` order are the MK66 script's (platform/mk66/mk66.ld.in).
+ */
+
+ENTRY(Reset_Handler)
+
+MEMORY
+{
+  FLASH        (rx)  : ORIGIN = @kImageBase@, LENGTH = @kImageMaxSize@
+  ITCM         (rwx) : ORIGIN = @kItcmBase@, LENGTH = @kRamfuncSize@
+  DTCM         (rw)  : ORIGIN = @kDtcmBase@, LENGTH = @kDtcmSize@
+  OCRAM        (rw)  : ORIGIN = @kOcramBase@, LENGTH = @kOcramSize@
+  SDRAM_STATIC (rw)  : ORIGIN = @kSdramSlackBase@, LENGTH = @kSdramSlackSize@
+}
+
+PHDRS
+{
+  text    PT_LOAD FLAGS(5);
+  ramfunc PT_LOAD FLAGS(5);
+  data    PT_LOAD FLAGS(6);
+}
+
+SECTIONS
+{
+  .text :
+  {
+    KEEP(*(.vectors))
+    ASSERT(. - ADDR(.text) == @kVectorTableBytes@, "the vector table is not the size mem_map.h says (kVectorTableBytes)");
+    *(.text .text.* .gnu.linkonce.t.*)
+    *(.glue_7 .glue_7t .vfp11_veneer .v4_bx)
+    *(.rodata .rodata.* .gnu.linkonce.r.*)
+    . = ALIGN(4);
+  } > FLASH :text =0xFF
+
+  .ARM.extab : { *(.ARM.extab* .gnu.linkonce.armextab.*) } > FLASH :text
+
+  .ARM.exidx :
+  {
+    __exidx_start = .;
+    *(.ARM.exidx* .gnu.linkonce.armexidx.*)
+    __exidx_end = .;
+  } > FLASH :text
+
+  .preinit_array : { . = ALIGN(4); __preinit_array_start = .; KEEP(*(.preinit_array*)) __preinit_array_end = .; } > FLASH :text
+  .init_array    : { . = ALIGN(4); __init_array_start = .;    KEEP(*(SORT(.init_array.*))) KEEP(*(.init_array*)) __init_array_end = .; } > FLASH :text
+  .fini_array    : { . = ALIGN(4); __fini_array_start = .;    KEEP(*(SORT(.fini_array.*))) KEEP(*(.fini_array*)) __fini_array_end = .; } > FLASH :text
+
+  /* Hot code, linked at the ITCM, loaded from flash and copied by the reset sequence. */
+  .ramfunc_l : ALIGN(4)
+  {
+    __ramfunc_l_start = .;
+    *(.ramfunc_l .ramfunc_l.*)
+    . = ALIGN(4);
+    __ramfunc_l_end = .;
+  } > ITCM AT > FLASH :ramfunc
+  __ramfunc_l_load = LOADADDR(.ramfunc_l);
+
+  .tapmem_l (NOLOAD) : ALIGN(8)
+  {
+    __tapmem_l_start = .;
+    *(.bss.tap_mem_l .bss.tap_mem_l.*)
+    . = ALIGN(8);
+    __tapmem_l_end = .;
+  } > ITCM :NONE
+
+  /* Bottom of the DTCM: what survives a reset. The crash record block is first. */
+  .noinit (NOLOAD) : ALIGN(8)
+  {
+    __noinit_start = .;
+    KEEP(*(.bss.noinit.crash))
+    ASSERT(. - __noinit_start == @kCrashBlockSize@, "the crash block must be exactly kCrashBlockSize bytes, first in .noinit");
+    *(.bss.noinit .bss.noinit.*)
+    . = ALIGN(8);
+    __noinit_end = .;
+  } > DTCM :NONE
+
+  /* Objects every bus master must reach: in the OCRAM, not initialised, not cleared. */
+  .noinit_ocram (NOLOAD) : ALIGN(32)
+  {
+    __ocram_static_start = .;
+    *(.bss.noinit_ocram .bss.noinit_ocram.*)
+    . = ALIGN(32);
+    __ocram_static_end = .;
+  } > OCRAM :NONE
+
+  /* Objects in the SDRAM slack window: undefined until written. Listed before .bss. */
+  .noinit_sdram (NOLOAD) : ALIGN(32)
+  {
+    __sdram_static_start = .;
+    *(.bss.noinit_sdram .bss.noinit_sdram.*)
+    . = ALIGN(32);
+    __sdram_static_end = .;
+  } > SDRAM_STATIC :NONE
+
+  .fault_stack (NOLOAD) : ALIGN(8)
+  {
+    . += @kFaultStackSize@;
+    __fault_stack_top = .;
+  } > DTCM :NONE
+
+  .dma_rings (NOLOAD) : ALIGN(@kDmaRingAlign@)
+  {
+    __dma_rings_start = .;
+    *(.bss.dma_rings .bss.dma_rings.*)
+    . = ALIGN(8);
+    __dma_rings_end = .;
+  } > DTCM :NONE
+
+  .data : AT(LOADADDR(.ramfunc_l) + SIZEOF(.ramfunc_l)) ALIGN(8)
+  {
+    __data_start = .;
+    *(.data .data.* .gnu.linkonce.d.*)
+    . = ALIGN(8);
+    __data_end = .;
+  } > DTCM :data
+  __data_load = LOADADDR(.data);
+
+  .bss : AT(LOADADDR(.data) + SIZEOF(.data)) ALIGN(8)
+  {
+    __bss_start = .;
+    *(.bss .bss.* COMMON .gnu.linkonce.b.*)
+    . = ALIGN(8);
+    __bss_end = .;
+  } > DTCM :data
+
+  __stack_top = ORIGIN(DTCM) + LENGTH(DTCM);
+  __stack_limit = __stack_top - @kStackSize@;
+
+  ASSERT(__bss_end <= __stack_limit, "DTCM overflow: .data, .bss and .noinit leave no room for the main stack")
+  ASSERT(__stack_top == 0x20058000, "initial SP must be the end of the DTCM, 0x20058000")
+  ASSERT(__dma_rings_start % @kDmaRingAlign@ == 0, "the DMA rings must start on their alignment (the eDMA address modulo)")
+  ASSERT(__ramfunc_l_end <= @kModuleSlabBase@, "hot code overruns into the module slab at the top of the ITCM")
+  ASSERT(__tapmem_l_end <= @kModuleSlabBase@, "the tap data overruns into the module slab at the top of the ITCM")
+  ASSERT(__ramfunc_l_end - __ramfunc_l_start <= @kItcmHotBudget@, "hot code exceeds its ITCM budget (mem_map.h kItcmHotBudget)")
+  ASSERT(__tapmem_l_end - __tapmem_l_start <= @kItcmDataBudget@, "the tap data exceeds its ITCM budget (mem_map.h kItcmDataBudget)")
+  ASSERT(__stack_limit - __bss_end >= @kDtcmMinFree@, "DTCM: less than kDtcmMinFree free between .bss and the stack")
+  ASSERT(__ramfunc_l_load % 4 == 0 && __data_load % 4 == 0, "the load images are copied a word at a time: 4-byte aligned")
+  ASSERT(__sdram_static_end == __sdram_static_start, "phase 1: nothing may be placed in the SDRAM before the SEMC is set up (phase 2)")
+
+  .iplt     : { *(.iplt) }     > FLASH :text
+  .rel.iplt : { *(.rel.iplt) } > FLASH :text
+  .igot.plt : { *(.igot.plt) } > FLASH :text
+  ASSERT(SIZEOF(.iplt) == 0 && SIZEOF(.rel.iplt) == 0 && SIZEOF(.igot.plt) == 0, "indirect-function (ifunc) stubs in a static image")
+
+  .ARM.attributes 0 : { *(.ARM.attributes) }
+  .debug_aranges 0 : { *(.debug_aranges) }
+  .debug_pubnames 0 : { *(.debug_pubnames) }
+  .debug_info 0 : { *(.debug_info .gnu.linkonce.wi.*) }
+  .debug_abbrev 0 : { *(.debug_abbrev) }
+  .debug_line 0 : { *(.debug_line .debug_line.* .debug_line_end) }
+  .debug_frame 0 : { *(.debug_frame) }
+  .debug_str 0 : { *(.debug_str) }
+  .debug_loc 0 : { *(.debug_loc) }
+  .debug_macinfo 0 : { *(.debug_macinfo) }
+  .debug_pubtypes 0 : { *(.debug_pubtypes) }
+  .debug_ranges 0 : { *(.debug_ranges) }
+  .debug_macro 0 : { *(.debug_macro) }
+  .debug_addr 0 : { *(.debug_addr) }
+  .debug_line_str 0 : { *(.debug_line_str) }
+  .debug_loclists 0 : { *(.debug_loclists) }
+  .debug_rnglists 0 : { *(.debug_rnglists) }
+  .debug_str_offsets 0 : { *(.debug_str_offsets) }
+  .debug_names 0 : { *(.debug_names) }
+  /DISCARD/ : { *(.comment) }
+
+  __image_end = LOADADDR(.data) + SIZEOF(.data);
+
+  ASSERT(SIZEOF(.text) + SIZEOF(.ARM.extab) + SIZEOF(.ARM.exidx) + SIZEOF(.preinit_array) + SIZEOF(.init_array) +
+         SIZEOF(.fini_array) + SIZEOF(.ramfunc_l) + SIZEOF(.data) == __image_end - ORIGIN(FLASH),
+         "the flash image has a hole (an alignment gap between two load images): the .ptf must be one contiguous run")
+}

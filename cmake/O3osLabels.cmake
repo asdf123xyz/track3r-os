@@ -52,6 +52,7 @@ set(O3OS_LABEL_RULES
   "^audio_bench_smoke$" "audio"
   "^seq_bench_smoke$" "seq"
   "^mk66_" "platform"
+  "^rt10xx_" "platform"              # OS-PORT-RT10XX: the Tracker+ platform's pure parts and its image tools (platform/rt10xx)
   "^o3sim_manual_images$" "app,manual,slow"  # OS-MANUALIMG: the manual's screenshots against a fresh render
   "^manual_diagrams$" "static,manual"   # OS-MANUALDIAG: the manual's SVG diagrams against the bindings, the boot chords and the audio graph
   "^legibility_" "app,e2e"              # OS-E2E-5: the legibility sweep, sharded like the gallery; on demand (tools/ci.sh e2e), not in `ci.sh host` nor on GitHub

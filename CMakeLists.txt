@@ -14,6 +14,10 @@
 #              -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake/mk66-toolchain.cmake -DARM_GNU_ROOT=<arm-gnu-toolchain dir>
 #          cmake --build build-os-qemu && ctest --test-dir build-os-qemu     (OS-007a: the unit-test suites
 #                                            cross-built for the Cortex-M4F and run on QEMU mps2-an386)
+#   rt10xx: cmake -S . -B build-os-rt10xx -DO3OS_PLATFORM=rt10xx \
+#              -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake/rt10xx-toolchain.cmake -DARM_GNU_ROOT=<arm-gnu-toolchain dir>
+#          cmake --build build-os-rt10xx && ctest --test-dir build-os-rt10xx  (OS-PORT-RT10XX: the Tracker+ port, Cortex-M7;
+#                                            platform/rt10xx builds the probe image o3os.elf/.hex/.bin/.ptf behind its static checks)
 #
 # Layering (enforced by CMake link dependencies and tools/check_layers.py):
 #   core <- usb <- hal <- eve <- ui <- app;  platform/<name> and sim implement the HAL contracts.
@@ -21,31 +25,36 @@
 #   formats/wav (OS-002c) is a library of its own in the formats layer: core only.
 cmake_minimum_required(VERSION 3.20)
 
-set(O3OS_PLATFORM "host" CACHE STRING "Target platform: host, mk66 or qemu")
-set_property(CACHE O3OS_PLATFORM PROPERTY STRINGS host mk66 qemu)
-if(NOT O3OS_PLATFORM MATCHES "^(host|mk66|qemu)$")
-  message(FATAL_ERROR "O3OS_PLATFORM must be 'host', 'mk66' or 'qemu' (got '${O3OS_PLATFORM}')")
+set(O3OS_PLATFORM "host" CACHE STRING "Target platform: host, mk66, qemu or rt10xx")
+set_property(CACHE O3OS_PLATFORM PROPERTY STRINGS host mk66 qemu rt10xx)
+if(NOT O3OS_PLATFORM MATCHES "^(host|mk66|qemu|rt10xx)$")
+  message(FATAL_ERROR "O3OS_PLATFORM must be 'host', 'mk66', 'qemu' or 'rt10xx' (got '${O3OS_PLATFORM}')")
 endif()
 
 # mk66 and qemu are both bare-metal Cortex-M4F cross builds with the same flags (the QEMU target tests, OS-007a, run
-# the MK66's code generation on a model of the same core).
-if(O3OS_PLATFORM MATCHES "^(mk66|qemu)$")
+# the MK66's code generation on a model of the same core). rt10xx (OS-PORT-RT10XX: the Tracker+, an i.MX RT10xx Cortex-M7) is
+# a bare-metal cross build with its own toolchain file.
+if(O3OS_PLATFORM MATCHES "^(mk66|qemu|rt10xx)$")
   set(O3OS_CROSS TRUE)
 else()
   set(O3OS_CROSS FALSE)
 endif()
 
-# The cross builds use cmake/mk66-toolchain.cmake (arm-none-eabi; the compiler is found through ARM_GNU_ROOT or PATH, see
-# cmake/arm-none-eabi-toolchain.cmake). It must be set before project().
+# The cross builds use cmake/mk66-toolchain.cmake, or cmake/rt10xx-toolchain.cmake for the Cortex-M7 (both arm-none-eabi; the
+# compiler is found through ARM_GNU_ROOT or PATH, see cmake/arm-none-eabi-toolchain.cmake). It must be set before project().
 if(O3OS_CROSS AND NOT CMAKE_TOOLCHAIN_FILE)
-  set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_LIST_DIR}/cmake/mk66-toolchain.cmake")
+  if(O3OS_PLATFORM STREQUAL "rt10xx")
+    set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_LIST_DIR}/cmake/rt10xx-toolchain.cmake")
+  else()
+    set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_LIST_DIR}/cmake/mk66-toolchain.cmake")
+  endif()
 endif()
 
 # C as well as C++ (OS-007e): the one C file in the tree is the vendored FatFs (third_party/fatfs); everything first-party is C++.
 project(o3os VERSION 0.1.0 LANGUAGES C CXX)
 
 if(O3OS_CROSS AND NOT CMAKE_SYSTEM_NAME STREQUAL "Generic")
-  message(FATAL_ERROR "O3OS_PLATFORM=${O3OS_PLATFORM} needs an arm-none-eabi toolchain file (cmake/mk66-toolchain.cmake)")
+  message(FATAL_ERROR "O3OS_PLATFORM=${O3OS_PLATFORM} needs an arm-none-eabi toolchain file (cmake/mk66-toolchain.cmake or cmake/rt10xx-toolchain.cmake)")
 endif()
 
 option(O3OS_SANITIZE "Host only: build everything with AddressSanitizer + UBSan" OFF)
@@ -145,6 +154,11 @@ endif()
 # adds the directory above.
 if(NOT O3OS_PLATFORM STREQUAL "mk66")
   add_subdirectory(platform/mk66)
+endif()
+# OS-PORT-RT10XX: the same for the Tracker+ platform's pure parts (memory map, FlexRAM and MPU words, clock values, image facts); the
+# probe image itself is built only with -DO3OS_PLATFORM=rt10xx, which adds the directory above.
+if(NOT O3OS_PLATFORM STREQUAL "rt10xx")
+  add_subdirectory(platform/rt10xx)
 endif()
 
 # OS-007a: tests/ registers each library's target suite (see tests/CMakeLists.txt and README.md).

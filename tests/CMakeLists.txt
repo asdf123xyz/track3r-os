@@ -203,6 +203,9 @@ set(oracle_sources ${CMAKE_CURRENT_SOURCE_DIR}/support/open303_ref.cpp)
 # OS-007b: the MK66 platform's pure-part tests live beside the code (and also run on QEMU, see above; the screenshot service test is host only).
 file(GLOB mk66_test_sources CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/platform/mk66/tests/*_test.cpp)
 list(APPEND test_sources ${mk66_test_sources})
+# OS-PORT-RT10XX: the Tracker+ platform's pure-part tests, the same way (host only so far: no QEMU model of the Cortex-M7 is set up).
+file(GLOB rt10xx_test_sources CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/platform/rt10xx/tests/*_test.cpp)
+list(APPEND test_sources ${rt10xx_test_sources})
 # The oracle wrapper includes the original's 2009 headers (double arithmetic, implicit conversions everywhere): no warnings for that one file.
 set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/support/open303_ref.cpp PROPERTIES COMPILE_FLAGS "-w")
 add_executable(o3os_tests ${test_sources} ${support_sources} ${oracle_sources})
@@ -213,6 +216,7 @@ target_link_libraries(o3os_tests PRIVATE
   $<$<TARGET_EXISTS:app>:app>
   $<$<TARGET_EXISTS:sim>:sim>
   $<$<TARGET_EXISTS:platform_mk66_pure>:platform_mk66_pure>
+  $<$<TARGET_EXISTS:platform_rt10xx_pure>:platform_rt10xx_pure>
   $<$<TARGET_EXISTS:eve_riedel_oracle>:eve_riedel_oracle>
   Threads::Threads)
 o3os_strict_warnings(o3os_tests)
@@ -311,6 +315,10 @@ set_tests_properties(translate_fallback PROPERTIES TIMEOUT 120 FAIL_REGULAR_EXPR
 # them; these cases pin the numbers.
 add_test(NAME mk66_memmap COMMAND ${runner} $<TARGET_FILE:o3os_tests> "--test-case=mk66 mem_map*,mem_map x model*")
 set_tests_properties(mk66_memmap PROPERTIES TIMEOUT 60 FAIL_REGULAR_EXPRESSION "test cases: +0 ")
+# OS-PORT-RT10XX: the Tracker+ platform's pure parts as their own verdict (platform/rt10xx/tests: the memory map, the FlexRAM and MPU words,
+# the clock tree, the image facts). The cases also run inside unit_rest; this line makes a change of the port visible on its own.
+add_test(NAME rt10xx_pure COMMAND ${runner} $<TARGET_FILE:o3os_tests> "--test-case=rt10xx *")
+set_tests_properties(rt10xx_pure PROPERTIES TIMEOUT 60 FAIL_REGULAR_EXPRESSION "test cases: +0 ")
 
 # OS-003d, the plot library (ui/plot): its unit groups run on their own so that the verdict is its own line in the ctest
 # summary: the kernels (peak cache, FFT, math), the drawing (wave, curve, spectrum, meters, scope, the renderer's raw

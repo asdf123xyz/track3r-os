@@ -17,6 +17,11 @@ Verified locally:
 | `arm-none-eabi-objcopy` | GNU objcopy 2.45.1.20260126 |
 | `arm-none-eabi-size` | GNU size 2.45.1.20260126 |
 
+The same toolchain builds the Tracker+ port (OS-PORT-RT10XX, `platform/rt10xx`) with `cmake/rt10xx-toolchain.cmake`, which only changes the
+CPU flags to the Cortex-M7's (`-mcpu=cortex-m7 -mfpu=fpv5-sp-d16 -mfloat-abi=hard`): `tools/ci.sh rt10xx`, or the cmake line in the
+root `CMakeLists.txt` header. Phase 1 of the port was first compiled with Ubuntu's `gcc-arm-none-eabi` 13.2 (Arm GNU Toolchain 13.2.Rel1);
+the pinned 15.3 release is the one `tools/ci.sh` checks for.
+
 Use it by adding the local `bin` directory to `PATH`, for example:
 
 ```sh

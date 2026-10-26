@@ -12,6 +12,8 @@
 #   tools/ci.sh mk66           cross-build the MK66 libraries and the skeleton image, ctest (the image's static checks); then the tone
 #                                 image (-DO3OS_AUDIO_TEST=ON, build only: it compiles different code and must not rot)
 #                                 and the bench image (-DO3OS_BENCH=ON, OS-BENCHOPT, build only; the default image carries no bench code)
+#   tools/ci.sh rt10xx         OS-PORT-RT10XX: cross-build the libraries and the Tracker+ probe image for the Cortex-M7 (platform/rt10xx),
+#                                 ctest (the image's static checks and the .ptf)
 #   tools/ci.sh goldens        the host build as for `host`, then only the target update_goldens: rewrites sim/goldens.txt and the PNGs
 #                                 (O3OS_GOLDEN_ONLY narrows it; no ctest). For the remote machine: tools/remote_ci.sh brings both back
 #   tools/ci.sh fingerprints   the host build as for `host`, then only the target update_audio_fingerprints: rewrites tests/audio_fingerprints/*.json and writes
@@ -106,7 +108,7 @@ die() { echo "ci.sh: $*" >&2; exit 1; }
 need() { command -v "$1" > /dev/null 2>&1 || die "$1 not found${2:+ ($2)}"; }
 
 usage() {
-  echo "usage: tools/ci.sh <host|host-off|qemu|mk66|e2e|goldens|fingerprints|toolchain|toolchain-key>   (see the comment at the top of this file)" >&2
+  echo "usage: tools/ci.sh <host|host-off|qemu|mk66|rt10xx|e2e|goldens|fingerprints|toolchain|toolchain-key>   (see the comment at the top of this file)" >&2
   exit 2
 }
 
@@ -490,6 +492,11 @@ case "${1:-}" in
     run_mode mk66 -DO3OS_PLATFORM=mk66 "-DCMAKE_TOOLCHAIN_FILE=$ROOT/cmake/mk66-toolchain.cmake" "-DARM_GNU_ROOT=$ARM_DIR"
     BUILD_ONLY_TARGET=o3os_image run_mode mk66-tone -DO3OS_PLATFORM=mk66 -DO3OS_AUDIO_TEST=ON "-DCMAKE_TOOLCHAIN_FILE=$ROOT/cmake/mk66-toolchain.cmake" "-DARM_GNU_ROOT=$ARM_DIR"
     BUILD_ONLY_TARGET=o3os_image run_mode mk66-bench -DO3OS_PLATFORM=mk66 -DO3OS_BENCH=ON "-DCMAKE_TOOLCHAIN_FILE=$ROOT/cmake/mk66-toolchain.cmake" "-DARM_GNU_ROOT=$ARM_DIR"
+    ;;
+  rt10xx)
+    # OS-PORT-RT10XX: the Tracker+ probe image (platform/rt10xx) and its static checks, with the Cortex-M7 toolchain file.
+    need_cross rt10xx
+    run_mode rt10xx -DO3OS_PLATFORM=rt10xx "-DCMAKE_TOOLCHAIN_FILE=$ROOT/cmake/rt10xx-toolchain.cmake" "-DARM_GNU_ROOT=$ARM_DIR"
     ;;
   toolchain)
     install_toolchain

@@ -7,7 +7,7 @@ Layers, each a CMake library with headers in `<layer>/include/o3os/<layer>/` (in
 resolver, keymap parser; and the notification queue) <- `usb` (host-pure USB library, below) <- `hal` (contracts) <- `eve` (FT81x display lists) <- `ui` (renderer, colour tokens and
 themes, faces, tile and icon assets, components) <- `app` (the screens and their registry, the overlays, action registry,
 built-in bindings, demo data). `platform/<name>` (host fakes, SHA-256, PNG
-writer; `platform/qemu`, the Cortex-M4F target test layer; `platform/mk66`, the MK66 platform layer and skeleton image)
+writer; `platform/qemu`, the Cortex-M4F target test layer; `platform/mk66`, the MK66 platform layer and skeleton image; `platform/rt10xx`, the Tracker+ platform layer and probe image, OS-PORT-RT10XX)
 and `sim` (the display-list rasteriser, `o3sim`,
 scenarios) implement the HAL; nothing below `app` may include them. The one exception is a composition root, listed by file name in
 `tools/check_layers.py` (`platform/mk66/src/app_main.cpp`, the MK66 image's wiring of the app to the real display).

@@ -24,6 +24,16 @@ Every behaviour carries one of three labels: **verified parity** (compared with 
 - **The five LFO rows (VOL, PAN, TUNE, FLT, POS LFO), new Community OS behaviour.** The value is a signed offset on the speed of the track's LFO for that target. Where the slot is Off or an envelope, an LFO runs with the shape and amount stored on the instrument (a triangle at 50 % when that amount is under 5 %). Cost in code: FLASH +1,244 B, SRAM_U +512 B (a 512-byte alignment step of the USB buffer table; 184 B of real growth). Cost in CPU while held: the five rows together with a held LOWPASS cost +18.11 pp on twelve tracks of a light scene, of which +8.6 pp is the LOWPASS itself; PAN LFO is the dearest row (+4.3 pp). That is above the 6 to 7 % estimate (accepted as a known issue; follow-up OS-PERF-CPU2). Verified on the unit: each row changes the sound as specified on an instrument with no LFO; the export compare is byte-identical.
 - **Perform SMP POS and SMP END** (in the same release): FLASH +240 B, SRAM_U +32 B, `.ramfunc_l` +48 B. CPU with both held on twelve tracks: +0.39 and +0.48 pp, inside the noise.
 
+### A port to the Tracker+ has started (OS-PORT-RT10XX, 2026-10-26)
+
+`platform/rt10xx` is the platform layer for the Tracker+ (NXP i.MX RT10xx, Cortex-M7, 128 KiB ITCM / 352 KiB DTCM / 32 KiB OCRAM, 64 MiB
+SDRAM, 16 MiB flash). Phase 1 is in the tree: the memory map, the FlexRAM and MPU words, the clock tree (600 MHz), the reset sequence with
+the vector table and fault handlers, the crash record, SysTick, the `.ptf` writer and the static image checks, `O3OS_PLATFORM=rt10xx` and
+`tools/ci.sh rt10xx`. The probe image (FLASH 3,728 B) idles in WFI with a heartbeat. **Nothing has run on a unit**: the first hardware
+check is the probe through the official update path, with the pinhole recovery known to work on that unit (`docs/specs/OS-PORT-RT10XX.md`
+section 4). The board facts come from the Modular-Trackular project's observations of the unit (MIT), used as facts of the hardware only.
+Phases 2 to 5 (console and SDRAM, audio and MIDI, card, display, inputs and update, the rest) are IDEA rows in the backlog.
+
 ## What the OS does
 
 A complete operating system for the Tracker, written from scratch in C++17. Everything below is **new Community OS behaviour** unless a manual chapter or a catalogue row says "verified parity" and gives the evidence. The manual starts at `docs/manual/index.md`; every function has a row in `docs/qa/catalogue/`.
@@ -83,7 +93,8 @@ Not yet verified on a unit (host and simulator tests exist for most). The rows m
 Ordered for a fresh session:
 
 1. A person presses INSTALL in Update from the unit on the release file, and runs the checks under "Open on the unit"; record each result as PASS, FAIL or NOT RUN in the backlog rows.
-2. After 1.0: OS-BUG-PADS (pads dead on plastic-back units; fix in `main`, test build on issue #1, waiting for a report from an affected unit), OS-BUG-HOTSWAP (the card-swap crash), OS-PERF-CPU2 (the Perform costs), OS-BUG-FWLIST, then the pending rows in `docs/roadmap/BACKLOG.md` and the latent issues below.
+2. The Tracker+ port (OS-PORT-RT10XX): a person with a Tracker+ runs the phase-1 probe check of `docs/specs/OS-PORT-RT10XX.md` section 4; the maintainer confirms the backlog move and decides phase 2.
+3. After 1.0: OS-BUG-PADS (pads dead on plastic-back units; fix in `main`, test build on issue #1, waiting for a report from an affected unit), OS-BUG-HOTSWAP (the card-swap crash), OS-PERF-CPU2 (the Perform costs), OS-BUG-FWLIST, then the pending rows in `docs/roadmap/BACKLOG.md` and the latent issues below.
 
 Outside contributors: issues come in through the forms in `.github/ISSUE_TEMPLATE/`; pull requests target `dev` (see `CONTRIBUTING.md`).
 

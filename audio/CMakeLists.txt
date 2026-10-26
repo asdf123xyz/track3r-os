@@ -48,8 +48,9 @@ target_compile_options(audio PRIVATE -fno-math-errno)
 if(O3OS_CROSS)
   set_source_files_properties(src/send_delay.cpp src/send_reverb.cpp src/master_limiter.cpp src/master_dj_filter.cpp src/master_kill_eq.cpp src/master_scratch.cpp src/loop_player.cpp PROPERTIES COMPILE_OPTIONS "-O3")
 endif()
-# On the MK66 the real-time functions (O3OS_AUDIO_HOT) run from SRAM_L (ADR 0013 D7), where the reset sequence copies them.
-if(O3OS_PLATFORM STREQUAL "mk66")
+# On the MK66 the real-time functions (O3OS_AUDIO_HOT) run from SRAM_L (ADR 0013 D7), where the reset sequence copies them. On the
+# rt10xx (OS-PORT-RT10XX) the same section name, `.ramfunc_l`, is linked into the ITCM, so the audio layer needs no second name.
+if(O3OS_PLATFORM MATCHES "^(mk66|rt10xx)$")
   target_compile_definitions(audio PUBLIC O3OS_AUDIO_RAMFUNC=1)
 endif()
 # The hot path may not call into flash (tools/check_ramfunc.py): a zeroing or copying loop must stay a loop, not become a memset or
