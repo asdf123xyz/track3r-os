@@ -34,6 +34,9 @@
 #include <o3os/platform/rt10xx/audio.h>
 #include <o3os/platform/rt10xx/midi.h>
 #include <o3os/platform/rt10xx/midi_config.h>
+#include <o3os/platform/mk66/storage/ls_command.h>
+#include <o3os/platform/mk66/storage/sd_text.h>
+#include <o3os/platform/rt10xx/storage/card.h>
 #include <o3os/platform/mk66/usb/diag_text.h>
 #include <o3os/platform/mk66/usb/log_command.h>
 #include <o3os/platform/rt10xx/clock_config.h>
@@ -607,6 +610,39 @@ void cmd_midi(shell::Shell& sh, const shell::Args& a) {
   }
 }
 
+// ---- `sd`, `ls` (phase 4): the card. `sd mount` muxes the assumed pads, clocks uSDHC1, runs the card's initialisation and mounts the
+// volume; `sd` reports (the MK66's text: platform/mk66 storage/sd_text.h); `ls [path]` lists a folder (the MK66's command).
+void cmd_sd(shell::Shell& sh, const shell::Args& a) {
+  namespace mst = o3os::platform::mk66::storage;
+  if (a.argc > 1) {
+    if (!same(a.argv[1], "mount") || a.argc > 2) {
+      sh.out().text("usage: sd [mount]\n");
+      return;
+    }
+    text::ls_release(storage::storage());
+    sh.out().text("sd: mounting...\n");
+    sh.out().flush();
+    const hal::storage::Status st = storage::mount();
+    log(st == hal::storage::Status::Ok ? "sd mount: ok" : "sd mount: FAILED");
+  }
+  mst::SdReport r;
+  r.card_present = storage::card().present();
+  r.mounted = storage::fat().mounted();
+  r.mount_status = storage::last_mount_status();
+  r.mount_tried = storage::mount_tried();
+  r.volume = storage::fat().volume();
+  r.card = &storage::card().info();
+  r.counters = &storage::card().counters();
+  r.stage = storage::card().stage();
+  r.fatfs_error = storage::fat().last_fatfs_error();
+  r.owner = r.mounted ? mst::CardOwner::Tracker : mst::CardOwner::NoCard;
+  char buf[kTextBuffer];
+  send(sh, mst::format_sd(r, buf, sizeof buf), buf);
+  sh.out().text("uSDHC1 root ").dec(storage::root_hz() / 1000u).text(" kHz (PLL2 PFD2 / 2; 0 = not running or not tried)\n");
+}
+
+void cmd_ls(shell::Shell& sh, const shell::Args& a) { text::run_ls_command(sh, storage::storage(), a); }
+
 void cmd_drill(shell::Shell& sh, const shell::Args&) {
   sh.out().text("raising a UsageFault now: the unit resets, `crash` shows the record after\n");
   sh.out().flush();
@@ -638,6 +674,8 @@ constexpr shell::Command kCommands[] = {
     shell::command("log", "log [count]: the last lines boot code and drivers wrote", &cmd_log),
     shell::command("pins", "pins | pins mux <pad> | pins gpio <port> <bit> [in|high|low]", &cmd_pins),
     shell::command("peek", "peek <hexaddr> [1..16]: read 32-bit words (clocked modules only)", &cmd_peek),
+    shell::command("sd", "sd [mount]: the card (uSDHC1, assumed pads); mount it", &cmd_sd),
+    shell::command("ls", "ls [path]: list a folder of the mounted card", &cmd_ls),
     shell::command("drill", "one deliberate UsageFault: the crash record round trip", &cmd_drill),
     shell::command("reset", "restart the unit (SYSRESETREQ)", &cmd_reset),
 };
