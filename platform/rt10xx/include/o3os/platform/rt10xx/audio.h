@@ -38,6 +38,8 @@ struct AudioClockFault {
 };
 AudioClockFault audio_clock_fault() noexcept;
 bool audio_running() noexcept;
+// True while the last mute() or stop() could not write the codec (this board has no amplifier key: the outputs may still be open).
+bool audio_mute_failed() noexcept;
 const char* audio_result_name(std::uint8_t result) noexcept;
 
 }  // namespace o3os::platform::rt10xx

@@ -106,6 +106,6 @@ add_test(NAME rt10xx_image COMMAND ${Python3_EXECUTABLE} -I ${_rt10xx_tools}/che
 # Phase 3: the audio hot path in the ITCM calls nothing in flash (the MK66's checker reads the section, whatever the chip).
 add_test(NAME rt10xx_ramfunc COMMAND ${Python3_EXECUTABLE} -I ${_mk66_tools}/check_ramfunc.py check $<TARGET_FILE:o3os> --objdump ${CMAKE_OBJDUMP})
 add_test(NAME rt10xx_ptf COMMAND ${Python3_EXECUTABLE} -I ${_rt10xx_tools}/check_image.py check ${_rt10xx_ptf} --ramfunc ${_rt10xx_ramfunc_region} --expect-ptf)
-set_tests_properties(rt10xx_ld_file rt10xx_image rt10xx_ptf PROPERTIES TIMEOUT 60)
+set_tests_properties(rt10xx_ld_file rt10xx_image rt10xx_ptf rt10xx_ramfunc PROPERTIES TIMEOUT 60)
 
 o3os_label_tests()

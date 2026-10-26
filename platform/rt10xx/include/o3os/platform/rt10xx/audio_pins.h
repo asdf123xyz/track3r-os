@@ -57,6 +57,15 @@ inline constexpr Pad kSda = {"GPIO_AD_B1_01 LPI2C1_SDA", mux_of(kAdB1First + 1),
 inline constexpr std::uint32_t kI2cPadWord = (1u << 0) | (6u << 3) | (2u << 6) | (1u << 11) | (1u << 12) | (1u << 13) | (3u << 14);
 // SW_MUX_CTL SION (bit 4): the input path stays on while the pad is an open-drain output, so the master sees the line it drives.
 inline constexpr std::uint32_t kMuxSion = 1u << 4;
+// The same two pads as GPIOs, for the bus recovery (i2c.cpp recover()): GPIO_AD_B1_00..15 are GPIO1_IO16..31 (ALT5); GPIO1 at 0x401B_8000
+// (DR 0x00, GDIR 0x04, PSR 0x08). The GPIO block's clock is CCGR1 CG13 (gpio1), which the recovery opens itself (nothing at boot does).
+inline constexpr std::uintptr_t kGpio1 = 0x401B8000u;
+inline constexpr std::uintptr_t kGpio1Ccgr = 0x400FC06Cu;  // CCM_CCGR1
+inline constexpr std::uint32_t kGpio1Gate = 0x3u << 26;
+inline constexpr std::uintptr_t kGpioDr = 0x00u, kGpioGdir = 0x04u, kGpioPsr = 0x08u;
+inline constexpr std::uint32_t kGpioAlt = 5;
+inline constexpr unsigned kSclGpioBit = 16;
+inline constexpr unsigned kSdaGpioBit = 17;
 inline constexpr std::uint8_t kCodecI2cAddress = 0x0A;  // SGTL5000 with CTRL_ADR0_CS low (the MK66 board's address; assumed here too)
 
 inline constexpr const Pad* kAudioPads[] = {&kMclk, &kBclk, &kLrclk, &kTxData, &kRxData};

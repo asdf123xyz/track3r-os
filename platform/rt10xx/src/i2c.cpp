@@ -97,14 +97,23 @@ Result fail() noexcept {
 class Lpi2cBus final : public Bus {
  public:
   Result transfer(std::uint8_t address7, const std::uint8_t* tx, std::uint8_t tx_len, std::uint8_t* rx, std::uint8_t rx_len) noexcept override {
+    return run(address7, tx, tx_len, rx, rx_len, true);
+  }
+  // The contract's plain read: START+R, the bytes, STOP; no write phase (a chip with fixed-register reads would take an empty write as one).
+  Result read(std::uint8_t address7, std::uint8_t* rx, std::uint8_t rx_len) noexcept override { return run(address7, nullptr, 0, rx, rx_len, false); }
+
+ private:
+  Result run(std::uint8_t address7, const std::uint8_t* tx, std::uint8_t tx_len, std::uint8_t* rx, std::uint8_t rx_len, bool write_phase) noexcept {
     ++g_transfers;
     at<std::uint32_t>(cfg::kMsr) = cfg::kMsrClearAll;
-    if (!push(cfg::kCmdStart | static_cast<std::uint32_t>(address7 << 1))) {
-      return fail();
-    }
-    for (std::uint8_t i = 0; i < tx_len; ++i) {
-      if (!push(cfg::kCmdTransmit | tx[i])) {
+    if (write_phase) {
+      if (!push(cfg::kCmdStart | static_cast<std::uint32_t>(address7 << 1))) {
         return fail();
+      }
+      for (std::uint8_t i = 0; i < tx_len; ++i) {
+        if (!push(cfg::kCmdTransmit | tx[i])) {
+          return fail();
+        }
       }
     }
     if (rx_len != 0u) {
@@ -145,11 +154,64 @@ class Lpi2cBus final : public Bus {
     }
     return fail();
   }
-  Result read(std::uint8_t address7, std::uint8_t* rx, std::uint8_t rx_len) noexcept override { return transfer(address7, nullptr, 0, rx, rx_len); }
+
+ public:
+  // The contract's recovery: the master reset, then, if the bus is still busy, up to nine SCL pulses with the pads as GPIOs (a slave that
+  // holds SDA low releases it when its byte is clocked out) and a STOP (SDA low to high while SCL is high), the pads back to the master.
   Result recover() noexcept override {
     reset_master();
-    return (at<std::uint32_t>(cfg::kMsr) & cfg::kMsrBusBusy) == 0u ? Result::Ok : Result::BusStuck;
+    if ((at<std::uint32_t>(cfg::kMsr) & cfg::kMsrBusBusy) == 0u) {
+      return Result::Ok;
+    }
+    at<std::uint32_t>(audio_pins::kGpio1Ccgr) |= audio_pins::kGpio1Gate;
+    scl_as_gpio(true);  // SCL driven high (open drain: released), SDA read
+    bool released = false;
+    for (unsigned pulse = 0; pulse < 9u && !released; ++pulse) {
+      gpio_write(audio_pins::kSclGpioBit, false);
+      boot::delay_us(5);
+      gpio_write(audio_pins::kSclGpioBit, true);
+      boot::delay_us(5);
+      released = gpio_read(audio_pins::kSdaGpioBit);
+    }
+    if (released) {  // a STOP: SDA low while SCL is high, then SDA released
+      sda_as_gpio(true);
+      gpio_write(audio_pins::kSdaGpioBit, false);
+      boot::delay_us(5);
+      gpio_write(audio_pins::kSdaGpioBit, true);
+      boot::delay_us(5);
+      sda_as_gpio(false);
+    }
+    scl_as_gpio(false);
+    reset_master();
+    return (released && (at<std::uint32_t>(cfg::kMsr) & cfg::kMsrBusBusy) == 0u) ? Result::Ok : Result::BusStuck;
   }
+
+ private:
+  // The pads as open-drain GPIOs (ALT5 of GPIO1; the pad word keeps ODE and the pull-up): an output drives low or releases, the input reads the line.
+  static void gpio_write(unsigned bit, bool high) noexcept {
+    if (high) {
+      regs::at<std::uint32_t>(audio_pins::kGpio1 + audio_pins::kGpioDr) |= (1u << bit);
+    } else {
+      regs::at<std::uint32_t>(audio_pins::kGpio1 + audio_pins::kGpioDr) &= ~(1u << bit);
+    }
+  }
+  static bool gpio_read(unsigned bit) noexcept { return (regs::at<std::uint32_t>(audio_pins::kGpio1 + audio_pins::kGpioPsr) & (1u << bit)) != 0u; }
+  static void pad_as_gpio(const audio_pins::Pad& pad, unsigned bit, bool gpio, bool output) noexcept {
+    volatile std::uint32_t& dir = regs::at<std::uint32_t>(audio_pins::kGpio1 + audio_pins::kGpioGdir);
+    if (gpio) {
+      gpio_write(bit, true);
+      dir = output ? (dir | (1u << bit)) : (dir & ~(1u << bit));
+      at<std::uint32_t>(pad.mux_ctl) = audio_pins::kGpioAlt | audio_pins::kMuxSion;
+    } else {
+      at<std::uint32_t>(pad.mux_ctl) = pad.alt | audio_pins::kMuxSion;
+      dir &= ~(1u << bit);
+    }
+  }
+  static void scl_as_gpio(bool gpio) noexcept {
+    pad_as_gpio(audio_pins::kSda, audio_pins::kSdaGpioBit, gpio, false);  // SDA read while SCL is pulsed
+    pad_as_gpio(audio_pins::kScl, audio_pins::kSclGpioBit, gpio, true);
+  }
+  static void sda_as_gpio(bool output) noexcept { pad_as_gpio(audio_pins::kSda, audio_pins::kSdaGpioBit, true, output); }
 };
 
 Lpi2cBus g_bus;

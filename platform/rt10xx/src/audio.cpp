@@ -9,7 +9,8 @@
 //   2. the clocks: PLL4 locked, the SAI1 root, the SAI's clock gate, the eDMA's; MCLK driven out on its pad
 //   3. LPI2C1, the codec's part id, the power-up plan (sgtl5000.h): outputs muted and volumes at their floor
 //   4. SAI1 configured (not enabled), the eDMA channels' TCDs loaded and armed, the pipeline initialised, the two interrupt lines enabled
-//   5. the pads to the SAI, the receiver (the clock master) then the transmitter enabled: the frame clocks start, the DMA feeds silence
+//   5. the pads to the SAI, the transmitter (synchronous) then the receiver (the clock master) enabled last, as the MK66 enables its
+//      clock-making side last: the frame clocks start, the DMA feeds silence
 //   6. a bounded wait for the first boundaries: if none comes the hardware is stopped and start() fails, still muted
 //
 // The pads are assumed (audio_pins.h) and driven by nothing but this start(): the maintainer's `audio start` is when they are first touched.
@@ -152,7 +153,10 @@ class Rt10xxAudio final : public haudio::Device {
   bool unmute() noexcept override;
   void mute() noexcept override;
   void stop() noexcept;
-  bool outputs_enabled() const noexcept override { return enabled_; }
+  // True between a successful unmute() and the next mute(), AND while a mute's codec write has failed: on this board the codec's mutes are the
+  // whole output stage (no amplifier key), so a mute that did not reach the codec leaves the outputs as they were (mute_failed()).
+  bool outputs_enabled() const noexcept override { return enabled_ || mute_failed_; }
+  bool mute_failed() const noexcept { return mute_failed_; }
   bool running() const noexcept { return started_; }
   bool apply_input(const sgtl5000::InputPlan& plan) noexcept;
 
@@ -165,6 +169,7 @@ class Rt10xxAudio final : public haudio::Device {
   Result bring_up_codec() noexcept;
   bool started_ = false;
   bool enabled_ = false;
+  bool mute_failed_ = false;
   bool adc_line_ = true;
 };
 
@@ -271,7 +276,7 @@ Rt10xxAudio::Result Rt10xxAudio::start(const haudio::BlockCallback& render) noex
   regs::dma_serq() = kRxChannel;
   regs::dma_serq() = kTxChannel;
 
-  // 5. The pads, then the receiver (the clock master) and the transmitter.
+  // 5. The pads, then the transmitter (synchronous, armed first) and the receiver (the clock master) last: the clocks start when both are ready.
   mux_pad(audio_pins::kLrclk);
   mux_pad(audio_pins::kBclk);
   mux_pad(audio_pins::kTxData);
@@ -312,13 +317,20 @@ bool Rt10xxAudio::unmute() noexcept {
   return true;
 }
 
+// Every step written, each retried once; a step that fails twice is remembered (mute_failed_): the outputs may still be open, and the
+// console says so instead of "muted". The next successful mute() clears it.
 void Rt10xxAudio::mute() noexcept {
   enabled_ = false;
-  if (started_) {
-    for (const sgtl5000::Step& step : sgtl5000::kMute) {
-      plan_write(step);
+  if (!started_) {
+    return;
+  }
+  bool ok = true;
+  for (const sgtl5000::Step& step : sgtl5000::kMute) {
+    if (!plan_write(step) && !plan_write(step)) {
+      ok = false;
     }
   }
+  mute_failed_ = !ok;
 }
 
 void Rt10xxAudio::stop() noexcept {
@@ -326,12 +338,13 @@ void Rt10xxAudio::stop() noexcept {
   if (!started_) {
     return;
   }
-  (void)sgtl5000::run_stop([this](const sgtl5000::Step& step) { return plan_write(step); }, [] {},
-                           [](std::uint32_t ms) {
-                             if (ms != 0u) {
-                               boot::delay_ms(ms);
-                             }
-                           });
+  const bool ok = sgtl5000::run_stop([this](const sgtl5000::Step& step) { return plan_write(step) || plan_write(step); }, [] {},
+                                     [](std::uint32_t ms) {
+                                       if (ms != 0u) {
+                                         boot::delay_ms(ms);
+                                       }
+                                     });
+  mute_failed_ = !ok;  // a stop whose codec writes failed may leave the outputs open (the I2S silence still plays: the hardware is stopped below)
   stop_hardware();
   started_ = false;
 }
@@ -368,6 +381,7 @@ const o3os::audio::Pipeline& audio_pipeline() noexcept { return o3os_audio_pipel
 std::uint8_t audio_last_result() noexcept { return g_last_result; }
 AudioClockFault audio_clock_fault() noexcept { return g_clock_fault; }
 bool audio_running() noexcept { return g_device.running(); }
+bool audio_mute_failed() noexcept { return g_device.mute_failed(); }
 const char* audio_result_name(std::uint8_t result) noexcept {
   switch (static_cast<haudio::Device::Result>(result)) {
     case haudio::Device::Result::Ok: return "ok";

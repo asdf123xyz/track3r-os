@@ -86,6 +86,7 @@ void sink_flush(void*) { usb1::cdc_writer().flush(); }
 std::size_t sink_room(void*) { return usb1::cdc_writer().room_bytes(); }
 
 constexpr std::size_t kTextBuffer = 1024;
+extern bool g_midi_harness;  // the `midi` harness (below) is up: its time base must be republished every pass
 
 void send(shell::Shell& sh, std::size_t n, const char* buffer) { sh.out().text(buffer, n); }
 
@@ -228,6 +229,10 @@ void sdram_report(shell::Shell& sh, const sdram::Status& s) {
 
 void cmd_sdram(shell::Shell& sh, const shell::Args& a) {
   if (a.argc >= 2u && same(a.argv[1], "test")) {
+    if (g_midi_harness) {  // the tests block for seconds: the MIDI harness's time base would go stale (service() republishes it every pass)
+      sh.out().text("sdram: refused while the MIDI harness is up (`midi start` was run): reset the unit first\n");
+      return;
+    }
     const bool full = a.argc >= 3u && same(a.argv[2], "full");
     sh.out().text(full ? "testing every word (several seconds)...\n" : "testing (sparse)...\n");
     sh.out().flush();
@@ -413,7 +418,7 @@ const char* audio_where_name(std::uint8_t where) {
 
 void audio_status_lines(shell::Shell& sh) {
   const o3os::audio::StatusSnapshot snap = audio_status().snapshot();
-  sh.out().text("audio ").text(audio_running() ? "running" : "stopped").text(", outputs ").text(audio_device().outputs_enabled() ? "open" : "muted")
+  sh.out().text("audio ").text(audio_running() ? "running" : "stopped").text(", outputs ").text(audio_mute_failed() ? "MUTE FAILED (codec write): may be open" : audio_device().outputs_enabled() ? "open" : "muted")
       .text(", last result ").text(audio_result_name(audio_last_result())).nl();
   const AudioClockFault f = audio_clock_fault();
   if (f.where != AudioClockFault::None) {
@@ -467,7 +472,7 @@ void cmd_audio(shell::Shell& sh, const shell::Args& a) {
   }
   if (same(sub, "mute")) {
     audio_device().mute();
-    sh.out().text("audio: outputs muted\n");
+    sh.out().text(audio_mute_failed() ? "audio: mute FAILED, a codec write was not acknowledged: the outputs may still be open\n" : "audio: outputs muted\n");
     return;
   }
   if (same(sub, "tone") && a.argc == 3 && (same(a.argv[2], "on") || same(a.argv[2], "off"))) {
@@ -490,8 +495,8 @@ void cmd_audio(shell::Shell& sh, const shell::Args& a) {
   }
   if (same(sub, "stop")) {
     audio_stop();
-    sh.out().text("audio: stopped, outputs muted\n");
-    log("audio stop");
+    sh.out().text(audio_mute_failed() ? "audio: stopped (the I2S and the DMA), but a codec write FAILED: the outputs may still be open\n" : "audio: stopped, outputs muted\n");
+    log(audio_mute_failed() ? "audio stop: codec write FAILED" : "audio stop");
     return;
   }
   sh.out().text("usage: audio [start | unmute | mute | tone on|off | stall | stop]\n");
@@ -505,7 +510,7 @@ o3os::midi::RtInRing g_midi_in;
 o3os::midi::TimeRef g_midi_time;
 std::uint32_t g_midi_last_cycles = 0;
 std::uint64_t g_midi_cycles = 0;  // the harness's timeline: cycles since `midi start`
-bool g_midi_harness = false;
+bool g_midi_harness = false;  // declared above
 constexpr std::uint32_t kMidiClocksPerBeat = 24;
 constexpr std::uint32_t kMidiBeatCycles = clock::kCoreHz / 2u;  // 120 BPM
 
@@ -546,7 +551,7 @@ void cmd_midi(shell::Shell& sh, const shell::Args& a) {
     }
     if (same(a.argv[1], "note")) {
       std::uint32_t note = 60;
-      if (a.argc >= 3 && !parse_u32(a.argv[2], note)) {
+      if (a.argc >= 3 && (!parse_u32(a.argv[2], note) || note > 127u)) {
         sh.out().text("usage: midi note [0..127]\n");
         return;
       }
@@ -677,7 +682,7 @@ void service() noexcept {
   usb1::cdc_writer().flush();
   usb1::kick();
   if (g_midi_harness) {
-    midi_publish_time();  // the emitter's time base (within the counter's 11.9 s window of a publish: this runs every pass)
+    midi_publish_time();  // the emitter's time base: a publish must come within 3.58 s (TimeRef's +-2^31 cycles at 600 MHz), this runs every pass
   }
 }
 
