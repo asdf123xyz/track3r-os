@@ -10,13 +10,15 @@
 //   2. the watchdogs off, within the window the chip allows
 //   3. FPU on (the compiler may use it anywhere after this)
 //   4. the C runtime: .data and .ramfunc_l copied from flash, .bss cleared (.noinit, .noinit_ocram and .noinit_sdram left alone)
-//   5. the MPU and the caches
+//   5. the MPU
 //   6. the cycle counter, then the clock tree (VDD_SOC, ARM PLL, dividers), failing visibly if a step does not complete
-//   7. interrupt priorities and fault handlers, SysTick, interrupts on
-//   8. static constructors, then main
+//   7. the SDRAM (phase 2, src/sdram.cpp): the SEMC and the tests, the outcome recorded, the boot going on either way; then the caches
+//      (after the tests, which must read the cells, not a cache line)
+//   8. interrupt priorities and fault handlers, SysTick, interrupts on
+//   9. static constructors, then main
 //
-// Not here, on purpose: the SDRAM (SEMC) and every peripheral. This is the phase-1 probe image (docs/specs/OS-PORT-RT10XX.md section 5):
-// it proves the boot path on the unit before anything is built on it.
+// Not here, on purpose: every peripheral but the SEMC (the USB controller is brought up by main, usb/src/usb1.cpp). The image is a probe
+// (docs/specs/OS-PORT-RT10XX.md section 5): it proves the boot path on the unit before anything is built on it.
 #include "internal.h"
 #include "regs.h"
 
@@ -151,7 +153,7 @@ extern "C" [[noreturn]] void o3os_reset_sequence() {
   boot::capture_reset_cause();
   boot::capture_boot_record();
 
-  // 5. The MPU table and the caches.
+  // 5. The MPU table.
   boot::init_memory_protection();
 
   // 6. Clocks.
@@ -159,13 +161,18 @@ extern "C" [[noreturn]] void o3os_reset_sequence() {
   boot::enable_dwt();
   boot::init_clocks();
 
-  // 7. Interrupts.
+  // 7. The SDRAM and its tests (its outcome is sdram::status()), then the caches.
+  rt10xx::set_stage(rt10xx::crash::Stage::Sdram);
+  boot::init_sdram();
+  boot::enable_caches();
+
+  // 8. Interrupts.
   rt10xx::set_stage(rt10xx::crash::Stage::Interrupts);
   boot::init_interrupts();
   boot::start_systick();
   asm volatile("cpsie i" ::: "memory");
 
-  // 8. Constructors and main.
+  // 9. Constructors and main.
   for (void (**f)() = __preinit_array_start; f < __preinit_array_end; ++f) {
     (*f)();
   }

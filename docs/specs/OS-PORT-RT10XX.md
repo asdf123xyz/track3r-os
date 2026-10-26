@@ -1,6 +1,6 @@
 # OS-PORT-RT10XX — Porting the Community OS to the Tracker+ (NXP i.MX RT10xx, Cortex-M7)
 
-Status: phase 1 specified and implemented 2026-10-26 (the probe image builds; nothing has run on a unit). Level C: a new boot path, a
+Status: phases 1 and 2 specified and implemented 2026-10-26 (the probe image with the console builds; nothing has run on a unit). Level C: a new boot path, a
 new memory map, a new delivery path and, later, the audio path and the persistent formats on a second machine. Decisions in force:
 - ADR 0011 (declared alignment, diagnostics, the crash record, driver licences), ADR 0013 (the memory map as one header, the NVIC priority
   table, DWT per stage), ADR 0002 (containment, fault handlers), the flashing-safety rules and `fw-gate-check`.
@@ -27,7 +27,7 @@ The port is done in phases, each of which ends in a check on a unit that nobody 
 | Phase | Delivers | The unit check that ends it |
 |---|---|---|
 | **1 (this spec, implemented)** | `platform/rt10xx`: the memory map, the FlexRAM and MPU words, the clock tree, the reset sequence with the vector table and fault handlers, the crash record, SysTick and the cycle counter, the `.ptf` tools and the static image checks, the build (`O3OS_PLATFORM=rt10xx`), the host tests of the pure parts | The probe image installs through the official update path and the unit stays up (no reset loop, no hang), then the official firmware is put back the same way. With a debug probe: the heartbeat counts seconds, the core runs at 600 MHz, the crash drill leaves a record |
-| 2 | The USB device controller (OTG1, the chip's dedicated pins: no board fact needed) with the `diag` CDC console; the SEMC (SDRAM) bring-up and its tests; `diag crash`, `diag mem`, `diag boot` | The console answers on a computer; the SDRAM tests pass; the crash record of a drill image is read back |
+| **2 (implemented, section 6)** | The USB device controller (OTG1, the chip's dedicated pins: no board fact needed) with the `diag` CDC console; the SEMC (SDRAM) bring-up and its tests; `diag crash`, `mem`, `stage`, `sdram`, `cpu`, `pins`, `peek` | The console answers on a computer; `sdram` says OK; `cpu` measures the core clock against the host's USB frames; `drill` then `crash` show the record round trip |
 | 3 | The audio path: SAI + eDMA + the codec, the render interrupt, hot code in the ITCM; the MIDI DIN jack (LPUART5); `core/audio_clock.h` made platform-aware (a 600 MHz core has other cycles per sample) | HW-A on the Tracker+: the test tone, the underrun recovery, left and right |
 | 4 | The card (USDHC + FatFs, the read side then the writer), the firmware update from the OS (the `_fwinfo` / `_turnon` markers, section 2.4), the display (EVE over an LPSPI with eDMA), the inputs (keys, pads, encoder, pad LEDs), power | The OS app boots on the unit: the Pattern screen, keys, a project from the card |
 | 5 | The rest of the HAL (capture: line in, radio; USB audio and the USB disk), the 16-track pattern files (OG-16TRACK-MTP), the CPU budget re-measured, the QA catalogue rows that differ | A full pass of the HIL scenarios on a Tracker+ |
@@ -208,3 +208,84 @@ advances once a second at 600 MHz (SysTick reload 599,999), the drill image leav
 - The data cache is on by default with the "no bus master in a cacheable region" rule; the option exists for an A/B.
 - The image region ends at 8 MiB, the tested bound, not at the end of the flash.
 - The render line is the reserved line 70 (the MK66 uses its SWI line); PendSV stays the fallback.
+
+## 6. Design of phase 2 (what is in the tree)
+
+### 6.1 The SDRAM (`semc_config.h`, `src/sdram.cpp`, `sdram.h`)
+
+- **The assumption**, stated once in `semc::kPart`: a 512 Mbit part organised 32 M x 16 (four banks, 13 rows, 10 columns) on the SEMC's
+  16-bit port at CS0, the only arrangement that makes 64 MiB with one chip select; the "-7" grade's timings taken conservatively (tRP and
+  tRCD 20 ns, tRC 70, tRAS 50, tWR 15, tRRD 15, tRFC 70, tXSR 75; CL 3; 8192 rows in 64 ms). The register words (BR0, SDRAMCR0..3, the
+  mode register) follow from these numbers with the RM's "+1" rule, and `rt10xx_semc_config_test.cpp` decodes every field back. A
+  different part changes the one constant.
+- **The clock**: the SEMC root from the periph clock (the core's 600 MHz) divided by four, 150 MHz: no second PLL, nothing the FlexSPI
+  depends on is touched.
+- **The pads**: a 16-bit SDRAM uses GPIO_EMC_00..39 (the RM's IOMUXC chapter assigns each SEMC signal exactly one pad, its ALT0 function:
+  the data on EMC_00..07 and 30..37, the addresses on 09..23 with A10 on 23, the strobes on 24..29, DM on 08 and 38, DQS on 39). The pad word
+  is the vendor's for the SEMC (fast slew, full drive, 200 MHz, keeper, hysteresis). EMC_40 and 41 are NAND/NOR signals and are not
+  touched. The read strobe is the DQS pad loopback (`kMcrDqsModePad`), the vendor's choice for SDR SDRAM; the internal loopback is the
+  one-constant alternative if EMC_39 turns out to be used otherwise on this board.
+- **The sequence**: the clock gate and root, the pads, a software reset of the controller, its words with refresh off, the JEDEC
+  initialisation through the IP command port (200 us after the clock reaches the part: PRECHARGE ALL, two AUTO REFRESHes, MODE SET with
+  burst 8 sequential and CL 3), the refresh timer on (one refresh every 7.47 us against the part's 7.81). Every wait is bounded. **A step
+  that fails is recorded and the boot goes on**: the console (which needs no SDRAM) reports the step, the IP command and INTR.
+- **The tests**: the MK66's `memtest.h` (chip-neutral) over the array: the wiring tests (data bus, byte lanes, address bus) on every boot,
+  the capacity test on every 256th word by default (`O3OS_RT10XX_SDRAM_FULL_TEST` covers every word at boot; `diag sdram test full` does
+  on request). They run before the data cache is enabled, and `retest` switches the cache off around them, so a read is a read of the
+  cell. The reset sequence's order became: MPU, clocks, SDRAM, caches, interrupts.
+- **Still not placed in the SDRAM**: nothing of the OS (the linker asserts the slack window empty) until the console has shown the
+  array working on a unit (phase 3 moves the sample arena's users there).
+
+### 6.2 The USB device (`usb/soc_facts.h`, `usb/ci_device.h`, `usb/src/usb1.cpp`)
+
+- **The controller** is the chip's OTG1, an EHCI-derived dual-role controller (the i.MX RT1050 RM's "USB" chapter), not the MK66's
+  BDT controller: `usb/device.h` (the MK66's driver) could not be reused, but everything above the register policy could and was: the
+  usb layer's `ControlPipe` (every chapter-9 request, the CDC requests), the CDC chunk rings and writer, the MIDI event rings, the
+  descriptors, the shell, the pump, the log. `ci_device.h` is the driver as a template over a register policy `Hw`, as `device.h` is:
+  `rt10xx_usb_ci_test.cpp` drives it with a fake controller that models priming, completion, SETUP, reset, stall and NAK (10 cases, 304
+  assertions on the host under the sanitizers): enumeration in full, the CDC port both ways including the 63-byte chunking and the
+  receive hold, MIDI both ways, halt and clear-halt, suspend and resume, a late bus reset.
+- **Design choices** (reversible, in the header): one transfer descriptor per endpoint direction, primed only when idle (no descriptor
+  list appends, no tripwire on the list); full speed forced (`PFSC`), so bulk packets are the 64 bytes the CDC chunks are; the start-of-frame
+  interrupt polls the rings once a millisecond for the idle directions and the main loop nudges it after a reply (`kick`); the memory
+  (queue heads, descriptors, buffers: 2 KiB) in the OCRAM, 2 KiB aligned, where the controller's bus master reaches it and the core
+  does not cache it; the MIDI endpoints are configured and move the rings, but nothing binds them yet (phase 3's MIDI link).
+- **The bring-up** (`usb1.cpp` `start()`): the controller's clock gate; PLL3's USB clock output through the SET alias (PLL3 is running
+  already: the FlexSPI the code runs from is clocked from its PFD0, so the PLL is neither reset nor bypassed); the PHY out of soft reset
+  and clock gate, powered, the UTMI levels on; the over-current input ignored; the controller reset, device mode with the setup lockout
+  off, the queue head list address, the working interrupt set; the driver's `prepare()`; the interrupt line enabled at the Usb
+  priority; the run bit (the pull-up). The serial number is the chip's unique id (OCOTP CFG0/CFG1) as 16 hex digits. A wait that does
+  not complete leaves the device detached and names the step (`diag usb`, the boot log).
+- **Phase 1's open question 4** (does the eDMA reach the DTCM) does not arise for the USB controller: its memory is in the OCRAM.
+
+### 6.3 The console (`usb/src/console.cpp`)
+
+The usb layer's shell on the CDC port, the MK66's formatters for the stage, crash and version lines and its `log` command, and this
+platform's commands: `help`, `version`, `stage`, `crash [clear]`, `mem`, `sdram [test [full]]`, `cpu` (the cycle counter's advance per USB
+frame: the core clock measured against the host's millisecond, the one independent reference the probe has), `usb`, `log [n]`, `pins`
+(the GPIO ports' levels; a pad's mux and pad words; a GPIO's pad read or driven: the probing tool for the LEDs, switches and buses the
+spec's open questions list), `peek` (32-bit reads inside the clocked modules and memories, refused elsewhere), `drill` (one UsageFault
+now, for the record round trip), `reset`. The log ring is 64 records in the DTCM (the SDRAM is not trusted with it yet). `o3console.py`
+(platform/mk66/tools) talks to it unchanged: the same banner shape, prompt and line protocol.
+
+### 6.4 Costs
+
+The image with phase 2: FLASH 27,076 B, ITCM 4 B, DTCM 12,640 B (the log 4 KiB, the CDC rings 5 KiB, the MIDI rings 1 KiB, the
+descriptors, the shell), OCRAM 2,048 B (the USB memory), SDRAM 0. No CPU figure: nothing runs per block yet.
+
+### 6.5 Acceptance of phase 2
+
+In the tree: `tools/ci.sh host` green with the new tests; `tools/ci.sh rt10xx` builds the image and its checks pass; 0 warnings. On a
+unit (after phase 1's check, by the maintainer): the probe installs through the official update path; a computer sees a CDC port with
+the Track3r identity and serial; `o3console.py` opens it and `help` answers; `sdram` says OK (or names the step and the test that failed,
+which is the information phase 3 needs); `cpu` reports about 600,000 cycles per USB frame (a different figure is the real core clock,
+section 2.5 question 1); `drill`, a reconnect, `crash` shows exception 6 with module 0xD1 and `crash clear` erases it; `stage` shows the
+reset source; `pins` reads the ports; the official firmware goes back through the pinhole. A unit that does not enumerate is a FAIL that
+stops phase 3 until understood: `stage` and `log` are then only reachable with a debug probe.
+
+### 6.6 Open research questions added in phase 2
+
+7. The SDRAM part, its bus width and timings (section 6.1 assumes; `sdram` on the unit confirms or refutes).
+8. Whether EMC_39 is free for the DQS loopback (the internal loopback is the alternative).
+9. Whether the bootloader hands over with the USB PHY and PLL3 in a state the sequence of 6.2 expects (a PLL3 that the ROM left bypassed
+   would need the lock-then-unbypass sequence of the vendor's examples, which the FlexSPI survives because the bypass still clocks it).

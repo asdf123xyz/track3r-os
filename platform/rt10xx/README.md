@@ -2,8 +2,8 @@
 
 The port of the Community OS to the Polyend Tracker+ (NXP i.MX RT10xx, Cortex-M7, 512 KiB FlexRAM, 64 MiB SDRAM, 16 MiB flash). The design,
 the facts of the board with their evidence, the phases and the open questions are in `docs/specs/OS-PORT-RT10XX.md`; this page is the
-build and the layout. Phase 1 (this tree) is the **probe image**: the boot path to a WFI heartbeat with a crash record, and the tools that
-make and check a `.ptf`. No display, audio, card, USB or input yet.
+build and the layout. Phases 1 and 2 (this tree) are the **probe image**: the boot path with a crash record, the SDRAM bring-up with its
+tests, the USB port with the `diag` console, and the tools that make and check a `.ptf`. No display, audio, card or input yet.
 
 **Nothing here has run on a unit.** `TrackerPlus_o3os.ptf` is an artifact of a build, not a candidate: a candidate needs the
 `fw-gate-check` skill and the maintainer's decision, and the recovery path (the official `.ptf` beside it in `Firmware/`, the pinhole next
@@ -23,7 +23,8 @@ does the same. Options:
 | Option | Default | Meaning |
 |---|---|---|
 | `O3OS_RT10XX_FAULT_DRILL` | OFF | raise one deliberate UsageFault 10 s after power-up, to prove the crash record round trip (a separate image) |
-| `O3OS_RT10XX_DCACHE` | ON | enable the data cache after the MPU table (TCMs and OCRAM are never cached; the SDRAM and the flash are write-back). OFF for an A/B on the unit |
+| `O3OS_RT10XX_DCACHE` | ON | enable the data cache after the SDRAM tests (TCMs and OCRAM are never cached; the SDRAM and the flash are write-back). OFF for an A/B on the unit |
+| `O3OS_RT10XX_SDRAM_FULL_TEST` | OFF | the boot's SDRAM capacity test covers every word (several seconds) instead of every 256th; `diag sdram test full` runs it on request either way |
 
 The pure parts (`include/`: the memory map, the FlexRAM and MPU words, the clock tree, the interrupt list and map, the image facts) build on
 every platform as `platform_rt10xx_pure` (headers, header-checked); their tests are `tests/rt10xx_*_test.cpp`, in the host's `o3os_tests`
@@ -39,7 +40,10 @@ every platform as `platform_rt10xx_pure` (headers, header-checked); their tests 
 | `boot_image.h` | the `.ptf` and update-path facts as functions (the name rule, the sector end rule, the range) |
 | `sections.h`, `platform.h` | placement attributes (`.ramfunc_l` in the ITCM, `.noinit`, `.noinit_ocram`, `.noinit_sdram`, the DMA rings); the clock, the boot report, the crash API |
 | `src/startup.cpp` | the vector table, the fault stub, the reset sequence (the FlexRAM word in naked asm before the first push) |
-| `src/boot.cpp` | watchdogs, DWT, MPU and caches, the clock tree, NVIC, SysTick, `fail()` |
+| `src/boot.cpp` | watchdogs, DWT, the MPU, the caches (after the SDRAM tests), the clock tree, NVIC, SysTick, `fail()` |
+| `semc_config.h`, `src/sdram.cpp`, `sdram.h` | phase 2: the SDRAM controller's words from the assumed part's timings; the bring-up and the tests, the outcome kept for `diag sdram` |
+| `usb/include/.../usb/soc_facts.h`, `ci_device.h` | phase 2: the OTG1 controller's facts; the device driver as a template over a register policy (the usb layer's control pipe and rings behind it), tested with a fake controller |
+| `usb/src/usb1.cpp`, `console.cpp` | phase 2: the clock, PHY and controller bring-up, the interrupt, the serial; the `diag` console (help, version, stage, crash, mem, sdram, cpu, usb, log, pins, peek, drill, reset) |
 | `src/clock.cpp`, `src/crash_store.cpp`, `src/main.cpp` | `hal::Clock` on SysTick and `hal::cycles()`; the `.noinit` crash block and the fault entry; the probe loop |
 | `src/regs.h` | the registers the layer touches, from the i.MX RT1050 Reference Manual and the ARMv7-M ARM |
 | `rt10xx.ld.in` | the linker script template (placeholders are `mem_map.h` constants) |
@@ -57,13 +61,17 @@ every platform as `platform_rt10xx_pure` (headers, header-checked); their tests 
 | OCRAM | `0x20200000` | 32 KiB | `.noinit_ocram`: bus-master buffers (display staging, USB), not cached |
 | SDRAM | `0x80000000` | 64 MiB | the ADR 0013 D7 table: sample arena 59,136 KiB, delay 768, reverb 256, module region 768, project 1,920, undo 384, file job 512, LUT 192, UI cache 512, diag log 64, slack 1,024 (the `.noinit_sdram` window, empty until phase 2) |
 
-## The probe image, by the numbers (2026-10-26)
+## The probe image, by the numbers (2026-10-26, phases 1 and 2)
 
-FLASH 3,728 B · ITCM 4 B (the heartbeat's function) · DTCM 752 B · OCRAM 0 · SDRAM 0. `check_image`: 10/10 on the `.hex` and on the `.ptf`.
+FLASH 27,076 B · ITCM 4 B (the heartbeat's function) · DTCM 12,640 B (the log, the CDC and MIDI rings, the descriptors, the shell) · OCRAM
+2,048 B (the USB controller's queue heads, descriptors and buffers) · SDRAM 0. `check_image`: 10/10 on the `.hex` and on the `.ptf`. Phase 1
+alone was FLASH 3,728 B, DTCM 752 B.
 
 ## First hardware session (what the probe can and cannot show)
 
-The probe has no output. What a person sees: the unit, after the official update, stays dark and quiet and does **not** reset in a loop (a
-loop would mean the boot path faults before `main`; the record of a halted boot is kept for the next image). Then the official firmware
-goes back through the pinhole. With a debug probe: `g_heartbeat` advances once a second (600 MHz, SysTick reload 599,999), the crash
-block at `0x20000000` holds the drill's record (exception 6, module 0xD1) after the drill image. The spec's section 4 is the acceptance.
+What a person sees: the unit, after the official update, stays dark and quiet and does **not** reset in a loop (a loop would mean the boot
+path faults before `main`; the record of a halted boot is kept for the next image), and a computer on the USB port sees a CDC port with the
+Track3r identity. `python3 -I platform/mk66/tools/o3console.py` opens it: `help`, then `sdram` (the bring-up's outcome and the tests), `cpu`
+(the core clock measured against the host's USB frames), `stage`, `log`, `pins`. `drill` raises a fault; after the reconnect `crash` shows
+the record and `crash clear` erases it. Then the official firmware goes back through the pinhole. The spec's sections 4 and 6.5 are the
+acceptance; a unit that does not enumerate is a FAIL that stops phase 3 until understood.

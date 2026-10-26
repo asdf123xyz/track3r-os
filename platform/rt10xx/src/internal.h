@@ -12,8 +12,13 @@ namespace o3os::platform::rt10xx::boot {
 // ---- boot.cpp: the reset sequence's steps, in the order startup.cpp calls them ------------------------------------------------------
 void disable_watchdogs() noexcept;      // WDOG1, WDOG2 and the RTWDOG off (the official firmware's SystemInit does the same, FINDINGS 8)
 void enable_dwt() noexcept;             // cycle counter running (hal::cycles(), the delays below)
-void init_memory_protection() noexcept; // the MPU table of mpu_config.h, then the instruction cache and (O3OS_RT10XX_DCACHE) the data cache
+void init_memory_protection() noexcept; // the MPU table of mpu_config.h
 void init_clocks() noexcept;            // VDD_SOC 1.25 V, ARM PLL 1.2 GHz, core 600 MHz, IPG 150, PERCLK 75 (clock_config.h). Fails visibly, never hangs
+void init_sdram() noexcept;             // sdram.cpp: the SEMC and the tests; the outcome is sdram::status(), the boot goes on either way
+void enable_caches() noexcept;          // the instruction cache and (O3OS_RT10XX_DCACHE) the data cache, after the SDRAM tests (which must read the cells)
+bool dcache_enabled() noexcept;
+void dcache_enable() noexcept;          // invalidate, then on (nothing valid is in it: the SDRAM is untouched while it is off)
+void dcache_disable() noexcept;         // clean and invalidate, then off (main thread only; interrupts masked meanwhile)
 void init_interrupts() noexcept;        // VTOR, NVIC priorities from hal/irq.h, fault handlers enabled, divide-by-zero traps
 void start_systick() noexcept;          // 1 kHz tick; the clock reads valid from here
 void capture_reset_cause() noexcept;    // SRC_SRSR, read and cleared

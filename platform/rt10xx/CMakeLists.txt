@@ -16,6 +16,10 @@ set(_rt10xx_template "${CMAKE_CURRENT_SOURCE_DIR}/rt10xx.ld.in")
 # Headers only so far (the hardware halves are the image's sources below). The crash record's format and pure functions are the
 # MK66's, reused as they are (platform.h says why): hence the dependency on platform_mk66_pure.
 o3os_library(platform_rt10xx_pure DEPENDS hal platform_mk66_pure)
+# Phase 2: the OTG1 device driver's pure half (usb/include: the chip's USB facts and the driver as a template over a register policy) joins
+# the headers; its host test drives it with a fake controller (tests/rt10xx_usb_ci_test.cpp). The usb layer is what it is written against.
+target_include_directories(platform_rt10xx_pure INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/usb/include)
+target_link_libraries(platform_rt10xx_pure INTERFACE usb)
 
 if(O3OS_PLATFORM STREQUAL "host" OR O3OS_PLATFORM STREQUAL "rt10xx")
   find_package(Python3 REQUIRED COMPONENTS Interpreter)
@@ -35,7 +39,8 @@ endif()
 
 # ---- The image -------------------------------------------------------------------------------------------------------------------
 option(O3OS_RT10XX_FAULT_DRILL "Probe image: raise one deliberate UsageFault 10 s after power-up, to prove the crash record round trip on hardware (a separate image)" OFF)
-option(O3OS_RT10XX_DCACHE "Image: enable the data cache after the MPU table (the SDRAM and the flash are write-back cacheable; TCMs and OCRAM are not cached). OFF for an A/B on the unit" ON)
+option(O3OS_RT10XX_DCACHE "Image: enable the data cache after the SDRAM tests (the SDRAM and the flash are write-back cacheable; TCMs and OCRAM are not cached). OFF for an A/B on the unit" ON)
+option(O3OS_RT10XX_SDRAM_FULL_TEST "Image: the boot's SDRAM capacity test covers every word (several seconds) instead of every 256th; `diag sdram test full` runs it on request either way" OFF)
 
 set(_rt10xx_ld "${CMAKE_CURRENT_BINARY_DIR}/rt10xx.ld")
 add_custom_command(OUTPUT ${_rt10xx_ld}
@@ -45,12 +50,24 @@ add_custom_command(OUTPUT ${_rt10xx_ld}
   VERBATIM)
 add_custom_target(rt10xx_ld_script DEPENDS ${_rt10xx_ld})
 
-add_executable(o3os src/startup.cpp src/boot.cpp src/crash_store.cpp src/clock.cpp src/main.cpp)
-target_link_libraries(o3os PRIVATE platform_rt10xx_pure platform_mk66_pure hal core)
+add_executable(o3os src/startup.cpp src/boot.cpp src/sdram.cpp src/crash_store.cpp src/clock.cpp src/main.cpp)
+# Phase 2: the OTG1 device's image half and the `diag` console (usb/src), with the build identity `version` prints (the MK66's generator,
+# platform/mk66/tools/gen_build_info.cmake: git hash, "-dirty" if the tree differs), written only when it changed.
+set(_rt10xx_gen_dir "${CMAKE_CURRENT_BINARY_DIR}/gen")
+add_custom_target(o3os_build_info
+  COMMAND ${CMAKE_COMMAND} -DSRC=${PROJECT_SOURCE_DIR} -DOUT=${_rt10xx_gen_dir}/o3os_build_info.h -P ${_mk66_tools}/gen_build_info.cmake
+  BYPRODUCTS ${_rt10xx_gen_dir}/o3os_build_info.h
+  COMMENT "o3os_build_info.h (rt10xx)"
+  VERBATIM)
+add_dependencies(o3os o3os_build_info)
+target_include_directories(o3os PRIVATE ${_rt10xx_gen_dir})
+target_sources(o3os PRIVATE usb/src/usb1.cpp usb/src/console.cpp)
+target_link_libraries(o3os PRIVATE platform_rt10xx_pure platform_mk66_pure usb audio hal core)
 o3os_strict_warnings(o3os)
 target_compile_definitions(o3os PRIVATE
   O3OS_RT10XX_FAULT_DRILL=$<BOOL:${O3OS_RT10XX_FAULT_DRILL}>
-  O3OS_RT10XX_DCACHE=$<BOOL:${O3OS_RT10XX_DCACHE}>)
+  O3OS_RT10XX_DCACHE=$<BOOL:${O3OS_RT10XX_DCACHE}>
+  O3OS_RT10XX_SDRAM_FULL_TEST=$<BOOL:${O3OS_RT10XX_SDRAM_FULL_TEST}>)
 # The reset sequence is the C runtime: its copy and zero loops must stay loops, not become memcpy / memset calls.
 set_source_files_properties(src/startup.cpp PROPERTIES COMPILE_OPTIONS -fno-tree-loop-distribute-patterns)
 set_target_properties(o3os PROPERTIES OUTPUT_NAME o3os SUFFIX .elf)

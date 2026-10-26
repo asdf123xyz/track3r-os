@@ -135,18 +135,59 @@ void init_memory_protection() noexcept {
   }
   mpu_ctrl() = mpu::kCtrlEnable;
   asm volatile("dsb\n\tisb" ::: "memory");
+}
 
+namespace {
+
+// Clean and invalidate the whole data cache by set and way (DCCISW), so that it can be switched off with nothing dirty in it.
+void clean_invalidate_dcache() noexcept {
+  regs::scb_csselr() = 0;
+  asm volatile("dsb" ::: "memory");
+  const std::uint32_t ccsidr = regs::scb_ccsidr();
+  const std::uint32_t sets = ((ccsidr >> 13) & 0x7FFFu) + 1u;
+  const std::uint32_t ways = ((ccsidr >> 3) & 0x3FFu) + 1u;
+  unsigned way_shift = 32;
+  for (std::uint32_t w = ways - 1u; w != 0u; w >>= 1u) {
+    --way_shift;
+  }
+  for (std::uint32_t set = 0; set < sets; ++set) {
+    for (std::uint32_t way = 0; way < ways; ++way) {
+      regs::scb_dccisw() = (set << 5) | (way << way_shift);
+    }
+  }
+  asm volatile("dsb\n\tisb" ::: "memory");
+}
+
+}  // namespace
+
+bool dcache_enabled() noexcept { return (regs::scb_ccr() & regs::kCcrDc) != 0u; }
+
+void dcache_enable() noexcept {
+  invalidate_dcache();
+  regs::scb_ccr() = regs::scb_ccr() | regs::kCcrDc;
+  asm volatile("dsb\n\tisb" ::: "memory");
+}
+
+void dcache_disable() noexcept {
+  std::uint32_t primask;
+  asm volatile("mrs %0, primask\n\tcpsid i" : "=r"(primask)::"memory");
+  regs::scb_ccr() = regs::scb_ccr() & ~regs::kCcrDc;
+  asm volatile("dsb\n\tisb" ::: "memory");
+  clean_invalidate_dcache();
+  asm volatile("msr primask, %0" ::"r"(primask) : "memory");
+}
+
+void enable_caches() noexcept {
+  using namespace regs;
   // Instruction cache: invalidate, enable.
   scb_iciallu() = 0;
   asm volatile("dsb\n\tisb" ::: "memory");
   scb_ccr() = scb_ccr() | kCcrIc;
   asm volatile("dsb\n\tisb" ::: "memory");
 #if O3OS_RT10XX_DCACHE
-  // Data cache: invalidate every line (the contents are undefined after reset), enable. Sound because no bus master touches a cacheable
-  // region (mpu_config.h): the SDRAM is the core's alone, the TCMs and the OCRAM are not cached.
-  invalidate_dcache();
-  scb_ccr() = scb_ccr() | kCcrDc;
-  asm volatile("dsb\n\tisb" ::: "memory");
+  // Data cache: sound because no bus master touches a cacheable region (mpu_config.h): the SDRAM is the core's alone, the TCMs and the
+  // OCRAM are not cached. Enabled after the SDRAM tests, which must read the cells.
+  dcache_enable();
 #endif
 }
 

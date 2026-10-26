@@ -29,6 +29,16 @@ inline volatile std::uint32_t& ccm_cbcdr() noexcept { return at<std::uint32_t>(k
 inline volatile std::uint32_t& ccm_cbcmr() noexcept { return at<std::uint32_t>(kCcm + 0x18u); }   // PERIPH_CLK2_SEL [13:12], PRE_PERIPH_CLK_SEL [19:18]
 inline volatile std::uint32_t& ccm_cscmr1() noexcept { return at<std::uint32_t>(kCcm + 0x1Cu); }  // PERCLK_PODF [5:0], PERCLK_CLK_SEL [6]
 inline volatile std::uint32_t& ccm_cdhipr() noexcept { return at<std::uint32_t>(kCcm + 0x48u); }  // the handshake busy bits
+inline volatile std::uint32_t& ccm_ccgr3() noexcept { return at<std::uint32_t>(kCcm + 0x74u); }   // clock gates: semc = CG2 (bits 5:4)
+inline volatile std::uint32_t& ccm_ccgr4() noexcept { return at<std::uint32_t>(kCcm + 0x78u); }   // iomuxc = CG1 (bits 3:2)
+inline volatile std::uint32_t& ccm_ccgr6() noexcept { return at<std::uint32_t>(kCcm + 0x80u); }   // usboh3 = CG0 (bits 1:0)
+inline constexpr std::uint32_t kCcgr3Semc = 0x3u << 4;
+inline constexpr std::uint32_t kCcgr4Iomuxc = 0x3u << 2;
+inline constexpr std::uint32_t kCcgr6Usboh3 = 0x3u << 0;
+inline constexpr std::uint32_t kCbcdrSemcClkSel = 1u << 6;     // 0: the periph clock, 1: the alternate (PLL2 PFD2 or PLL3 PFD1)
+inline constexpr std::uint32_t kCbcdrSemcAltClkSel = 1u << 7;
+inline constexpr std::uint32_t kCbcdrSemcPodfShift = 16;
+inline constexpr std::uint32_t kCbcdrSemcPodfMask = 0x7u << kCbcdrSemcPodfShift;
 inline constexpr std::uint32_t kCacrrArmPodfMask = 0x7u;
 inline constexpr std::uint32_t kCbcdrIpgPodfShift = 8;
 inline constexpr std::uint32_t kCbcdrIpgPodfMask = 0x3u << kCbcdrIpgPodfShift;

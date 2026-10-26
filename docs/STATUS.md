@@ -27,12 +27,14 @@ Every behaviour carries one of three labels: **verified parity** (compared with 
 ### A port to the Tracker+ has started (OS-PORT-RT10XX, 2026-10-26)
 
 `platform/rt10xx` is the platform layer for the Tracker+ (NXP i.MX RT10xx, Cortex-M7, 128 KiB ITCM / 352 KiB DTCM / 32 KiB OCRAM, 64 MiB
-SDRAM, 16 MiB flash). Phase 1 is in the tree: the memory map, the FlexRAM and MPU words, the clock tree (600 MHz), the reset sequence with
-the vector table and fault handlers, the crash record, SysTick, the `.ptf` writer and the static image checks, `O3OS_PLATFORM=rt10xx` and
-`tools/ci.sh rt10xx`. The probe image (FLASH 3,728 B) idles in WFI with a heartbeat. **Nothing has run on a unit**: the first hardware
-check is the probe through the official update path, with the pinhole recovery known to work on that unit (`docs/specs/OS-PORT-RT10XX.md`
-section 4). The board facts come from the Modular-Trackular project's observations of the unit (MIT), used as facts of the hardware only.
-Phases 2 to 5 (console and SDRAM, audio and MIDI, card, display, inputs and update, the rest) are IDEA rows in the backlog.
+SDRAM, 16 MiB flash). Phases 1 and 2 are in the tree: the memory map, the FlexRAM and MPU words, the clock tree (600 MHz), the reset
+sequence with the vector table and fault handlers, the crash record, SysTick, the `.ptf` writer and the static image checks, the SDRAM
+(SEMC) bring-up with its tests, the USB OTG1 device driver (tested against a fake controller on the host) with the `diag` console
+(`sdram`, `cpu`, `crash`, `mem`, `pins`, `peek`, `drill`), `O3OS_PLATFORM=rt10xx` and `tools/ci.sh rt10xx`. The probe image (FLASH 27,076 B)
+answers on the USB port. **Nothing has run on a unit**: the first hardware check is the probe through the official update path, with the
+pinhole recovery known to work on that unit (`docs/specs/OS-PORT-RT10XX.md` sections 4 and 6.5). The board facts come from the
+Modular-Trackular project's observations of the unit (MIT), used as facts of the hardware only; the SDRAM part and its timings are an
+assumption the console confirms or refutes. Phases 3 to 5 (audio and MIDI, card, display, inputs and update, the rest) are IDEA rows.
 
 ## What the OS does
 
@@ -93,7 +95,7 @@ Not yet verified on a unit (host and simulator tests exist for most). The rows m
 Ordered for a fresh session:
 
 1. A person presses INSTALL in Update from the unit on the release file, and runs the checks under "Open on the unit"; record each result as PASS, FAIL or NOT RUN in the backlog rows.
-2. The Tracker+ port (OS-PORT-RT10XX): a person with a Tracker+ runs the phase-1 probe check of `docs/specs/OS-PORT-RT10XX.md` section 4; the maintainer confirms the backlog move and decides phase 2.
+2. The Tracker+ port (OS-PORT-RT10XX): a person with a Tracker+ runs the probe check of `docs/specs/OS-PORT-RT10XX.md` sections 4 and 6.5 (install, the console, `sdram`, `cpu`, `drill`, the pinhole back); the maintainer confirms the backlog move and decides phase 3.
 3. After 1.0: OS-BUG-PADS (pads dead on plastic-back units; fix in `main`, test build on issue #1, waiting for a report from an affected unit), OS-BUG-HOTSWAP (the card-swap crash), OS-PERF-CPU2 (the Perform costs), OS-BUG-FWLIST, then the pending rows in `docs/roadmap/BACKLOG.md` and the latent issues below.
 
 Outside contributors: issues come in through the forms in `.github/ISSUE_TEMPLATE/`; pull requests target `dev` (see `CONTRIBUTING.md`).
