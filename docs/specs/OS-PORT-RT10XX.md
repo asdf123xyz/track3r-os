@@ -357,7 +357,7 @@ stops phase 3 until understood: `stage` and `log` are then only reachable with a
 
 ### 7.4 Costs
 
-The image with phase 3 (the audio library, the pipeline, the engine, the voices and the effects are linked now): FLASH 124,040 B (phase 2:
+The image with phase 3 (the audio library, the pipeline, the engine, the voices and the effects are linked now): FLASH 124,912 B (phase 2:
 27,076), ITCM 49,140 B (hot code 26,868 under the 72 KiB budget, the taps' memory 22,272), DTCM 66,840 B (the engine 15,704, the
 pipeline 856, the rings 2,048, the log and the USB rings as before), OCRAM 2,048 B, SDRAM 0 (the sample arena's users are not moved yet:
 `sdram` on a unit first). CPU: nothing measured yet; `cpu` shows the render's figures once blocks run (the same lines as the MK66's).
