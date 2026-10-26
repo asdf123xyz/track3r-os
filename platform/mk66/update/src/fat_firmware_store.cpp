@@ -377,6 +377,73 @@ Fault FatFirmwareStore::remove_fwinfo() noexcept {
   return (r == FR_OK || r == FR_NO_FILE) ? Fault::Ok : from_fresult(r);
 }
 
+// OS-PORT-RT10XX phase 4: the Tracker+ bootloader's go word. Replaced if it is there (the official firmware writes it the same way), then
+// read back; a file that is not exactly right is deleted (a half-written go word must not stay).
+Fault FatFirmwareStore::write_turnon() noexcept {
+  if (uploading_ || wr_open_) {
+    return Fault::Busy;
+  }
+  Fault f = writable();
+  if (f != Fault::Ok) {
+    return f;
+  }
+  char path[kPathMax];
+  if (!build_path(path, sizeof path, kTurnOnName) || classify_write_path(path) != WriteKind::TurnOn) {
+    return Fault::BadName;
+  }
+  const UINT length = static_cast<UINT>(sizeof(kTurnOnText) - 1u);
+  f = from_fresult(f_open(&wr_, path, FA_CREATE_ALWAYS | FA_WRITE));
+  if (f != Fault::Ok) {
+    return f;
+  }
+  UINT written = 0;
+  FRESULT r = f_write(&wr_, kTurnOnText, length, &written);
+  if (r == FR_OK) {
+    r = f_sync(&wr_);
+  }
+  const FRESULT closed = f_close(&wr_);
+  if (r == FR_OK) {
+    r = closed;
+  }
+  f = from_fresult(r);
+  if (f == Fault::Ok && written != length) {
+    f = Fault::NoSpace;
+  }
+  if (f == Fault::Ok) {
+    close_read();
+    char back[sizeof(kTurnOnText) + 1] = {};
+    UINT n = 0;
+    std::uint32_t size = 0;
+    r = f_open(&rd_, path, FA_READ);
+    if (r == FR_OK) {
+      rd_open_ = true;
+      size = saturate(f_size(&rd_));
+      r = f_read(&rd_, back, sizeof back, &n);
+      close_read();
+    }
+    f = from_fresult(r);
+    if (f == Fault::Ok && (size != length || n != length || std::memcmp(back, kTurnOnText, length) != 0)) {
+      f = Fault::Readback;
+    }
+  }
+  if (f != Fault::Ok) {
+    (void)f_unlink(path);
+  }
+  return f;
+}
+
+Fault FatFirmwareStore::remove_turnon() noexcept {
+  char path[kPathMax];
+  if (!build_path(path, sizeof path, kTurnOnName) || classify_write_path(path) != WriteKind::TurnOn) {
+    return Fault::BadName;
+  }
+  if (!fat_.mounted()) {
+    return Fault::NoCard;
+  }
+  const FRESULT r = f_unlink(path);
+  return (r == FR_OK || r == FR_NO_FILE) ? Fault::Ok : from_fresult(r);
+}
+
 Fault FatFirmwareStore::list_begin() noexcept {
   if (dir_open_) {
     list_end();

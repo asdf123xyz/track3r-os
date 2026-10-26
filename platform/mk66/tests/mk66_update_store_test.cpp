@@ -387,6 +387,26 @@ TEST_CASE("firmware store: _fwinfo holds exactly the bare name") {
   CHECK(fat.open_files() == 0u);
 }
 
+TEST_CASE("firmware store: _turnon holds exactly \"start\" (OS-PORT-RT10XX)") {
+  Card card;
+  st::FatStorage fat(card.medium);
+  up::FatFirmwareStore store(fat, card.medium);
+  NEED(fat.mount() == hs::Status::Ok);
+  const std::uint64_t tree = outside(fat);
+  CHECK(store.remove_turnon() == Fault::Ok);  // none there: fine
+  NEED(store.write_turnon() == Fault::Ok);
+  const std::vector<std::uint8_t> go = read_file(fat, "Firmware/_turnon");
+  CHECK(std::string(go.begin(), go.end()) == "start");  // five bytes, no newline
+  NEED(store.write_turnon() == Fault::Ok);           // replaced, not refused
+  const std::vector<std::uint8_t> again = read_file(fat, "Firmware/_turnon");
+  CHECK(std::string(again.begin(), again.end()) == "start");
+  CHECK(has(names_in_firmware(fat), "_turnon"));
+  CHECK(store.remove_turnon() == Fault::Ok);
+  CHECK(!has(names_in_firmware(fat), "_turnon"));
+  CHECK(outside(fat) == tree);
+  CHECK(fat.open_files() == 0u);
+}
+
 TEST_CASE("firmware store: a full volume, a failing medium, a card pulled out") {
   {  // the volume cannot hold the file: said at the start, nothing left behind
     Card card(true, true, 8);  // 8 free clusters of 512 bytes: 4 KiB

@@ -7,6 +7,8 @@
 //
 //   Firmware/_o3up.tmp                  the upload while it is being written (never a .ptf: the bootloader looks for .ptf files)
 //   Firmware/_fwinfo                    the hand-over file: exactly the bare name of the image
+//   Firmware/_turnon                    the Tracker+ bootloader's go word: exactly "start" (OS-PORT-RT10XX phase 4: observed behaviour of the
+//                                       official firmware, which writes it after _fwinfo and before the reset; the MK66 never writes it)
 //   Firmware/<stem>.ptf                 a finished image: <stem> is [0-9A-Za-z][0-9A-Za-z._-]{0,47}, the whole name without "..", the suffix in any case
 //
 // Any such name is allowed (maintainer decision: a candidate is better NOT named like an official file, PolyendTracker_<version>.ptf). Removal is narrower: the temporary file and any valid image
@@ -21,6 +23,8 @@ namespace o3os::platform::mk66::update {
 inline constexpr char kFirmwareDir[] = "Firmware";
 inline constexpr char kTempName[] = "_o3up.tmp";
 inline constexpr char kFwInfoName[] = "_fwinfo";
+inline constexpr char kTurnOnName[] = "_turnon";
+inline constexpr char kTurnOnText[] = "start";  // the five bytes, no newline
 inline constexpr char kOfficialPrefix[] = "Polyend";         // names starting like this (any case) are never removed ...
 inline constexpr char kDevPrefix[] = "PolyendTracker_0.";     // ... except the dev namespace (0.x versions, assumed never published)
 inline constexpr char kImageSuffix[] = ".ptf";
@@ -29,7 +33,7 @@ inline constexpr std::size_t kStemMax = 48;
 inline constexpr std::size_t kImageNameMax = kStemMax + kSuffixLen;  // 52
 inline constexpr std::size_t kPathMax = sizeof(kFirmwareDir) + 1 + kImageNameMax;  // "Firmware/" + the longest name + NUL
 
-enum class WriteKind : unsigned char { None, Temp, FwInfo, Image };
+enum class WriteKind : unsigned char { None, Temp, FwInfo, Image, TurnOn };
 
 // A bare image name a finished upload may get: <stem>.ptf (see the top of this file).
 bool valid_image_name(const char* name) noexcept;
@@ -41,7 +45,7 @@ bool readable_name(const char* name) noexcept;
 bool is_ptf_name(const char* name) noexcept;
 // "Firmware/<name>" into `out`; false when it does not fit (the name is not checked here).
 bool build_path(char* out, std::size_t cap, const char* name) noexcept;
-// The last guard: a full path ("Firmware/<name>", no leading slash) that the writer may create, rename or write: exactly the three forms above.
+// The last guard: a full path ("Firmware/<name>", no leading slash) that the writer may create, rename or write: exactly the four forms above.
 WriteKind classify_write_path(const char* path) noexcept;
 
 }  // namespace o3os::platform::mk66::update

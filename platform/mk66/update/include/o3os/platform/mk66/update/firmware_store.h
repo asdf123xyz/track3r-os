@@ -69,6 +69,10 @@ class FirmwareStore {
   virtual Fault write_fwinfo(const char* name) noexcept = 0;
   // Deletes Firmware/_fwinfo; Ok when there is none.
   virtual Fault remove_fwinfo() noexcept = 0;
+  // Firmware/_turnon (OS-PORT-RT10XX phase 4, the Tracker+ hand-over): created or replaced with exactly kTurnOnText, synced, closed, read back and compared;
+  // remove_turnon() deletes it (Ok when there is none). Not part of the MK66's hand-over: a store that does not implement them answers Disabled.
+  virtual Fault write_turnon() noexcept { return Fault::Disabled; }
+  virtual Fault remove_turnon() noexcept { return Fault::Disabled; }
 
   // The listing of Firmware/: list_begin(), then list_next() until it says false, then list_end(). Directories and "."/".." are skipped.
   virtual Fault list_begin() noexcept = 0;

@@ -41,6 +41,8 @@
 #include <o3os/platform/rt10xx/i2c.h>
 #include <o3os/platform/rt10xx/i2c_config.h>
 #include <o3os/platform/rt10xx/input.h>
+#include <o3os/platform/rt10xx/update/firmware.h>
+#include <o3os/platform/rt10xx/boot_image.h>
 #include <o3os/platform/mk66/usb/diag_text.h>
 #include <o3os/platform/mk66/usb/log_command.h>
 #include <o3os/platform/rt10xx/clock_config.h>
@@ -778,6 +780,77 @@ void cmd_input(shell::Shell& sh, const shell::Args& a) {
   }
 }
 
+// ---- `fw` (phase 4): the Tracker+ update path. `fw` lists Firmware/ (the names the bootloader lists, the write state); `fw check <name>`
+// validates a file whole; `fw arm <name>` does that and prints a one-use token; `fw update <token>` checks again and hands over the way the
+// official firmware does (_fwinfo, _turnon, reset); `fw clear` deletes both hand-over files. The card must be mounted (`sd mount`).
+void print_check(shell::Shell& sh, const char* name, const update::CheckResult& r) {
+  sh.out().text(name).text(": ").text(update::ptf_fault_name(r.fault));
+  if (r.fault == update::Fault::Ok) {
+    sh.out().text(", file ").dec(r.file_bytes).text(" B, image ").dec(r.image_bytes).text(" B, crc32 ").hex(r.crc);
+  } else if (r.file_bytes != 0u) {
+    sh.out().text(" at byte ").dec(r.fault_offset).text(" of ").dec(r.file_bytes);
+  }
+  sh.out().nl();
+}
+
+void cmd_fw(shell::Shell& sh, const shell::Args& a) {
+  namespace mup = o3os::platform::mk66::update;
+  if (a.argc == 3 && same(a.argv[1], "check")) {
+    print_check(sh, a.argv[2], update::check(a.argv[2]));
+    return;
+  }
+  if (a.argc == 3 && same(a.argv[1], "arm")) {
+    update::CheckResult r;
+    const std::uint32_t token = update::arm(a.argv[2], r);
+    print_check(sh, a.argv[2], r);
+    if (token != 0u) {
+      sh.out().text("armed ").hex(token).text(" (one use, ").dec(update::kArmLifetimeMs / 1000u).text(" s): `fw update <token>` installs it\n");
+    }
+    return;
+  }
+  if (a.argc == 3 && same(a.argv[1], "update")) {
+    std::uint32_t token = 0;
+    if (!parse_u32(a.argv[2], token, 16)) {
+      sh.out().text("usage: fw update <token from fw arm, hex>\n");
+      return;
+    }
+    sh.out().text("update: checking ").text(update::armed_name()).text(" again, then handing over to the bootloader (the unit resets)\n");
+    sh.out().flush();
+    usb1::kick();
+    log("fw update: handing over");
+    const update::Fault f = update::update(token);  // returns only on a failure
+    sh.out().text("ERR ").text(update::ptf_fault_name(f)).text(" (nothing handed over)\n");
+    return;
+  }
+  if (a.argc == 2 && same(a.argv[1], "clear")) {
+    const update::Fault f = update::clear();
+    sh.out().text("fw clear: ").text(update::ptf_fault_name(f)).nl();
+    return;
+  }
+  if (a.argc != 1) {
+    sh.out().text("usage: fw [check <name> | arm <name> | update <token> | clear]\n");
+    return;
+  }
+  mup::FirmwareStore& st = update::store();
+  const mup::WriteState w = st.state();
+  sh.out().text("card ").text(w.mounted ? w.fs : "not mounted").text(", Firmware/ ").text(w.dir ? "present" : "missing").text(", writes ")
+      .text(w.why == update::Fault::Ok ? "allowed" : update::ptf_fault_name(w.why)).nl();
+  if (st.list_begin() != update::Fault::Ok) {
+    return;
+  }
+  mup::FwEntry e{};
+  unsigned n = 0;
+  while (st.list_next(e) && n < 64u) {
+    const bool listed = image::listed_name(e.name);
+    sh.out().text(listed ? "  " : "  (not listed by the bootloader) ").text(e.name).text("  ").dec(e.size).text(" B\n");
+    ++n;
+  }
+  st.list_end();
+  if (n == 0u) {
+    sh.out().text("  no .ptf in Firmware/\n");
+  }
+}
+
 void cmd_drill(shell::Shell& sh, const shell::Args&) {
   sh.out().text("raising a UsageFault now: the unit resets, `crash` shows the record after\n");
   sh.out().flush();
@@ -814,6 +887,7 @@ constexpr shell::Command kCommands[] = {
     shell::command("display", "display [start | test | bl <0..128>]: the FT81x (assumed LPSPI4)", &cmd_display),
     shell::command("i2c", "i2c scan <1|3|4>: the addresses that answer on LPI2Cn (candidate pads)", &cmd_i2c),
     shell::command("input", "input [start [pad control] | encoder <port> <a> <b> | leds <0..255>]: keys, pads, encoder, pad LEDs", &cmd_input),
+    shell::command("fw", "fw [check <name> | arm <name> | update <token> | clear]: the Tracker+ update path", &cmd_fw),
     shell::command("drill", "one deliberate UsageFault: the crash record round trip", &cmd_drill),
     shell::command("reset", "restart the unit (SYSRESETREQ)", &cmd_reset),
 };

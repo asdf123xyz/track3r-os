@@ -135,9 +135,10 @@ TEST_CASE("path guard: what may be read, built paths, and the .ptf test of a lis
   CHECK(!up::is_ptf_name("_fwinfo"));
 }
 
-TEST_CASE("path guard: the last guard accepts exactly three paths") {
+TEST_CASE("path guard: the last guard accepts exactly four paths") {
   CHECK(up::classify_write_path("Firmware/_o3up.tmp") == up::WriteKind::Temp);
   CHECK(up::classify_write_path("Firmware/_fwinfo") == up::WriteKind::FwInfo);
+  CHECK(up::classify_write_path("Firmware/_turnon") == up::WriteKind::TurnOn);
   CHECK(up::classify_write_path("Firmware/PolyendTracker_0.1.ptf") == up::WriteKind::Image);
   const char* const refused[] = {"",
                                  "Firmware",
@@ -154,6 +155,9 @@ TEST_CASE("path guard: the last guard accepts exactly three paths") {
                                  "Firmware/_o3up",
                                  "Firmware/_fwinfo2",
                                  "Firmware/_FWINFO",
+                                 "Firmware/_turnon2",
+                                 "Firmware/_TURNON",
+                                 "_turnon",
                                  "Firmware/.ptf",
                                  "Firmware/a b.ptf",
                                  "Firmware/a/b.ptf",
@@ -171,7 +175,7 @@ TEST_CASE("path guard: the last guard accepts exactly three paths") {
     CHECK(up::classify_write_path(path) == up::WriteKind::None);
   }
   CHECK(up::classify_write_path(nullptr) == up::WriteKind::None);
-  // Mutating one character of an accepted full path (to anything) keeps it accepted only when the result is itself one of the three forms.
+  // Mutating one character of an accepted full path (to anything) keeps it accepted only when the result is itself one of the four forms.
   const std::string base = "Firmware/PolyendTracker_0.1.ptf";
   unsigned still_accepted = 0;
   for (std::size_t at = 0; at < base.size(); ++at) {
@@ -187,7 +191,7 @@ TEST_CASE("path guard: the last guard accepts exactly three paths") {
   }
   CHECK(still_accepted > 0u);  // the body characters can change within the class
   // Truncations of every accepted form are refused (they are prefixes, not names).
-  for (const char* full : {"Firmware/_o3up.tmp", "Firmware/_fwinfo", "Firmware/PolyendTracker_0.1.ptf"}) {
+  for (const char* full : {"Firmware/_o3up.tmp", "Firmware/_fwinfo", "Firmware/_turnon", "Firmware/PolyendTracker_0.1.ptf"}) {
     const std::string s = full;
     for (std::size_t n = 0; n < s.size(); ++n) {
       CHECK(up::classify_write_path(s.substr(0, n).c_str()) == up::WriteKind::None);

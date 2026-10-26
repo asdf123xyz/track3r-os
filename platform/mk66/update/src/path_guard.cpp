@@ -114,6 +114,9 @@ WriteKind classify_write_path(const char* path) noexcept {
   if (equals(name, kFwInfoName)) {
     return WriteKind::FwInfo;
   }
+  if (equals(name, kTurnOnName)) {
+    return WriteKind::TurnOn;
+  }
   return valid_image_name(name) ? WriteKind::Image : WriteKind::None;
 }
 

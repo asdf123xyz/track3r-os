@@ -32,6 +32,8 @@ class FatFirmwareStore final : public FirmwareStore {
   Fault remove(const char* name) noexcept override;
   Fault write_fwinfo(const char* name) noexcept override;
   Fault remove_fwinfo() noexcept override;
+  Fault write_turnon() noexcept override;
+  Fault remove_turnon() noexcept override;
   Fault list_begin() noexcept override;
   bool list_next(FwEntry& out) noexcept override;
   void list_end() noexcept override;

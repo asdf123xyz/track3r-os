@@ -15,7 +15,8 @@ set(_rt10xx_template "${CMAKE_CURRENT_SOURCE_DIR}/rt10xx.ld.in")
 
 # Headers only so far (the hardware halves are the image's sources below). The crash record's format and pure functions are the
 # MK66's, reused as they are (platform.h says why): hence the dependency on platform_mk66_pure.
-o3os_library(platform_rt10xx_pure DEPENDS hal platform_mk66_pure)
+# Phase 4: the first source of the pure library, the Tracker+ firmware file's streaming validator (pure/: chip-neutral code, host-tested).
+o3os_library(platform_rt10xx_pure SOURCES pure/ptf_validator.cpp DEPENDS hal platform_mk66_pure)
 # Phase 2: the OTG1 device driver's pure half (usb/include: the chip's USB facts and the driver as a template over a register policy) joins
 # the headers; its host test drives it with a fake controller (tests/rt10xx_usb_ci_test.cpp). The usb layer is what it is written against.
 target_include_directories(platform_rt10xx_pure INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/usb/include)
@@ -51,7 +52,7 @@ add_custom_command(OUTPUT ${_rt10xx_ld}
   VERBATIM)
 add_custom_target(rt10xx_ld_script DEPENDS ${_rt10xx_ld})
 
-add_executable(o3os src/startup.cpp src/boot.cpp src/sdram.cpp src/crash_store.cpp src/clock.cpp src/i2c.cpp src/audio.cpp src/midi_din.cpp src/usdhc_bus.cpp src/card.cpp src/display.cpp src/input.cpp src/main.cpp)
+add_executable(o3os src/startup.cpp src/boot.cpp src/sdram.cpp src/crash_store.cpp src/clock.cpp src/i2c.cpp src/audio.cpp src/midi_din.cpp src/usdhc_bus.cpp src/card.cpp src/display.cpp src/input.cpp src/firmware.cpp src/main.cpp)
 # Phase 2: the OTG1 device's image half and the `diag` console (usb/src), with the build identity `version` prints (the MK66's generator,
 # platform/mk66/tools/gen_build_info.cmake: git hash, "-dirty" if the tree differs), written only when it changed.
 set(_rt10xx_gen_dir "${CMAKE_CURRENT_BINARY_DIR}/gen")
