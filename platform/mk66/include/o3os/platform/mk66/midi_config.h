@@ -27,7 +27,9 @@
 
 namespace o3os::platform::mk66::midi_cfg {
 
+#ifndef O3OS_CPU_HZ  // (OS-PORT-RT10XX: another chip's build compiles this header for its check only; the MK66's clock asserts are left out there, see audio_config.h)
 static_assert(clock::kCoreHz == core::kCpuHz, "the cycle counts of the MIDI timing core are relative to the 180 MHz core clock of clock_config.h");
+#endif
 
 // ---- UART4 (K66 RM "UART", base 0x400E_A000) -------------------------------------------------------------------------------------
 namespace uart4 {
@@ -87,7 +89,9 @@ static_assert((clock::kCoreHz >> kCyclesPerTickShift) == clock::kBusHz && (clock
               "one PIT tick is 2 CPU cycles: the timer runs at the bus clock");
 // One MIDI byte in timer ticks: 28,800 (320 us). The emitter's commit-depth-1 wake after a byte.
 inline constexpr std::uint32_t kByteTicks = static_cast<std::uint32_t>(midi::din::kByteCycles >> kCyclesPerTickShift);
+#ifndef O3OS_CPU_HZ
 static_assert(kByteTicks == 28800u, "a DIN byte is 320 us = 28,800 ticks of the 90 MHz bus clock");
+#endif
 }  // namespace pit
 
 // ---- The audio timeline's lead -----------------------------------------------------------------------------------------------------

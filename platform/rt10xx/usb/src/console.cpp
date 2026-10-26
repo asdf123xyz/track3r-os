@@ -26,6 +26,14 @@
 #include "../../src/regs.h"
 
 #include <o3os/audio/diag.h>
+#include <o3os/core/qtime.h>
+#include <o3os/midi/din.h>
+#include <o3os/midi/in.h>
+#include <o3os/midi/message.h>
+#include <o3os/midi/time_ref.h>
+#include <o3os/platform/rt10xx/audio.h>
+#include <o3os/platform/rt10xx/midi.h>
+#include <o3os/platform/rt10xx/midi_config.h>
 #include <o3os/platform/mk66/usb/diag_text.h>
 #include <o3os/platform/mk66/usb/log_command.h>
 #include <o3os/platform/rt10xx/clock_config.h>
@@ -70,7 +78,7 @@ shell::LogRecord g_log_records[kLogRecords];
 shell::LogRing g_log;
 static_assert(sizeof(shell::LogRecord) == 64 && (kLogRecords & (kLogRecords - 1u)) == 0u, "a power-of-two number of 64-byte records");
 
-constexpr char kBanner[] = "Track3r diag - o3os " O3OS_BUILD_LABEL " (rt10xx probe) - 'help' lists the commands";
+constexpr char kBanner[] = "Track3r diag - o3os " O3OS_BUILD_LABEL " (rt10xx probe, phase 3) - 'help' lists the commands";
 
 // ---- Output ----------------------------------------------------------------------------------------------------------------------------
 void sink_write(void*, const char* data, std::size_t n) { usb1::cdc_writer().write(data, n); }
@@ -229,11 +237,20 @@ void cmd_sdram(shell::Shell& sh, const shell::Args& a) {
   sdram_report(sh, sdram::status());
 }
 
-void cmd_cpu(shell::Shell& sh, const shell::Args&) {
+void cmd_cpu(shell::Shell& sh, const shell::Args& a) {
+  if (a.argc == 2 && same(a.argv[1], "reset")) {  // the per-run figures and the fault latch (audio/status.h reset_peaks)
+    audio_cpu_reset();
+    sh.out().text("cpu: figures and the fault latch reset\n");
+    return;
+  }
   const auto& c = usb1::counters();
   sh.out().text("core clock configured ").dec(clock::kCoreHz / 1000000u).text(" MHz (IPG ").dec(clock::kIpgHz / 1000000u).text(", PERCLK ").dec(clock::kPerclkHz / 1000000u).text("), SysTick reload ").dec(clock::kSysTickReload).nl();
   sh.out().text("cycles per USB frame (the host's 1 ms): ").dec(c.sof_cycles).text(" -> about ").dec(c.sof_cycles / 1000u).text(" MHz measured against the host\n");
   sh.out().text("uptime ").dec(uptime_ms32()).text(" ms, cycle counter ").hex(regs::dwt_cyccnt()).nl();
+  if (audio_running()) {  // phase 3: the audio path's figures (audio/diag.h, the MK66's `cpu` lines) once blocks run
+    char buf[kTextBuffer];
+    send(sh, o3os::audio::diag::format_cpu(audio_status().snapshot(), hal::audio::kCyclesPerBlock, buf, sizeof buf), buf);
+  }
 }
 
 void cmd_usb(shell::Shell& sh, const shell::Args&) {
@@ -382,6 +399,209 @@ void cmd_peek(shell::Shell& sh, const shell::Args& a) {
   }
 }
 
+// ---- `audio` (phase 3): the audio path on the maintainer's command. Nothing is driven before `audio start`; start() never unmutes
+// (hal/audio.h H16); `audio unmute` opens the outputs only after a clean run of blocks, as the MK66's output gate does at boot.
+constexpr std::uint32_t kCleanBlocksBeforeUnmute = 400;  // 0.58 s of boundaries without a fault (the MK66 main's settle count)
+
+const char* audio_where_name(std::uint8_t where) {
+  switch (where) {
+    case AudioClockFault::PllLock: return "pll lock";
+    case AudioClockFault::NoBoundaries: return "boundaries";
+    default: return "none";
+  }
+}
+
+void audio_status_lines(shell::Shell& sh) {
+  const o3os::audio::StatusSnapshot snap = audio_status().snapshot();
+  sh.out().text("audio ").text(audio_running() ? "running" : "stopped").text(", outputs ").text(audio_device().outputs_enabled() ? "open" : "muted")
+      .text(", last result ").text(audio_result_name(audio_last_result())).nl();
+  const AudioClockFault f = audio_clock_fault();
+  if (f.where != AudioClockFault::None) {
+    sh.out().text("  clock fault at ").text(audio_where_name(f.where)).text(": PLL_AUDIO ").hex(f.pll).text(" RCSR ").hex(f.rcsr).text(" TCSR ").hex(f.tcsr).nl();
+  }
+  sh.out().text("  boundaries ").dec(snap.boundaries).text(" renders ").dec(snap.renders).text(" underruns ").dec(snap.underruns).text(" hw faults ").dec(snap.hw_faults)
+      .text(" slips ").dec(snap.slot_slips).text(" period ").dec(snap.period_min).text("..").dec(snap.period_max).text(" cycles (block ").dec(hal::audio::kCyclesPerBlock).text(")").nl();
+}
+
+void cmd_audio(shell::Shell& sh, const shell::Args& a) {
+  if (a.argc == 1) {
+    audio_status_lines(sh);
+    return;
+  }
+  const char* sub = a.argv[1];
+  if (same(sub, "start")) {
+    if (audio_running()) {
+      sh.out().text("audio: already running\n");
+      return;
+    }
+    log("audio start: codec, clocks, DMA");
+    const auto result = static_cast<std::uint8_t>(audio_device().start(audio_engine().callback()));
+    sh.out().text("audio start: ").text(audio_result_name(result)).nl();
+    if (audio_running()) {
+      log("audio start: Ok, outputs muted");
+    } else {
+      log_dec("audio start: FAILED, result", result);
+      const AudioClockFault f = audio_clock_fault();
+      if (f.where != AudioClockFault::None) {
+        log_hex("audio start: PLL_AUDIO", f.pll);
+        log_hex("audio start: RCSR", f.rcsr);
+      }
+    }
+    audio_status_lines(sh);
+    return;
+  }
+  if (same(sub, "unmute")) {
+    const o3os::audio::StatusSnapshot snap = audio_status().snapshot();
+    if (!audio_running()) {
+      sh.out().text("audio: not running (`audio start` first)\n");
+      return;
+    }
+    if (snap.boundaries < kCleanBlocksBeforeUnmute || snap.fault_seen != 0u) {
+      sh.out().text("audio: refused, the path has not run ").dec(kCleanBlocksBeforeUnmute).text(" clean blocks (fault seen: ").dec(snap.fault_seen).text("; `cpu reset` clears the latch)\n");
+      return;
+    }
+    const bool ok = audio_device().unmute();  // blocks about 0.2 s: the codec's ramps
+    sh.out().text(ok ? "audio: outputs open (quiet level)\n" : "audio: unmute FAILED, outputs muted\n");
+    log(ok ? "audio unmute: outputs open" : "audio unmute: FAILED");
+    return;
+  }
+  if (same(sub, "mute")) {
+    audio_device().mute();
+    sh.out().text("audio: outputs muted\n");
+    return;
+  }
+  if (same(sub, "tone") && a.argc == 3 && (same(a.argv[2], "on") || same(a.argv[2], "off"))) {
+    if (!audio_running()) {
+      sh.out().text("audio: not running\n");
+      return;
+    }
+    const bool on = same(a.argv[2], "on");
+    sh.out().text(audio_engine().set_tone(on) ? (on ? "audio: test tone on (audible once unmuted)\n" : "audio: test tone off\n") : "audio: tone request not taken (the parameter ring is full)\n");
+    return;
+  }
+  if (same(sub, "stall")) {
+    if (!audio_running()) {
+      sh.out().text("audio: not running\n");
+      return;
+    }
+    audio_engine().request_test_stall((hal::audio::kCyclesPerBlock * 7u) / 2u);  // 3.5 blocks: the ADR 0013 D1 underrun drill, muted by the pipeline
+    sh.out().text("audio: one render stalled 3.5 blocks; `audio` shows the underruns and the mute\n");
+    return;
+  }
+  if (same(sub, "stop")) {
+    audio_stop();
+    sh.out().text("audio: stopped, outputs muted\n");
+    log("audio stop");
+    return;
+  }
+  sh.out().text("usage: audio [start | unmute | mute | tone on|off | stall | stop]\n");
+}
+
+// ---- `midi` (phase 3): the DIN port under the console. The emitter, the receive ring and the time base of the full OS belong to the
+// sequencer's MidiLink (phase 5); until then this harness owns them: the console is the emitter's producer and the ring's consumer (the
+// main thread, one context), and service() publishes a time base from the cycle counter so the emitter's interrupt has a timeline.
+o3os::midi::DinEmitter g_midi_out;
+o3os::midi::RtInRing g_midi_in;
+o3os::midi::TimeRef g_midi_time;
+std::uint32_t g_midi_last_cycles = 0;
+std::uint64_t g_midi_cycles = 0;  // the harness's timeline: cycles since `midi start`
+bool g_midi_harness = false;
+constexpr std::uint32_t kMidiClocksPerBeat = 24;
+constexpr std::uint32_t kMidiBeatCycles = clock::kCoreHz / 2u;  // 120 BPM
+
+// The timeline sample of the harness's cycle count (the inverse of core::cycles_from_samples: samples = cycles x den / num).
+std::uint64_t midi_sample_of(std::uint64_t cycles) { return cycles * core::kRefCyclesPerSample.den / core::kRefCyclesPerSample.num; }
+
+void midi_publish_time() {
+  const std::uint32_t now = regs::dwt_cyccnt();
+  g_midi_cycles += now - g_midi_last_cycles;
+  g_midi_last_cycles = now;
+  g_midi_time.publish(midi_sample_of(g_midi_cycles), now);
+}
+
+bool midi_now(std::uint64_t& out) {
+  midi_publish_time();
+  return g_midi_time.to_timeline(regs::dwt_cyccnt(), out);
+}
+
+void cmd_midi(shell::Shell& sh, const shell::Args& a) {
+  if (a.argc >= 2 && same(a.argv[1], "start")) {
+    if (!g_midi_harness) {
+      g_midi_out.configure(o3os::midi::DinEmitter::Config{});
+      g_midi_last_cycles = regs::dwt_cyccnt();
+      g_midi_cycles = 0;
+      midi_publish_time();
+      g_midi_harness = true;
+      midi_io::start(g_midi_out, g_midi_in, g_midi_time);
+      log("midi start: LPUART5 and the PIT emitter up");
+    }
+    sh.out().text("midi: port up, 31,250 baud; `midi note`, `midi clock`, `midi` for the counters and received bytes\n");
+    return;
+  }
+  if (a.argc >= 2 && (same(a.argv[1], "note") || same(a.argv[1], "clock"))) {
+    std::uint64_t now = 0;
+    if (!g_midi_harness || !midi_now(now)) {
+      sh.out().text("midi: not started (`midi start` first)\n");
+      return;
+    }
+    if (same(a.argv[1], "note")) {
+      std::uint32_t note = 60;
+      if (a.argc >= 3 && !parse_u32(a.argv[2], note)) {
+        sh.out().text("usage: midi note [0..127]\n");
+        return;
+      }
+      const std::uint8_t n = static_cast<std::uint8_t>(note & 0x7Fu);
+      const std::uint64_t on_at = now + clock::kCoreHz / 1000u;  // 1 ms from now, then 100 ms of note
+      const bool ok = g_midi_out.push_msg(on_at, o3os::midi::note_on(0, n, 100)) && g_midi_out.push_msg(on_at + clock::kCoreHz / 10u, o3os::midi::note_off(0, n));
+      midi_io::kick();
+      sh.out().text(ok ? "midi: note on, 100 ms, note off queued on channel 1\n" : "midi: the emitter's ring is full\n");
+      return;
+    }
+    bool ok = true;
+    for (std::uint32_t i = 0; i < kMidiClocksPerBeat && ok; ++i) {
+      ok = g_midi_out.push_rt(now + clock::kCoreHz / 1000u + (static_cast<std::uint64_t>(kMidiBeatCycles) * i) / kMidiClocksPerBeat, 0xF8);
+    }
+    midi_io::kick();
+    sh.out().text(ok ? "midi: 24 clock bytes queued, one beat at 120 BPM (20.833 ms apart)\n" : "midi: the real-time ring is full\n");
+    return;
+  }
+  if (a.argc != 1) {
+    sh.out().text("usage: midi [start | note [n] | clock]\n");
+    return;
+  }
+  const o3os::midi::DinRxStats& rx = midi_io::rx_stats();
+  const o3os::midi::DinTxStats& tx = midi_io::tx_stats();
+  const o3os::midi::DinEmitter::Stats& em = g_midi_out.stats();
+  sh.out().text("midi ").text(midi_io::started() ? "up" : "down").text(": rx isrs ").dec(rx.isrs).text(" bytes ").dec(rx.bytes).text(" errors ").dec(rx.errors).text(" overruns ").dec(rx.overruns)
+      .text(" ring full ").dec(rx.ring_full).nl();
+  sh.out().text("  tx irqs ").dec(tx.irqs).text(" bytes ").dec(tx.bytes).text(" rt ").dec(tx.rt_bytes).text(" no time ").dec(tx.no_time).text(" not ready ").dec(tx.not_ready)
+      .text(" floor ").dec(tx.timer_floor).text(" rt late max ").dec(static_cast<std::uint32_t>(tx.rt_late_max / (clock::kCoreHz / 1000000u))).text(" us").nl();
+  sh.out().text("  emitter msg bytes ").dec(em.msg_bytes).text(" rt sent ").dec(em.rt_sent).text(" inserted ").dec(em.rt_inserted).nl();
+  // The bytes received since the last `midi`, with the gap before each (the loopback test: a DIN cable from OUT to IN shows the sent bytes here).
+  o3os::midi::RtItem item{};
+  unsigned shown = 0;
+  std::uint32_t previous = 0;
+  while (g_midi_in.pop(item)) {
+    if (shown == 0) {
+      sh.out().text("  received:");
+    }
+    if (shown < 32u) {
+      sh.out().chr(' ').hex(item.byte, 2);
+      if (shown != 0u) {
+        sh.out().chr('+').dec((item.cycles - previous) / (clock::kCoreHz / 1000000u)).text("us");
+      }
+    }
+    previous = item.cycles;
+    ++shown;
+  }
+  if (shown != 0u) {
+    if (shown > 32u) {
+      sh.out().text(" ... ").dec(shown).text(" bytes");
+    }
+    sh.out().nl();
+  }
+}
+
 void cmd_drill(shell::Shell& sh, const shell::Args&) {
   sh.out().text("raising a UsageFault now: the unit resets, `crash` shows the record after\n");
   sh.out().flush();
@@ -406,7 +626,9 @@ constexpr shell::Command kCommands[] = {
     shell::command("crash", "crash [clear]: the crash record the previous run left", &cmd_crash),
     shell::command("mem", "memory map and what the image uses of each region", &cmd_mem),
     shell::command("sdram", "sdram [test [full]]: the SDRAM bring-up's outcome; run the tests again", &cmd_sdram),
-    shell::command("cpu", "the core clock measured against the host's USB frames", &cmd_cpu),
+    shell::command("cpu", "cpu [reset]: the core clock against the host's USB frames; the audio path's figures once it runs", &cmd_cpu),
+    shell::command("audio", "audio [start | unmute | mute | tone on|off | stall | stop]: the audio path (phase 3)", &cmd_audio),
+    shell::command("midi", "midi [start | note [n] | clock]: the DIN port's counters and received bytes; bring it up; send", &cmd_midi),
     shell::command("usb", "the USB driver's counters and the control pipe's state", &cmd_usb),
     shell::command("log", "log [count]: the last lines boot code and drivers wrote", &cmd_log),
     shell::command("pins", "pins | pins mux <pad> | pins gpio <port> <bit> [in|high|low]", &cmd_pins),
@@ -454,6 +676,9 @@ void service() noexcept {
   g_shell.tick();
   usb1::cdc_writer().flush();
   usb1::kick();
+  if (g_midi_harness) {
+    midi_publish_time();  // the emitter's time base (within the counter's 11.9 s window of a publish: this runs every pass)
+  }
 }
 
 }  // namespace o3os::platform::rt10xx::console

@@ -3,9 +3,13 @@
 
 // Declarations shared between the translation units of the rt10xx image (OS-PORT-RT10XX). Private to src/.
 
+#include <o3os/platform/rt10xx/clock_config.h>
 #include <o3os/platform/rt10xx/platform.h>
 
 #include <cstdint>
+
+// The image is built at this chip's clock (the root CMakeLists.txt sets O3OS_CPU_HZ): every cycle count of the tree is then this core's.
+static_assert(o3os::platform::rt10xx::clock::kTreeIsRt10xx, "O3OS_CPU_HZ (the root CMakeLists.txt) must be the rt10xx core clock of clock_config.h");
 
 namespace o3os::platform::rt10xx::boot {
 
@@ -19,6 +23,7 @@ void enable_caches() noexcept;          // the instruction cache and (O3OS_RT10X
 bool dcache_enabled() noexcept;
 void dcache_enable() noexcept;          // invalidate, then on (nothing valid is in it: the SDRAM is untouched while it is off)
 void dcache_disable() noexcept;         // clean and invalidate, then off (main thread only; interrupts masked meanwhile)
+void init_dma() noexcept;               // the eDMA's global state (audio_config.h kCrValue) and the channel priorities of resources.h; the channels stay idle
 void init_interrupts() noexcept;        // VTOR, NVIC priorities from hal/irq.h, fault handlers enabled, divide-by-zero traps
 void start_systick() noexcept;          // 1 kHz tick; the clock reads valid from here
 void capture_reset_cause() noexcept;    // SRC_SRSR, read and cleared

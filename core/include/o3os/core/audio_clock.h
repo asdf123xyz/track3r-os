@@ -13,7 +13,9 @@
 //
 // `kCpuHz` is the core clock the rational is relative to. It is a plain number here because `core` knows no platform: the MK66
 // image static_asserts it equals its clock tree (platform/mk66 audio_config.h: clock::kCoreHz == kCpuHz), so a change of the core
-// clock cannot silently change what a "cycle per sample" means.
+// clock cannot silently change what a "cycle per sample" means. OS-PORT-RT10XX: a build for another chip defines O3OS_CPU_HZ (the
+// rt10xx's 600 MHz, from the root CMakeLists.txt, for every target of that build); the 44,100 Hz rational is then kCpuHz / 100 over
+// 441 (6000000/441 at 600 MHz: the same number as before at 180 MHz), and the pre-1.0 clock exists only on the MK66.
 
 #include <cstdint>
 
@@ -24,11 +26,17 @@ struct CyclesPerSample {
   std::uint32_t den;
 };
 
+#if defined(O3OS_CPU_HZ)
+inline constexpr std::uint32_t kCpuHz = O3OS_CPU_HZ;
+#else
 inline constexpr std::uint32_t kCpuHz = 180000000u;
+#endif
+static_assert(kCpuHz % 100u == 0u && kCpuHz >= 100'000'000u, "the core clock is a whole number of hundreds of hertz, at least 100 MHz");
 
 #if defined(O3OS_RATE_44100) && O3OS_RATE_44100
-inline constexpr CyclesPerSample kRefCyclesPerSample{1800000u, 441u};
+inline constexpr CyclesPerSample kRefCyclesPerSample{kCpuHz / 100u, 441u};
 #else
+static_assert(kCpuHz == 180000000u, "the pre-1.0 clock (4080 cycles per sample, 44,117.647 Hz) is the MK66's: O3OS_RATE_44100=OFF only at 180 MHz");
 inline constexpr CyclesPerSample kRefCyclesPerSample{4080u, 1u};
 #endif
 

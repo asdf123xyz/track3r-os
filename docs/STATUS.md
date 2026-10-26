@@ -27,14 +27,19 @@ Every behaviour carries one of three labels: **verified parity** (compared with 
 ### A port to the Tracker+ has started (OS-PORT-RT10XX, 2026-10-26)
 
 `platform/rt10xx` is the platform layer for the Tracker+ (NXP i.MX RT10xx, Cortex-M7, 128 KiB ITCM / 352 KiB DTCM / 32 KiB OCRAM, 64 MiB
-SDRAM, 16 MiB flash). Phases 1 and 2 are in the tree: the memory map, the FlexRAM and MPU words, the clock tree (600 MHz), the reset
+SDRAM, 16 MiB flash). Phases 1 to 3 are in the tree: the memory map, the FlexRAM and MPU words, the clock tree (600 MHz), the reset
 sequence with the vector table and fault handlers, the crash record, SysTick, the `.ptf` writer and the static image checks, the SDRAM
 (SEMC) bring-up with its tests, the USB OTG1 device driver (tested against a fake controller on the host) with the `diag` console
-(`sdram`, `cpu`, `crash`, `mem`, `pins`, `peek`, `drill`), `O3OS_PLATFORM=rt10xx` and `tools/ci.sh rt10xx`. The probe image (FLASH 27,076 B)
-answers on the USB port. **Nothing has run on a unit**: the first hardware check is the probe through the official update path, with the
-pinhole recovery known to work on that unit (`docs/specs/OS-PORT-RT10XX.md` sections 4 and 6.5). The board facts come from the
-Modular-Trackular project's observations of the unit (MIT), used as facts of the hardware only; the SDRAM part and its timings are an
-assumption the console confirms or refutes. Phases 3 to 5 (audio and MIDI, card, display, inputs and update, the rest) are IDEA rows.
+(`sdram`, `cpu`, `crash`, `mem`, `pins`, `peek`, `drill`), the audio path (PLL4 for MCLK, SAI1 with the receiver as the master, the eDMA
+rings in the DTCM, the SGTL5000 over LPI2C1 with the MK66's codec plan, the boundary and render interrupts in the ITCM, the hot-code
+check) under `audio start|unmute|mute|tone|stall|stop`, the DIN port (LPUART5 at 31,250 baud from the oscillator, the PIT emitter,
+`midi/din_io.h` unchanged) under `midi start|note|clock`, and `core::kCpuHz` taken from the build (`O3OS_CPU_HZ`; the MK66 unchanged, the
+full host run is the proof), `O3OS_PLATFORM=rt10xx` and `tools/ci.sh rt10xx`. The probe image (FLASH 124,040 B, ITCM 49,140 B, DTCM
+66,840 B) answers on the USB port. **Nothing has run on a unit**: the first hardware check is the probe through the official update path,
+with the pinhole recovery known to work on that unit (`docs/specs/OS-PORT-RT10XX.md` sections 4, 6.5 and 7.5). The board facts come from
+the Modular-Trackular project's observations of the unit (MIT), used as facts of the hardware only; the SDRAM part and its timings, the
+audio and MIDI pads, the SAI's clock direction and the codec's address are assumptions the console confirms or refutes (nothing drives a
+pad before `audio start` or `midi start`). Phases 4 and 5 (card, display, inputs and update, the rest) are IDEA rows.
 
 ## What the OS does
 

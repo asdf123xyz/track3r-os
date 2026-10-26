@@ -200,7 +200,7 @@ bool run_stop(Write&& write, KeyLow&& key_low, Wait&& wait) {
 // 44.1 kHz) and below the PLL range's top of 27 MHz: both asserted for whatever rate constant the build has (4080/1 gives
 // 11.294 MHz = 256 x 44,117.6 Hz, +400 ppm; the 196/3125 retune gives 11.2896 MHz = 256 x 44,100 Hz exactly).
 inline constexpr std::uint16_t kClkCtrlValue = 0x0004;
-inline constexpr std::uint32_t kMclkHz = hal::audio::mclk_hz(hal::audio::kMclkRatio);
+inline constexpr std::uint32_t kMclkHz = hal::audio::kMclkHz;  // 256 x Fs from the rate constant (OS-PORT-RT10XX: the same number whatever makes the clock)
 static_assert(((kClkCtrlValue >> 2) & 3u) == 1u && (kClkCtrlValue & 3u) == 0u, "CHIP_CLK_CTRL: SYS_FS 44.1 kHz, MCLK 256 Fs");
 static_assert(kMclkHz >= 8000000u && kMclkHz <= 27000000u, "SGTL5000 SYS_MCLK range (data sheet, Clocking)");
 static_assert(kMclkHz / hal::audio::kMclkPerSample >= 43659u && kMclkHz / hal::audio::kMclkPerSample <= 44541u,

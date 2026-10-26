@@ -18,6 +18,8 @@
 //   takes its clock from PLL3's PFD0, and PLL2 feeds nothing yet (the SEMC's clock is phase 2, with its own switch under the same rule:
 //   never stop a PLL the code is executing through).
 
+#include <o3os/core/audio_clock.h>
+
 #include <cstdint>
 
 namespace o3os::platform::rt10xx::clock {
@@ -62,6 +64,11 @@ static_assert(kArmPodf <= 7u && kAhbPodf <= 7u && kIpgPodf <= 3u && kPerclkPodf 
 static_assert(kDcdcVddSocTrg <= 31u && kDcdcTrgMillivolts == 1250u, "VDD_SOC 1.25 V");
 static_assert(arm_pll_hz() == 1'200'000'000u, "ARM PLL 1.2 GHz");
 static_assert(kCoreHz == 600'000'000u, "core (AHB) 600 MHz");
+// The whole tree's cycle counts are relative to core::kCpuHz (core/audio_clock.h), which the rt10xx build sets to this tree's core clock
+// (the root CMakeLists.txt, O3OS_CPU_HZ). The host build compiles these headers at the MK66's clock for their checks, so what is relative
+// to the tree's clock is asserted only when the tree is ours (kTreeIsRt10xx); in the rt10xx build a mismatch is a compile error, not a
+// silently wrong sample rate.
+inline constexpr bool kTreeIsRt10xx = (core::kCpuHz == kCoreHz);  // the image's own translation units assert it (src/internal.h)
 static_assert(kIpgHz == 150'000'000u, "IPG 150 MHz (the RM's maximum)");
 static_assert(kPerclkHz == 75'000'000u, "PERCLK 75 MHz");
 static_assert(kSysTickReload <= 0x00FFFFFFu, "the SysTick reload fits 24 bits");

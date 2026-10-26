@@ -25,7 +25,11 @@ namespace o3os::platform::mk66::audio_cfg {
 // What `hal::audio::kCpuHz` (core/audio_clock.h, a plain number in `core`) means here: the core clock of this image's clock tree.
 // "Cycles per sample", the I2S divider, the block length in cycles and the DWT figures are all relative to it, so a change of the
 // tree that is not made in the rate constant too is a compile error, not a silently wrong sample rate.
+// (OS-PORT-RT10XX: in a build for another chip, which defines O3OS_CPU_HZ, this header is compiled only for its header check and by the
+// chip-neutral pure parts; the MK66's clock asserts are then not the point and are left out. Every MK66 build keeps them.)
+#ifndef O3OS_CPU_HZ
 static_assert(clock::kCoreHz == hal::audio::kCpuHz, "the audio clock constant is relative to the 180 MHz core clock of clock_config.h");
+#endif
 
 // ---- I2S0 (SAI0): K66 RM "I2S" register map, base 0x4002_F000 --------------------------------------------------------------
 namespace i2s {
@@ -56,8 +60,11 @@ constexpr std::uint32_t mdr_value(hal::audio::MclkRatio r) noexcept {
   return ((r.fract - 1u) << 12) | (r.divide - 1u);
 }
 inline constexpr std::uint32_t kMdr = mdr_value(hal::audio::kMclkRatio);
+#ifndef O3OS_CPU_HZ
+static_assert(hal::audio::kMclkRatio.fract != 0u, "the rate constant must be representable by I2S0_MDR (FRACT 1..256, DIVIDE 1..4096)");
 static_assert(hal::audio::kMclkRatio.fract <= 256u && hal::audio::kMclkRatio.divide <= 4096u, "FRACT is 8 bits and DIVIDE 12 bits, each stored minus one");
 static_assert(kMdr >> 20 == 0u, "MDR[31:20] are reserved");
+#endif
 
 // The 16 bits of a sample are the upper half of the 32-bit word: the data register's address + 2 (little endian).
 inline constexpr std::uint32_t kTxDataHalf = kTdr0 + 2u;

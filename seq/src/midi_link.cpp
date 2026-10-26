@@ -355,7 +355,8 @@ void MidiLink::publish_status(std::uint64_t block_start) noexcept {
   st_clocks_.store(in_.stats().clocks, std::memory_order_relaxed);
   float e = dll_.last_error_samples();
   e = e < 0.0f ? -e : e;
-  const float us = e * (static_cast<float>(core::kRefCyclesPerSample.num) / static_cast<float>(core::kRefCyclesPerSample.den)) / 180.0f;  // cycles per sample / 180 cycles per us
+  const float us = e * (static_cast<float>(core::kRefCyclesPerSample.num) / static_cast<float>(core::kRefCyclesPerSample.den)) /
+                   static_cast<float>(core::kCpuHz / 1000000u);  // cycles per sample / cycles per us (180 on the MK66)
   st_error_us_.store(present && us < 1.0e6f ? static_cast<std::uint32_t>(us) : 0u, std::memory_order_relaxed);
 }
 

@@ -43,7 +43,10 @@ every platform as `platform_rt10xx_pure` (headers, header-checked); their tests 
 | `src/boot.cpp` | watchdogs, DWT, the MPU, the caches (after the SDRAM tests), the clock tree, NVIC, SysTick, `fail()` |
 | `semc_config.h`, `src/sdram.cpp`, `sdram.h` | phase 2: the SDRAM controller's words from the assumed part's timings; the bring-up and the tests, the outcome kept for `diag sdram` |
 | `usb/include/.../usb/soc_facts.h`, `ci_device.h` | phase 2: the OTG1 controller's facts; the device driver as a template over a register policy (the usb layer's control pipe and rings behind it), tested with a fake controller |
-| `usb/src/usb1.cpp`, `console.cpp` | phase 2: the clock, PHY and controller bring-up, the interrupt, the serial; the `diag` console (help, version, stage, crash, mem, sdram, cpu, usb, log, pins, peek, drill, reset) |
+| `usb/src/usb1.cpp`, `console.cpp` | phase 2: the clock, PHY and controller bring-up, the interrupt, the serial; the `diag` console (help, version, stage, crash, mem, sdram, cpu, usb, log, pins, peek, drill, reset; phase 3: `audio`, `midi`, `cpu reset`) |
+| `audio_config.h`, `audio_pins.h`, `resources.h`, `src/audio.cpp`, `audio.h` | phase 3: PLL4, the SAI1 and eDMA words, the assumed pads, the DMA and PIT channel owners; the `hal::audio::Device` over SAI1 + eDMA + SGTL5000 with the slot-boundary and render interrupts in the ITCM |
+| `i2c_config.h`, `i2c.h`, `src/i2c.cpp` | phase 3: LPI2C1 as a polled master behind the MK66's `I2cBus` interface (the codec plan is reused) |
+| `midi_config.h`, `midi_pins.h`, `src/midi_din.cpp`, `midi.h` | phase 3: LPUART5 at 31,250 baud from the oscillator and the PIT emitter, over `midi/din_io.h`'s register policies |
 | `src/clock.cpp`, `src/crash_store.cpp`, `src/main.cpp` | `hal::Clock` on SysTick and `hal::cycles()`; the `.noinit` crash block and the fault entry; the probe loop |
 | `src/regs.h` | the registers the layer touches, from the i.MX RT1050 Reference Manual and the ARMv7-M ARM |
 | `rt10xx.ld.in` | the linker script template (placeholders are `mem_map.h` constants) |
@@ -61,11 +64,12 @@ every platform as `platform_rt10xx_pure` (headers, header-checked); their tests 
 | OCRAM | `0x20200000` | 32 KiB | `.noinit_ocram`: bus-master buffers (display staging, USB), not cached |
 | SDRAM | `0x80000000` | 64 MiB | the ADR 0013 D7 table: sample arena 59,136 KiB, delay 768, reverb 256, module region 768, project 1,920, undo 384, file job 512, LUT 192, UI cache 512, diag log 64, slack 1,024 (the `.noinit_sdram` window, empty until phase 2) |
 
-## The probe image, by the numbers (2026-10-26, phases 1 and 2)
+## The probe image, by the numbers (2026-10-26, phases 1 to 3)
 
-FLASH 27,076 B · ITCM 4 B (the heartbeat's function) · DTCM 12,640 B (the log, the CDC and MIDI rings, the descriptors, the shell) · OCRAM
-2,048 B (the USB controller's queue heads, descriptors and buffers) · SDRAM 0. `check_image`: 10/10 on the `.hex` and on the `.ptf`. Phase 1
-alone was FLASH 3,728 B, DTCM 752 B.
+FLASH 124,040 B · ITCM 49,140 B (hot code 26,868 B, the taps' memory 22,272 B) · DTCM 66,840 B (the engine, the pipeline, the DMA rings,
+the log, the CDC and MIDI rings, the descriptors, the shell) · OCRAM 2,048 B (the USB controller's queue heads, descriptors and buffers) ·
+SDRAM 0. `check_image`: 10/10 on the `.hex` and on the `.ptf`; `rt10xx_ramfunc`: the hot code calls nothing in flash. Phases 1 and 2 were
+FLASH 27,076 B, DTCM 12,640 B; phase 1 alone FLASH 3,728 B, DTCM 752 B.
 
 ## First hardware session (what the probe can and cannot show)
 
@@ -75,3 +79,8 @@ Track3r identity. `python3 -I platform/mk66/tools/o3console.py` opens it: `help`
 (the core clock measured against the host's USB frames), `stage`, `log`, `pins`. `drill` raises a fault; after the reconnect `crash` shows
 the record and `crash clear` erases it. Then the official firmware goes back through the pinhole. The spec's sections 4 and 6.5 are the
 acceptance; a unit that does not enumerate is a FAIL that stops phase 3 until understood.
+
+Phase 3 adds, on a unit that passed the above: `pins mux` on the assumed audio and MIDI pads, `audio start` (the codec, PLL4, SAI1, the
+eDMA: `ok`, or the step and the registers of a clock fault), `audio` and `cpu` (boundaries about 689 a second, the render's cycles),
+`audio tone on`, `audio unmute` after 400 clean blocks (a quiet 440 Hz tone), `audio stall`, `audio stop`; `midi start`, a DIN cable from
+OUT to IN, `midi note`, `midi` (the six bytes back, 320 us apart within a message), `midi clock`. The spec's section 7.5 is the acceptance.

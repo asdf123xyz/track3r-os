@@ -90,7 +90,12 @@ constexpr MclkRatio mclk_ratio(CyclesPerSample r) noexcept {
   return MclkRatio{static_cast<std::uint32_t>(fract), static_cast<std::uint32_t>(divide)};
 }
 inline constexpr MclkRatio kMclkRatio = mclk_ratio(kCyclesPerSample);
-static_assert(kMclkRatio.fract != 0u, "the rate constant must be representable by I2S0_MDR (FRACT 1..256, DIVIDE 1..4096)");
+// (That the ratio is representable by the MK66's I2S0_MDR is the MK66's own assert, platform/mk66 audio_config.h: on a chip whose MCLK
+// comes from an audio PLL, OS-PORT-RT10XX, the ratio is {0, 0} and unused.)
+// MCLK in hertz, from the rate constant alone (256 x Fs): 11,289,600 for 44,100 Hz. The same number on every platform; what makes it
+// is each platform's (the MK66's divider, the rt10xx's PLL4 and SAI root).
+inline constexpr std::uint32_t kMclkHz =
+    static_cast<std::uint32_t>(static_cast<std::uint64_t>(kCpuHz) * kCyclesPerSample.den * kMclkPerSample / kCyclesPerSample.num);
 
 constexpr std::uint32_t mclk_hz(MclkRatio ratio, std::uint32_t source_hz = kCpuHz) noexcept {
   return static_cast<std::uint32_t>(static_cast<std::uint64_t>(source_hz) * ratio.fract / ratio.divide);

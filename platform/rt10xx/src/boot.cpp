@@ -7,10 +7,12 @@
 #include "regs.h"
 
 #include <o3os/hal/irq.h>
+#include <o3os/platform/rt10xx/audio_config.h>
 #include <o3os/platform/rt10xx/clock_config.h>
 #include <o3os/platform/rt10xx/irq_map.h>
 #include <o3os/platform/rt10xx/mem_map.h>
 #include <o3os/platform/rt10xx/mpu_config.h>
+#include <o3os/platform/rt10xx/resources.h>
 
 #include <cstdint>
 
@@ -248,6 +250,24 @@ void init_clocks() noexcept {
 }
 
 // ---- Interrupts ------------------------------------------------------------------------------------------------------------------
+// The eDMA before anything programmes a channel (the audio path, phase 4's display and card): clock gate, HALT while the control word is
+// written, the per-channel arbitration from resources.h, every request, interrupt and error flag clear. No channel is enabled here.
+void init_dma() noexcept {
+  regs::at<std::uint32_t>(audio_cfg::gates::kCcgr5) |= audio_cfg::gates::kCcgr5Dma;
+  regs::dma_cr() = audio_cfg::dma::kCrValue | audio_cfg::dma::kCrHalt;
+  for (unsigned ch = 0; ch < audio_cfg::dma::kChannels; ++ch) {
+    regs::dma_cerq() = static_cast<std::uint8_t>(ch);
+    regs::dma_ceei() = static_cast<std::uint8_t>(ch);
+  }
+  regs::dma_cerr() = regs::kDmaClearAll;
+  regs::dma_cint() = regs::kDmaClearAll;
+  regs::dma_cdne() = regs::kDmaClearAll;
+  for (const resources::DmaRow& row : resources::kDma) {
+    regs::dma_dchpri(row.channel) = row.arbitration;  // ECP and DPA clear: no preemption between channels
+  }
+  regs::dma_cr() = audio_cfg::dma::kCrValue;
+}
+
 void init_interrupts() noexcept {
   using namespace regs;
   scb_vtor() = mem::kImageBase;  // set in step 1 already; stated again where the NVIC is set up

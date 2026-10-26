@@ -30,3 +30,11 @@ TEST_CASE("rt10xx clock_config: field widths (RM)") {
   CHECK(clock::kPrePeriphClkSel == 3u);
   CHECK(clock::kDcdcVddSocTrg == 0x12u);
 }
+
+TEST_CASE("rt10xx clock: the tree's clock") {
+  // The host compiles this header at the MK66's clock; the rt10xx build sets O3OS_CPU_HZ to the core clock here.
+  CHECK(clock::kTreeIsRt10xx == (o3os::core::kCpuHz == clock::kCoreHz));
+#if defined(O3OS_CPU_HZ) && O3OS_CPU_HZ == 600000000u
+  CHECK(clock::kTreeIsRt10xx);
+#endif
+}

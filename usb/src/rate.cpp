@@ -7,10 +7,10 @@ namespace {
 constexpr unsigned kAlphaShift = 7;    // phase gain  alpha = 2^-7
 constexpr unsigned kBetaShift = 17;    // period gain beta  = 2^-17
 // The period estimate never leaves nominal +/- 0.5 %, in Q16 cycles (constants: no run-time division).
-constexpr std::int64_t kSpanFull = static_cast<std::int64_t>(180000u / 200u) << 16;
-constexpr std::int64_t kSpanHigh = static_cast<std::int64_t>(22500u / 200u) << 16;
-static_assert(nominal_sof_cycles(Speed::Full) == 180000u && nominal_sof_cycles(Speed::High) == 22500u,
-              "the span constants above follow nominal_sof_cycles()");
+constexpr std::int64_t kSpanFull = static_cast<std::int64_t>(nominal_sof_cycles(Speed::Full) / 200u) << 16;
+constexpr std::int64_t kSpanHigh = static_cast<std::int64_t>(nominal_sof_cycles(Speed::High) / 200u) << 16;
+static_assert((nominal_sof_cycles(Speed::Full) == 180000u && nominal_sof_cycles(Speed::High) == 22500u) || kCpuHz != 180000000u,
+              "the spans are 900 and 112 Q16 cycles on the MK66 (the numbers the figures of ADR 0012 were taken with)");
 
 // v / 2^n truncated toward zero, like '/', but a shift: the compiler turns a 64-bit '/' into a libgcc call
 // (about 1 KB of flash and 100+ cycles) even for a power of two at -Os.

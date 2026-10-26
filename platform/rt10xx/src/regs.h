@@ -137,6 +137,27 @@ inline volatile std::uint32_t& nvic_icer(unsigned word) noexcept { return at<std
 inline volatile std::uint32_t& nvic_ispr(unsigned word) noexcept { return at<std::uint32_t>(0xE000E200u + 4u * word); }
 inline volatile std::uint8_t& nvic_ipr(unsigned line) noexcept { return at<std::uint8_t>(0xE000E400u + line); }
 
+inline volatile std::uint32_t& nvic_icpr(unsigned word) noexcept { return at<std::uint32_t>(0xE000E280u + 4u * word); }
+inline volatile std::uint32_t& nvic_stir() noexcept { return at<std::uint32_t>(0xE000EF00u); }  // the software trigger: the line number
+constexpr std::uint32_t irq_bit(unsigned line) noexcept { return 1u << (line % 32u); }
+
+// ---- eDMA (RM "eDMA", 0x400E_8000) and DMAMUX (0x400E_C000): the audio channels' registers; the TCDs are audio_config.h's struct -------------
+inline constexpr std::uintptr_t kDma = 0x400E8000u;
+inline volatile std::uint32_t& dma_cr() noexcept { return at<std::uint32_t>(kDma + 0x00u); }
+inline volatile std::uint32_t& dma_es() noexcept { return at<std::uint32_t>(kDma + 0x04u); }
+inline volatile std::uint8_t& dma_ceei() noexcept { return at<std::uint8_t>(kDma + 0x18u); }
+inline volatile std::uint8_t& dma_cerq() noexcept { return at<std::uint8_t>(kDma + 0x1Au); }
+inline volatile std::uint8_t& dma_serq() noexcept { return at<std::uint8_t>(kDma + 0x1Bu); }
+inline volatile std::uint8_t& dma_cdne() noexcept { return at<std::uint8_t>(kDma + 0x1Cu); }
+inline volatile std::uint8_t& dma_cerr() noexcept { return at<std::uint8_t>(kDma + 0x1Eu); }
+inline volatile std::uint8_t& dma_cint() noexcept { return at<std::uint8_t>(kDma + 0x1Fu); }
+inline volatile std::uint32_t& dma_err() noexcept { return at<std::uint32_t>(kDma + 0x2Cu); }
+inline volatile std::uint8_t& dma_dchpri(unsigned channel) noexcept { return at<std::uint8_t>(kDma + 0x100u + (channel ^ 3u)); }  // DCHPRIn: byte (3 - n % 4) of word n / 4
+inline constexpr std::uint8_t kDmaClearAll = 0x40;  // the CAxx bit of the one-byte clear registers
+template <typename Tcd>
+inline volatile Tcd& dma_tcd_as(unsigned channel) noexcept { return *reinterpret_cast<volatile Tcd*>(kDma + 0x1000u + 32u * channel); }
+inline volatile std::uint32_t& dmamux_chcfg(unsigned channel) noexcept { return at<std::uint32_t>(0x400EC000u + 4u * channel); }
+
 // ---- SysTick (ARMv7-M ARM B3.3) ----------------------------------------------------------------------------------------------------
 inline volatile std::uint32_t& syst_csr() noexcept { return at<std::uint32_t>(0xE000E010u); }
 inline volatile std::uint32_t& syst_rvr() noexcept { return at<std::uint32_t>(0xE000E014u); }

@@ -289,3 +289,97 @@ stops phase 3 until understood: `stage` and `log` are then only reachable with a
 8. Whether EMC_39 is free for the DQS loopback (the internal loopback is the alternative).
 9. Whether the bootloader hands over with the USB PHY and PLL3 in a state the sequence of 6.2 expects (a PLL3 that the ROM left bypassed
    would need the lock-then-unbypass sequence of the vendor's examples, which the FlexSPI survives because the bypass still clocks it).
+
+## 7. Design of phase 3 (what is in the tree)
+
+### 7.1 The clock made platform-aware (`core/audio_clock.h`, `hal/audio.h`)
+
+- `core::kCpuHz` takes `O3OS_CPU_HZ` from the build (the root `CMakeLists.txt` sets 600,000,000 for `rt10xx`; nothing for the MK66, whose
+  180 MHz stays the default) and the reference cycles per sample follow: {kCpuHz / 100, 441} at 44.1 kHz (13,605.44 cycles per sample at
+  600 MHz; the MK66's {4080, 1} is unchanged bit for bit). `hal::audio::kMclkHz` is 256 x Fs from that one constant; the MK66's divider
+  (`kMclkRatio`) is the MK66's business and its asserts are left out when another chip builds its headers (`#ifndef O3OS_CPU_HZ`). The
+  three places that had 180 MHz written in them (`seq/src/midi_link.cpp`'s cycles per microsecond, `usb/src/rate.cpp`'s SOF spans) are
+  derived now. **The MK66 is unchanged**: the scoped and full host runs are the proof (section 7.5).
+- The host compiles the rt10xx headers at the MK66's clock for their checks, so what is relative to the tree's clock is asserted only when
+  the tree is the rt10xx's (`clock::kTreeIsRt10xx`); the image's translation units assert it outright (`src/internal.h`).
+
+### 7.2 The audio path (`audio_config.h`, `audio_pins.h`, `resources.h`, `i2c_config.h`, `src/i2c.cpp`, `src/audio.cpp`, `audio.h`)
+
+- **The format is the MK66's**: a 16-bit stereo I2S link to the SGTL5000, the chip the master, MCLK = 256 x Fs, BCLK = MCLK / 4, two 32-bit
+  words a frame with the sample in the upper half, the eDMA moving 16-bit halves one per request, 64-frame blocks, the TX ring of 4
+  physical slots and the RX ring of 4, both 1 KiB and aligned to their size (the eDMA's address modulo), in the DTCM (`.dma_rings`).
+  The pipeline, the engine, the voices and the taps' memory are the audio library's, unchanged: `hal::audio::Device` is what the chip
+  implements, and `audio/pipeline.h` is told the rings and the cycles per block.
+- **MCLK** is not a divider of the core clock here but PLL4 (the audio PLL) at 1,128.96 MHz (24 x 47.04) divided by 4 x 25 in the CCM:
+  11,289,600 Hz, exactly 256 x 44,100 (the static assert and `rt10xx_audio_config_test.cpp` hold it to `hal::audio::kMclkHz`). MCLK is
+  driven out on its pad (GPR1 SAI1_MCLK_DIR).
+- **The receiver is the clock master** and the transmitter is synchronous to it (RCR2 SYNC 0, TCR2 SYNC 1): the assumed wiring (below)
+  puts BCLK and SYNC on the receiver's pads, as the vendor's and the hobbyist ecosystem's RT1052 + SGTL5000 designs do. One constant each
+  way if the board has it the other way round.
+- **The pads are assumed** (`audio_pins.h`): SAI1 MCLK on GPIO_AD_B1_09, RX_BCLK on AD_B1_11, RX_SYNC on AD_B1_10, TX_DATA00 on B1_01,
+  RX_DATA00 on B1_00 (ALT3, with the daisy-chain selects), LPI2C1 on AD_B1_00/01 (ALT3, open drain, 22 kOhm pull-up, SION), the codec at
+  address 0x0A: the one arrangement the ecosystem uses; nothing in the board observations names a pad. **Nothing drives a pad at boot**:
+  the pads are muxed by `audio start` on the maintainer's command, after `pins` has shown what they are at rest; `midi start` the same.
+  `O3OS_RT10XX_AUDIO_AUTOSTART` builds the A/B image that starts at boot once the pads are known right.
+- **The codec's control bus** is LPI2C1 as a polled master from the 24 MHz oscillator at about 375 kHz (`i2c_config.h`), behind the
+  MK66's `I2cBus` interface so the SGTL5000 plan (`platform/mk66 sgtl5000.h`: the power-up with every output muted, the unmute order, the
+  stop order, the input plans) is reused as it is. Every transfer is bounded by polls of the status register; a NAK or a timeout resets
+  the FIFOs, sends a STOP and is the `Result` the caller sees (`CodecAbsent` for a part id that does not answer or is not 0xA0).
+- **The sequence of `start()`** is the MK66's, H16 included: muted (there is no amplifier key known on this board: the codec's mutes are
+  the output stage), PLL4 locked and the root selected, 5 ms, LPI2C1 up, the part id, the power-up plan, SAI1 reset and configured but not
+  enabled, the two TCDs loaded and armed with the DMAMUX sources (SAI1 RX 19, TX 20), the pipeline initialised, the two interrupt lines
+  enabled, the pads muxed, the receiver then the transmitter enabled, a bounded wait for two boundaries. A failure leaves the outputs
+  muted and the hardware stopped, and `audio` names where (`PllLock`, `NoBoundaries`) with the raw PLL_AUDIO, RCSR and TCSR.
+- **The interrupts**: the transmit channel's eDMA line (DMA0_DMA16, priority `kAudioDma`) is the slot boundary: stamp, clear, the two DMA
+  positions from the TCDs, the SAI error flags, the eDMA error flags, `Pipeline::on_boundary`, a software pend of the render line
+  (Reserved86, priority `kRender`), which calls `Pipeline::render`. Both handlers and everything they call are in `.ramfunc_l`, the ITCM
+  (`rt10xx_ramfunc`, the MK66's checker: no direct call or branch out of the section). The eDMA's global state (CR, the channel
+  arbitration of `resources.h`: audio TX 15, RX 14, the display's pair and the card's channel next) is the reset sequence's (`boot::init_dma`,
+  after the caches, before the interrupts).
+- **The data cache**: the rings are in the DTCM, which is not cached and which the eDMA reaches (phase 1's question 4 is phase 3's first
+  hardware fact: a `NoBoundaries` with RCSR showing the bit clock running and TFR0 not moving says the backdoor is not there, and the
+  rings move to the OCRAM by one section change).
+
+### 7.3 The DIN port (`midi_config.h`, `midi_pins.h`, `src/midi_din.cpp`, `midi.h`)
+
+- **LPUART5 is the jack's UART**, an observed fact of the board; **its pads are assumed** (GPIO_B1_12 TX, B1_13 RX, ALT1: the other pair
+  is the SDRAM's address bus). The baud rate comes from the 24 MHz oscillator (CSCDR1), independent of PLL3's state: OSR 16, SBR 48,
+  31,250 exactly. 8N1, the FIFOs off (the data register in front of the shifter is the whole transmit buffer, `midi/din_io.h`), the
+  receive interrupt at priority 48.
+- **The logic of both interrupts is `midi/din_io.h`'s**, unchanged, over a register policy: STAT's bits 23..16 are, bit for bit, the S1
+  byte of the MK66's UART (a static assert and the test say so); the one difference, that the error flags are write-1-to-clear here, is in
+  the policy's `data()`. The emitter's timer is PIT channel 0 at PERCLK (75 MHz: one tick is 8 cycles, a shift of 3), a one-shot re-armed
+  by its interrupt (the PIT's single line, priority 96), pended by `kick()`.
+- **Who owns the emitter and the ring**: in the full OS the sequencer's MidiLink (phase 5). Until then the console's harness owns them (one
+  context, the main thread, is the emitter's producer and the ring's consumer) and publishes a time base from the cycle counter every
+  pass: `midi note` sends a note on and off, `midi clock` 24 clock bytes 20.833 ms apart, `midi` shows the counters and the bytes received
+  with the gap before each (a DIN cable from OUT to IN is the loopback test, and a scope on the jack the timing check).
+
+### 7.4 Costs
+
+The image with phase 3 (the audio library, the pipeline, the engine, the voices and the effects are linked now): FLASH 124,040 B (phase 2:
+27,076), ITCM 49,140 B (hot code 26,868 under the 72 KiB budget, the taps' memory 22,272), DTCM 66,840 B (the engine 15,704, the
+pipeline 856, the rings 2,048, the log and the USB rings as before), OCRAM 2,048 B, SDRAM 0 (the sample arena's users are not moved yet:
+`sdram` on a unit first). CPU: nothing measured yet; `cpu` shows the render's figures once blocks run (the same lines as the MK66's).
+
+### 7.5 Acceptance of phase 3
+
+In the tree: `tools/ci.sh host` green (the MK66 and host behaviour unchanged under the platform-aware clock: every existing test passes
+as before; the rt10xx tests add the PLL4, SAI, eDMA, LPI2C and LPUART words decoded field by field); the cross build and its 11 checks
+including `rt10xx_ramfunc`; 0 warnings. On a unit, after phase 2's check and in this order: `pins mux` on the assumed pads before
+anything drives them; `audio start` says `ok` and `audio` shows boundaries counting at about 689 per second with 0 underruns and 0
+hardware faults (a `clock fault` names the step and the registers: section 2.5 question 3 is answered by changing one header);
+`cpu` shows the render's cycles; `audio tone on` then, after 400 clean blocks, `audio unmute`: a quiet 440 Hz tone on the outputs (the
+HW-A check of the MK66, repeated); `audio stall` shows the underrun drill's mute and recovery; `audio stop`. `midi start`, a DIN cable
+from OUT to IN, `midi note`, `midi` shows the six bytes received with 320 us between a message's bytes; `midi clock` and a scope or a
+MIDI monitor show 24 clocks a beat at 120 BPM. The official firmware goes back through the pinhole.
+
+### 7.6 Open research questions added in phase 3
+
+10. The audio pads, the SAI's clock direction and the codec's address (section 7.2's assumptions; the first `audio start` answers).
+11. The DIN pads (section 7.3's assumption; `midi note` and a MIDI monitor answer).
+12. Whether PLL4 is free (the official firmware may run the audio from another root; nothing of this port depends on its choice, but a
+    PLL4 the ROM left in an odd state is a `PllLock` fault on the first try).
+13. The amplifier or output switch, if the board has one beyond the codec's mutes (section 7.2: none is driven; a silent unit with clean
+    blocks and an open codec is this question).
+

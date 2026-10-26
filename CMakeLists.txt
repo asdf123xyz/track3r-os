@@ -68,6 +68,14 @@ option(O3OS_RATE_44100 "Audio clock retuned to exactly 44,100 Hz (D-OS-8): 18000
 if(O3OS_RATE_44100)
   add_compile_definitions(O3OS_RATE_44100=1)
 endif()
+# OS-PORT-RT10XX: the core clock the cycle counts of the whole tree are relative to (core/audio_clock.h kCpuHz, 180 MHz by default: the MK66's).
+# The rt10xx runs at 600 MHz (platform/rt10xx clock_config.h, which asserts this number is its tree's); every target of that build sees it.
+if(O3OS_PLATFORM STREQUAL "rt10xx")
+  add_compile_definitions(O3OS_CPU_HZ=600000000u)
+  if(NOT O3OS_RATE_44100)
+    message(FATAL_ERROR "the rt10xx has only the 44,100 Hz clock: O3OS_RATE_44100 must stay ON")
+  endif()
+endif()
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   # mk66 (and qemu) follow the firmware's size profile (-Os); host defaults to unoptimised for the sanitizers.

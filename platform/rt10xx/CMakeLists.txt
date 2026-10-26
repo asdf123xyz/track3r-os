@@ -40,6 +40,7 @@ endif()
 # ---- The image -------------------------------------------------------------------------------------------------------------------
 option(O3OS_RT10XX_FAULT_DRILL "Probe image: raise one deliberate UsageFault 10 s after power-up, to prove the crash record round trip on hardware (a separate image)" OFF)
 option(O3OS_RT10XX_DCACHE "Image: enable the data cache after the SDRAM tests (the SDRAM and the flash are write-back cacheable; TCMs and OCRAM are not cached). OFF for an A/B on the unit" ON)
+option(O3OS_RT10XX_AUDIO_AUTOSTART "Image: start the audio path (muted) at boot instead of on the console's `audio start`; an A/B image for a unit whose pads are known to be right" OFF)
 option(O3OS_RT10XX_SDRAM_FULL_TEST "Image: the boot's SDRAM capacity test covers every word (several seconds) instead of every 256th; `diag sdram test full` runs it on request either way" OFF)
 
 set(_rt10xx_ld "${CMAKE_CURRENT_BINARY_DIR}/rt10xx.ld")
@@ -50,7 +51,7 @@ add_custom_command(OUTPUT ${_rt10xx_ld}
   VERBATIM)
 add_custom_target(rt10xx_ld_script DEPENDS ${_rt10xx_ld})
 
-add_executable(o3os src/startup.cpp src/boot.cpp src/sdram.cpp src/crash_store.cpp src/clock.cpp src/main.cpp)
+add_executable(o3os src/startup.cpp src/boot.cpp src/sdram.cpp src/crash_store.cpp src/clock.cpp src/i2c.cpp src/audio.cpp src/midi_din.cpp src/main.cpp)
 # Phase 2: the OTG1 device's image half and the `diag` console (usb/src), with the build identity `version` prints (the MK66's generator,
 # platform/mk66/tools/gen_build_info.cmake: git hash, "-dirty" if the tree differs), written only when it changed.
 set(_rt10xx_gen_dir "${CMAKE_CURRENT_BINARY_DIR}/gen")
@@ -67,7 +68,8 @@ o3os_strict_warnings(o3os)
 target_compile_definitions(o3os PRIVATE
   O3OS_RT10XX_FAULT_DRILL=$<BOOL:${O3OS_RT10XX_FAULT_DRILL}>
   O3OS_RT10XX_DCACHE=$<BOOL:${O3OS_RT10XX_DCACHE}>
-  O3OS_RT10XX_SDRAM_FULL_TEST=$<BOOL:${O3OS_RT10XX_SDRAM_FULL_TEST}>)
+  O3OS_RT10XX_SDRAM_FULL_TEST=$<BOOL:${O3OS_RT10XX_SDRAM_FULL_TEST}>
+  O3OS_RT10XX_AUDIO_AUTOSTART=$<BOOL:${O3OS_RT10XX_AUDIO_AUTOSTART}>)
 # The reset sequence is the C runtime: its copy and zero loops must stay loops, not become memcpy / memset calls.
 set_source_files_properties(src/startup.cpp PROPERTIES COMPILE_OPTIONS -fno-tree-loop-distribute-patterns)
 set_target_properties(o3os PROPERTIES OUTPUT_NAME o3os SUFFIX .elf)
@@ -101,6 +103,8 @@ add_custom_target(o3os_image ALL DEPENDS ${_rt10xx_hex} ${_rt10xx_bin} ${_rt10xx
 add_test(NAME rt10xx_ld_file COMMAND ${Python3_EXECUTABLE} -I ${_rt10xx_tools}/rt10xx_ld.py check
          --header ${_rt10xx_header} --template ${_rt10xx_template} --gen-ld ${_mk66_tools}/gen_ld.py --ld ${_rt10xx_ld})
 add_test(NAME rt10xx_image COMMAND ${Python3_EXECUTABLE} -I ${_rt10xx_tools}/check_image.py check ${_rt10xx_hex} --ramfunc ${_rt10xx_ramfunc_region})
+# Phase 3: the audio hot path in the ITCM calls nothing in flash (the MK66's checker reads the section, whatever the chip).
+add_test(NAME rt10xx_ramfunc COMMAND ${Python3_EXECUTABLE} -I ${_mk66_tools}/check_ramfunc.py check $<TARGET_FILE:o3os> --objdump ${CMAKE_OBJDUMP})
 add_test(NAME rt10xx_ptf COMMAND ${Python3_EXECUTABLE} -I ${_rt10xx_tools}/check_image.py check ${_rt10xx_ptf} --ramfunc ${_rt10xx_ramfunc_region} --expect-ptf)
 set_tests_properties(rt10xx_ld_file rt10xx_image rt10xx_ptf PROPERTIES TIMEOUT 60)
 

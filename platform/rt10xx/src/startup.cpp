@@ -165,6 +165,7 @@ extern "C" [[noreturn]] void o3os_reset_sequence() {
   rt10xx::set_stage(rt10xx::crash::Stage::Sdram);
   boot::init_sdram();
   boot::enable_caches();
+  boot::init_dma();
 
   // 8. Interrupts.
   rt10xx::set_stage(rt10xx::crash::Stage::Interrupts);
