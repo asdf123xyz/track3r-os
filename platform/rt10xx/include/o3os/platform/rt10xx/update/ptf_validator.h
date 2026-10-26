@@ -7,7 +7,7 @@
 // table; the file's CRC-32 and the image's length as results; a sticky first fault with its offset.
 //
 // The rules (each a verdict of check_image.py, or a stricter form of one):
-//   * record syntax: ':' and hex digit pairs, the count, the checksum (sum 0 mod 256), LF or CR LF line ends; types 00, 01, 04 and 05 only
+//   * record syntax: ':' and hex digit pairs, the count, the checksum (sum 0 mod 256), CR LF line ends (--expect-ptf); types 00, 01, 04 and 05 only
 //     (02 and 03 are HexType / HexStart); an EOF record ends the data; only line ends may follow it;
 //   * STRICTER than check_image.py, as on the MK66: data bytes arrive at ascending consecutive addresses starting at the image base
 //     (0x6003_0000), which is what make_ptf.py and objcopy write (HexOrder otherwise); this also makes "no hole" and "no byte twice" one check;
@@ -16,7 +16,7 @@
 //   * the reset vector a Thumb address inside the image past the vector table (BadReset);
 //   * the other 174 vectors: the reserved slots 7-10 and 13 are 0; every other one 0, or a Thumb address inside the image past the table, or
 //     inside the ITCM's code region (BadVector);
-//   * a start record (05), if present, carries the reset vector (HexStart);
+//   * exactly one start record (05), carrying the reset vector (HexStart; --expect-ptf requires it; a second one is HexRecord);
 //   * the end rule (boot_image.h padded_end): the image does not end in the first 256-byte page of a 4 KiB sector (EndRule: reported as
 //     update::Fault::BadConfig, whose MK66 meaning, the flash configuration field, does not exist on this chip; ptf_fault_name() says which).
 // platform/rt10xx/tests/rt10xx_ptf_validator_test.cpp checks every rule and every chunking.

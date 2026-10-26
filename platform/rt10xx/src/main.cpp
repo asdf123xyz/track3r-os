@@ -89,9 +89,9 @@ int main() {
   for (;;) {
     asm volatile("wfi");
     console::service();
-    rt10xx::audio_main_pass();
+    rt10xx::audio_main_pass();  // the main loop's beat for the pipeline's starvation guard (off here; the beat costs one store)
     rt10xx::input::service();    // phase 4: the encoder sample, the key scan, the pad LEDs (after `input start` / `input encoder`)
-    rt10xx::display::service();  // phase 4: the swap and the backlight ramp, once `display start` has run  // the main loop's beat for the pipeline's starvation guard (off here; the beat costs one store)
+    rt10xx::display::service();  // phase 4: the swap and the backlight ramp, once `display start` has run
     const std::uint64_t now = rt10xx::system_clock().uptime_ms();
     if (now >= next_second) {
       next_second += 1000u;

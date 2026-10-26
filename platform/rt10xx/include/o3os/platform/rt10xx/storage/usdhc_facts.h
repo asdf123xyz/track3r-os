@@ -61,7 +61,7 @@ inline constexpr std::uint32_t kPfd2FracShift = 16;
 inline constexpr std::uint32_t kPll2Hz = 528'000'000u;  // 24 MHz x 22: the PLL's only rate (DIV_SELECT 1)
 inline constexpr std::uintptr_t kCscmr1 = 0x400FC01Cu;   // USDHC1_CLK_SEL bit 16: 0 = PLL2 PFD2
 inline constexpr std::uint32_t kCscmr1Usdhc1Sel = 1u << 16;
-inline constexpr std::uintptr_t kCscdr1 = 0x400FC024u;   // USDHC1_PODF bits 13:11
+inline constexpr std::uintptr_t kCscdr1 = 0x400FC024u;   // USDHC1_PODF bits 13:11 (USDHC2_PODF is 18:16; the vendor SDK and the Teensy core agree)
 inline constexpr std::uint32_t kCscdr1PodfShift = 11;
 inline constexpr std::uint32_t kCscdr1PodfMask = 0x7u << kCscdr1PodfShift;
 inline constexpr std::uint32_t kPodf = 1;                // divide by 2: 396 MHz -> 198 MHz (the RM's limit for the root is 198 MHz)

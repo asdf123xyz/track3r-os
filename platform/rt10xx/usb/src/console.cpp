@@ -886,7 +886,7 @@ constexpr shell::Command kCommands[] = {
     shell::command("ls", "ls [path]: list a folder of the mounted card", &cmd_ls),
     shell::command("display", "display [start | test | bl <0..128>]: the FT81x (assumed LPSPI4)", &cmd_display),
     shell::command("i2c", "i2c scan <1|3|4>: the addresses that answer on LPI2Cn (candidate pads)", &cmd_i2c),
-    shell::command("input", "input [start [pad control] | encoder <port> <a> <b> | leds <0..255>]: keys, pads, encoder, pad LEDs", &cmd_input),
+    shell::command("input", "input [start [pad control] | encoder <port> <a> <b> | leds <0..255>]: keys, pads, encoder, pad LEDs (start without a pad bus probes and muxes every candidate bus)", &cmd_input),
     shell::command("fw", "fw [check <name> | arm <name> | update <token> | clear]: the Tracker+ update path", &cmd_fw),
     shell::command("drill", "one deliberate UsageFault: the crash record round trip", &cmd_drill),
     shell::command("reset", "restart the unit (SYSRESETREQ)", &cmd_reset),

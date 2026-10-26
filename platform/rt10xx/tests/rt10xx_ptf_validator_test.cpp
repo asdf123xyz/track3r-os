@@ -115,12 +115,6 @@ TEST_CASE("rt10xx ptf: a good image, in every chunking, with its length and CRC"
     }
     CHECK(v.crc() == crc.value());
   }
-  Options lf;
-  lf.eol = "\n";
-  CHECK(verdict(encode(m, lf)) == Fault::Ok);  // LF line ends are taken too
-  Options no_start;
-  no_start.start = false;
-  CHECK(verdict(encode(m, no_start)) == Fault::Ok);  // the start record is optional
   CHECK(verdict(encode(image(0x10120))) == Fault::Ok);  // across a 64 KiB boundary (an 04 record), ending in page 1
 }
 
@@ -165,6 +159,19 @@ TEST_CASE("rt10xx ptf: each rule broken once") {
     CHECK(std::string(up::ptf_fault_name(Fault::BadConfig)).find("end rule") != std::string::npos);
   }
   CHECK(verdict(encode(image(0x200))) == Fault::HexShort);
+  Options lf;
+  lf.eol = "\n";
+  CHECK(verdict(encode(good, lf)) == Fault::HexChar);  // a .ptf's lines end CR LF
+  Options no_start;
+  no_start.start = false;
+  CHECK(verdict(encode(good, no_start)) == Fault::HexStart);  // the start record is required
+  {
+    std::string two = encode(good);
+    const std::size_t eof = two.rfind(':');
+    const std::size_t start = two.rfind(':', eof - 1);
+    two.insert(eof, two.substr(start, eof - start));  // the start record twice
+    CHECK(verdict(two) == Fault::HexRecord);
+  }
   std::string text = encode(good);
   CHECK(verdict(text.substr(0, text.size() - 13)) == Fault::HexNoEof);  // the EOF record cut off
   std::string bad_sum = text;

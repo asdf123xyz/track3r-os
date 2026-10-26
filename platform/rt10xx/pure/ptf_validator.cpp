@@ -90,6 +90,9 @@ void PtfValidator::step(std::uint8_t c) noexcept {
     } else if (c == '\r') {
       cr_ = true;
     } else if (c == '\n') {
+      if (!cr_) {
+        fail(Fault::HexChar);  // a .ptf's lines end CR LF (the official files' layout, check_image.py --expect-ptf)
+      }
       cr_ = false;
     } else {
       fail(eof_ ? Fault::HexAfterEof : Fault::HexChar);
@@ -113,9 +116,13 @@ void PtfValidator::step(std::uint8_t c) noexcept {
     } else if (pos_ < 5u || pos_ != static_cast<unsigned>(count_) + 5u) {
       fail(Fault::HexRecord);
     } else {
+      if (c == '\n') {
+        fail(Fault::HexChar);  // LF without CR
+        return;
+      }
       end_of_record();
       state_ = State::LineStart;
-      cr_ = c == '\r';
+      cr_ = true;
     }
     return;
   }
@@ -201,6 +208,10 @@ void PtfValidator::end_of_record() noexcept {
   } else if (type_ == 0x04u) {
     upper_ = datum_ << 16;
   } else if (type_ == 0x05u) {
+    if (have_start_) {
+      fail(Fault::HexRecord);  // a second start record (check_image.py refuses it)
+      return;
+    }
     have_start_ = true;
     start_ = datum_;
   }
@@ -269,7 +280,7 @@ bool PtfValidator::finish() noexcept {
       return false;
     }
   }
-  if (have_start_ && start_ != reset) {
+  if (!have_start_ || start_ != reset) {  // a .ptf carries the start record (check_image.py --expect-ptf)
     fail(Fault::HexStart);
     return false;
   }
@@ -282,8 +293,9 @@ bool PtfValidator::finish() noexcept {
 
 const char* ptf_fault_name(Fault f) noexcept {
   switch (f) {
+    case Fault::HexChar: return "a bad character, or a line that does not end CR LF";
     case Fault::HexType: return "record type other than 00, 01, 04, 05";
-    case Fault::HexStart: return "a type 03 record, or a start record that is not the reset vector";
+    case Fault::HexStart: return "a type 03 record, or no start record, or one that is not the reset vector";
     case Fault::HexOrder: return "data not at the next address (a hole, a byte twice, records out of order, or not starting at 0x60030000)";
     case Fault::HexRange: return "an address outside 0x60030000..0x607FFFFF";
     case Fault::HexShort: return "the image ends before the end of its vector table";

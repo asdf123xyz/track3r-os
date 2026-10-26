@@ -61,8 +61,8 @@ CheckResult check(const char* name) noexcept {
   if (r.fault != Fault::Ok) {
     return r;
   }
-  v.finish();
-  r.fault = r.file_bytes != size ? Fault::Readback : v.fault();
+  v.finish();  // the validator's verdict first; a short read only matters for a file the validator found clean
+  r.fault = v.fault() != Fault::Ok ? v.fault() : (r.file_bytes != size ? Fault::Readback : Fault::Ok);
   r.image_bytes = v.ok() ? v.image_length() : 0u;
   r.crc = v.crc();
   r.fault_offset = v.fault_offset();
