@@ -38,6 +38,9 @@
 #include <o3os/platform/mk66/storage/sd_text.h>
 #include <o3os/platform/rt10xx/storage/card.h>
 #include <o3os/platform/rt10xx/display.h>
+#include <o3os/platform/rt10xx/i2c.h>
+#include <o3os/platform/rt10xx/i2c_config.h>
+#include <o3os/platform/rt10xx/input.h>
 #include <o3os/platform/mk66/usb/diag_text.h>
 #include <o3os/platform/mk66/usb/log_command.h>
 #include <o3os/platform/rt10xx/clock_config.h>
@@ -304,13 +307,7 @@ bool pad_of_gpio(unsigned port, unsigned bit, unsigned& pad) {
   }
 }
 
-void gpio_clock_on() {
-  // The five ports' clock gates (CCGR1 CG13 gpio1, CCGR0 CG15 gpio2, CCGR2 CG13 gpio3, CCGR3 CG6 gpio4, CCGR1 CG15 gpio5): on.
-  regs::at<std::uint32_t>(regs::kCcm + 0x6Cu) |= (0x3u << 30);  // CCGR0: gpio2
-  regs::at<std::uint32_t>(regs::kCcm + 0x70u) |= (0x3u << 26) | (0x3u << 30);  // CCGR1: gpio1, gpio5
-  regs::at<std::uint32_t>(regs::kCcm + 0x74u) |= (0x3u << 12);  // CCGR3: gpio4
-  regs::at<std::uint32_t>(regs::kCcm + 0x78u - 0x4u) |= (0x3u << 26);  // CCGR2: gpio3
-}
+void gpio_clock_on() { regs::gpio_gates_on(); }  // (phase 4: the gates of GPIO1 and GPIO2 were written to the wrong CCGRs before)
 
 void cmd_pins(shell::Shell& sh, const shell::Args& a) {
   gpio_clock_on();
@@ -697,6 +694,90 @@ void cmd_display(shell::Shell& sh, const shell::Args& a) {
       .text(", link errors ").dec(display::link_errors()).nl();
 }
 
+// ---- `i2c` and `input` (phase 4). `i2c scan <n>` muxes LPI2Cn's candidate pads and lists the addresses that acknowledge; `input start
+// [pad control]` runs the MK66's scanner on two buses (the pad bus found by its 0x74 when not given); `input` shows the scan's health and
+// the events since the last call (raw: pad n, button n, encoder); `input encoder <port> <a> <b>` names the encoder's GPIO lines;
+// `input leds <0..255>` lights every pad (the LED driver's check).
+void cmd_i2c(shell::Shell& sh, const shell::Args& a) {
+  std::uint32_t n = 0;
+  if (a.argc != 3 || !same(a.argv[1], "scan") || !parse_u32(a.argv[2], n) || i2c::bus_of(n) == nullptr) {
+    sh.out().text("usage: i2c scan <1|3|4>   (LPI2Cn on its candidate pads, i2c_config.h)\n");
+    return;
+  }
+  const i2c_cfg::Instance* inst = i2c_cfg::instance(n);
+  i2c::init(n);
+  sh.out().text("LPI2C").dec(n).text(" (SCL ").text(inst->scl.name).text(", SDA ").text(inst->sda.name).text("):");
+  unsigned found = 0;
+  for (unsigned addr = i2c_cfg::kScanFirst; addr <= i2c_cfg::kScanLast; ++addr) {
+    const i2c::Result r = i2c::bus_of(n)->transfer(static_cast<std::uint8_t>(addr), nullptr, 0, nullptr, 0);
+    if (r == i2c::Result::Ok) {
+      sh.out().chr(' ').hex(addr, 2);
+      ++found;
+    } else if (r == i2c::Result::BusStuck || r == i2c::Result::Timeout) {
+      sh.out().text(" [bus ").text(r == i2c::Result::BusStuck ? "stuck" : "timeout").text(" at ").hex(addr, 2).text(": no pull-ups or not an I2C pair]");
+      break;
+    }
+  }
+  sh.out().text(found == 0 ? " nothing answered\n" : "\n");
+}
+
+void cmd_input(shell::Shell& sh, const shell::Args& a) {
+  if (a.argc >= 2 && same(a.argv[1], "start")) {
+    std::uint32_t pad = 0, control = 1;
+    if ((a.argc >= 3 && !parse_u32(a.argv[2], pad)) || (a.argc >= 4 && !parse_u32(a.argv[3], control))) {
+      sh.out().text("usage: input start [pad-bus control-bus]   (default: the bus where 0x74 answers, and LPI2C1)\n");
+      return;
+    }
+    const bool ok = input::start(pad, control);
+    sh.out().text(ok ? "input: scanning, pads and LEDs on LPI2C" : "input: no pad bus (0x74 answered on no candidate bus, or a bus number this chip has not)\n");
+    if (ok) {
+      sh.out().dec(input::pad_bus()).text(", buttons on LPI2C").dec(input::control_bus()).nl();
+      log("input start: scanning");
+    }
+    return;
+  }
+  if (a.argc == 5 && same(a.argv[1], "encoder")) {
+    std::uint32_t port = 0, bit_a = 0, bit_b = 0;
+    if (!parse_u32(a.argv[2], port) || !parse_u32(a.argv[3], bit_a) || !parse_u32(a.argv[4], bit_b) || !input::set_encoder(port, bit_a, bit_b)) {
+      sh.out().text("usage: input encoder <port 1..5> <bit A> <bit B>\n");
+      return;
+    }
+    sh.out().text("input: encoder on GPIO").dec(port).text(" bits ").dec(bit_a).text("/").dec(bit_b).nl();
+    return;
+  }
+  if (a.argc == 3 && same(a.argv[1], "leds")) {
+    std::uint32_t level = 0;
+    if (!input::started() || !parse_u32(a.argv[2], level) || level > 255u) {
+      sh.out().text("usage: input leds <0..255> (after `input start`)\n");
+      return;
+    }
+    for (unsigned i = 0; i < input::leds().count(); ++i) {
+      input::leds().set(i, static_cast<std::uint8_t>(level));
+    }
+    sh.out().text("input: every pad LED staged at ").dec(level).text(" (online ").dec(input::leds().online() ? 1u : 0u).text(", errors ").dec(input::leds().errors()).text(")\n");
+    return;
+  }
+  if (a.argc != 1) {
+    sh.out().text("usage: input [start [pad control] | encoder <port> <a> <b> | leds <0..255>]\n");
+    return;
+  }
+  char buf[kTextBuffer];
+  if (input::started()) {
+    send(sh, text::format_input_stats(input::scanner().stats(), buf, sizeof buf), buf);
+  } else {
+    sh.out().text("input: not started\n");
+  }
+  if (input::encoder_set()) {
+    sh.out().text("encoder count ").dec(input::encoder_count()).text(", steps missed by the sampling ").dec(input::encoder_skipped()).nl();
+  }
+  core::InputEvent e{};
+  unsigned shown = 0;
+  while (input::started() && shown < 32u && input::scanner().poll(e)) {
+    send(sh, text::format_input_event(e, buf, sizeof buf), buf);
+    ++shown;
+  }
+}
+
 void cmd_drill(shell::Shell& sh, const shell::Args&) {
   sh.out().text("raising a UsageFault now: the unit resets, `crash` shows the record after\n");
   sh.out().flush();
@@ -731,6 +812,8 @@ constexpr shell::Command kCommands[] = {
     shell::command("sd", "sd [mount]: the card (uSDHC1, assumed pads); mount it", &cmd_sd),
     shell::command("ls", "ls [path]: list a folder of the mounted card", &cmd_ls),
     shell::command("display", "display [start | test | bl <0..128>]: the FT81x (assumed LPSPI4)", &cmd_display),
+    shell::command("i2c", "i2c scan <1|3|4>: the addresses that answer on LPI2Cn (candidate pads)", &cmd_i2c),
+    shell::command("input", "input [start [pad control] | encoder <port> <a> <b> | leds <0..255>]: keys, pads, encoder, pad LEDs", &cmd_input),
     shell::command("drill", "one deliberate UsageFault: the crash record round trip", &cmd_drill),
     shell::command("reset", "restart the unit (SYSRESETREQ)", &cmd_reset),
 };

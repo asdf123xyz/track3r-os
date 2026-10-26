@@ -15,6 +15,7 @@
 
 #include <o3os/platform/rt10xx/audio.h>
 #include <o3os/platform/rt10xx/display.h>
+#include <o3os/platform/rt10xx/input.h>
 #include <o3os/platform/rt10xx/mem_map.h>
 #include <o3os/platform/rt10xx/platform.h>
 #include <o3os/platform/rt10xx/sdram.h>
@@ -89,6 +90,7 @@ int main() {
     asm volatile("wfi");
     console::service();
     rt10xx::audio_main_pass();
+    rt10xx::input::service();    // phase 4: the encoder sample, the key scan, the pad LEDs (after `input start` / `input encoder`)
     rt10xx::display::service();  // phase 4: the swap and the backlight ramp, once `display start` has run  // the main loop's beat for the pipeline's starvation guard (off here; the beat costs one store)
     const std::uint64_t now = rt10xx::system_clock().uptime_ms();
     if (now >= next_second) {

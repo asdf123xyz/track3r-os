@@ -7,6 +7,8 @@
 // 24 MHz cycles. SCL's period is CLKLO + CLKHI + 2 + the pad's rise time: 32 + 24 + 2 = 58 cycles = 2.42 us (413 kHz before the rise
 // time, about 375 kHz with it), under the SGTL5000's 400 kHz.
 
+#include <o3os/platform/rt10xx/audio_pins.h>
+
 #include <cstdint>
 
 namespace o3os::platform::rt10xx::i2c_cfg {
@@ -72,5 +74,58 @@ inline constexpr std::uint32_t kCscdr2Lpi2cPodfMask = 0x3Fu << 19;
 // Bounded waits, in cycles of the core clock (polls of the status register).
 inline constexpr std::uint32_t kByteTimeoutPolls = 200'000;   // a byte is about 25 us; this is milliseconds of polling
 inline constexpr std::uint32_t kStopTimeoutPolls = 200'000;
+
+// ---- The instances (phase 4): LPI2C1, 3 and 4, each with its gate and its ASSUMED pads ------------------------------------------------
+// The Tracker+ has two I2C buses at 400 kHz (an observed fact: Modular-Trackular FINDINGS section 20) and the pad LED driver at 0x74 on
+// one of them; which instances and pads is not known. The candidates are the three LPI2C pad pairs of the RT1052 that are not the SDRAM's
+// or the SD card's (the vendor's and the hobbyist ecosystem's choices): LPI2C1 on GPIO_AD_B1_00/01 (the codec's, audio_pins.h), LPI2C3 on
+// GPIO_AD_B1_07/06 and LPI2C4 on GPIO_AD_B0_12/13. `i2c scan <n>` muxes one and lists what answers; nothing is muxed before it.
+// The register offsets from an instance's base (the absolute addresses above are LPI2C1's).
+inline constexpr std::uintptr_t kOffMcr = 0x10u, kOffMsr = 0x14u, kOffMier = 0x18u, kOffMcfgr0 = 0x20u, kOffMcfgr1 = 0x24u, kOffMcfgr2 = 0x28u,
+                                kOffMcfgr3 = 0x2Cu, kOffMccr0 = 0x48u, kOffMfcr = 0x58u, kOffMtdr = 0x60u, kOffMrdr = 0x70u;
+static_assert(kLpi2c1 + kOffMcr == kMcr && kLpi2c1 + kOffMtdr == kMtdr && kLpi2c1 + kOffMrdr == kMrdr, "the offsets agree with LPI2C1's addresses");
+struct Instance {
+  unsigned number;          // LPI2Cn
+  std::uintptr_t base;
+  std::uintptr_t ccgr;      // the clock gate register and its bits
+  std::uint32_t ccgr_bits;
+  audio_pins::Pad scl;
+  audio_pins::Pad sda;
+  unsigned scl_gpio_bit;    // the pads as GPIO1 lines (ALT5), for the bus recovery
+  unsigned sda_gpio_bit;
+};
+inline constexpr unsigned kAdB0First = 42;
+inline constexpr unsigned kAdB1First = 42 + 16;
+inline constexpr Instance kInstances[] = {
+    {1, 0x403F0000u, 0x400FC070u, 0x3u << 6, audio_pins::kScl, audio_pins::kSda, 16, 17},
+    {3, 0x403F8000u, 0x400FC070u, 0x3u << 10,
+     {"GPIO_AD_B1_07 LPI2C3_SCL", audio_pins::mux_of(kAdB1First + 7), audio_pins::pad_of(kAdB1First + 7), 1, audio_pins::kIomuxc + 0x4DCu, 2},
+     {"GPIO_AD_B1_06 LPI2C3_SDA", audio_pins::mux_of(kAdB1First + 6), audio_pins::pad_of(kAdB1First + 6), 1, audio_pins::kIomuxc + 0x4E0u, 2}, 23, 22},
+    {4, 0x403FC000u, 0x400FC080u, 0x3u << 24,
+     {"GPIO_AD_B0_12 LPI2C4_SCL", audio_pins::mux_of(kAdB0First + 12), audio_pins::pad_of(kAdB0First + 12), 0, audio_pins::kIomuxc + 0x4E4u, 1},
+     {"GPIO_AD_B0_13 LPI2C4_SDA", audio_pins::mux_of(kAdB0First + 13), audio_pins::pad_of(kAdB0First + 13), 0, audio_pins::kIomuxc + 0x4E8u, 1}, 12, 13},
+};
+inline constexpr unsigned kInstanceCount = sizeof(kInstances) / sizeof(kInstances[0]);
+constexpr const Instance* instance(unsigned number) noexcept {
+  for (const Instance& i : kInstances) {
+    if (i.number == number) {
+      return &i;
+    }
+  }
+  return nullptr;
+}
+constexpr bool has_instance(unsigned number) noexcept {
+  for (const Instance& i : kInstances) {
+    if (i.number == number) {
+      return true;
+    }
+  }
+  return false;
+}
+static_assert(has_instance(1) && kInstances[0].number == 1u && kInstances[0].scl.mux_ctl == audio_pins::kScl.mux_ctl, "LPI2C1 is the codec's bus of audio_pins.h");
+static_assert(!has_instance(2), "LPI2C2 has no candidate pads here");
+// The scan's address range: 0x08..0x77 (the reserved addresses at both ends are not probed).
+inline constexpr std::uint8_t kScanFirst = 0x08;
+inline constexpr std::uint8_t kScanLast = 0x77;
 
 }  // namespace o3os::platform::rt10xx::i2c_cfg

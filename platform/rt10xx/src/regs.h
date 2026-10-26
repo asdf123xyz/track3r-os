@@ -137,6 +137,19 @@ inline volatile std::uint32_t& nvic_icer(unsigned word) noexcept { return at<std
 inline volatile std::uint32_t& nvic_ispr(unsigned word) noexcept { return at<std::uint32_t>(0xE000E200u + 4u * word); }
 inline volatile std::uint8_t& nvic_ipr(unsigned line) noexcept { return at<std::uint8_t>(0xE000E400u + line); }
 
+// The five GPIO ports' clock gates on (RM "CCM", CCGRn): gpio1 CCGR1 CG13, gpio2 CCGR0 CG15, gpio3 CCGR2 CG13, gpio4 CCGR3 CG6, gpio5 CCGR1 CG15.
+// A GPIO register read with its gate closed is a bus fault: everything that reads a port opens them first.
+inline void gpio_gates_on() noexcept {
+  at<std::uint32_t>(kCcm + 0x68u) |= (0x3u << 30);                 // CCGR0: gpio2
+  at<std::uint32_t>(kCcm + 0x6Cu) |= (0x3u << 26) | (0x3u << 30);  // CCGR1: gpio1, gpio5
+  at<std::uint32_t>(kCcm + 0x70u) |= (0x3u << 26);                 // CCGR2: gpio3
+  at<std::uint32_t>(kCcm + 0x74u) |= (0x3u << 12);                 // CCGR3: gpio4
+}
+// The base of GPIO port n (1..5), 0 for another n.
+constexpr std::uintptr_t gpio_base(unsigned port) noexcept {
+  return port == 1u ? 0x401B8000u : port == 2u ? 0x401BC000u : port == 3u ? 0x401C0000u : port == 4u ? 0x401C4000u : port == 5u ? 0x400C0000u : 0u;
+}
+
 inline volatile std::uint32_t& nvic_icpr(unsigned word) noexcept { return at<std::uint32_t>(0xE000E280u + 4u * word); }
 inline volatile std::uint32_t& nvic_stir() noexcept { return at<std::uint32_t>(0xE000EF00u); }  // the software trigger: the line number
 constexpr std::uint32_t irq_bit(unsigned line) noexcept { return 1u << (line % 32u); }
