@@ -383,3 +383,77 @@ MIDI monitor show 24 clocks a beat at 120 BPM. The official firmware goes back t
 13. The amplifier or output switch, if the board has one beyond the codec's mutes (section 7.2: none is driven; a silent unit with clean
     blocks and an open codec is this question).
 
+## 8. Design of phase 4 (what is in the tree)
+
+Phase 4 brings up the card, the display, the inputs and the update path, each on the console, each by porting the MK66's chip-neutral
+driver onto a bus of this chip. The MK66 layers (platform/mk66 storage, display, input, update) were already split into a pure half,
+linked by the rt10xx image, and a register half; phase 4 writes the register halves. Nothing is touched at boot: `sd mount`, `display
+start`, `i2c scan`, `input start` and `input encoder` are what first drive a pad. The OS app does not run yet (section 8.6).
+
+### 8.1 The card (`storage/usdhc_facts.h`, `src/usdhc_bus.cpp`, `src/card.cpp`)
+
+- **The controller** is the i.MX uSDHC, the K66 SDHC's descendant: the MK66's polled SdBus (platform/mk66 storage/src/sdhc_bus.cpp)
+  ports with three differences: the data bits of a command (direction, block count, auto CMD12, multiple blocks) go to MIX_CTRL before
+  the command word; SYS_CTRL has no SDCLKEN; the clock root is PLL2 PFD2 / 2, which the driver selects in the CCM but never reprograms
+  (PLL2 and its PFDs may feed the FlexSPI the code runs from) and reads back to plan its dividers (198 MHz at PFD2's reset fraction; a
+  PLL2 not running is "root 0" in `sd`). The card logic, FatFs and the listing are the MK66's, unchanged.
+- **Assumed**: uSDHC1 on GPIO_SD_B0_00..05 (CMD, CLK, DATA0..3, ALT0), the RT1052's one 4-bit SD pad group not shared with the SDRAM.
+  No card-detect or write-protect contact is known: the slot is taken as full, and a card that does not answer is "no card".
+- `sd mount`, `sd` (the MK66's report and the root), `ls [path]`.
+
+### 8.2 The display (`display_config.h`, `src/display.cpp`)
+
+- **Observed**: an EVE controller of the FT81x / BT81x family on an LPSPI (FINDINGS section 4), the MK66's family: the MK66's FT812
+  driver (Chip, Ft812Display) runs unchanged over a new Link.
+- **The link**: LPSPI at a root of PLL2 / 4 = 132 MHz (checked locked first), 1.1 MHz for the bring-up and 18.86 MHz after (the
+  FT81x's 11 MHz and the spec's 20 MHz limits); a byte is one TDR write and one bounded RDR read; chip select is a GPIO. No bulk (DMA)
+  engine yet: the driver's polled path sends frames and uploads.
+- **Assumed**: LPSPI4 on GPIO_B0_01..03 with chip select on GPIO_B0_00; PD# is not driven (no pad known: the driver's soft reset
+  covers it); the panel timings are the MK66's 800 x 480.
+- `display start`, `display test` (colour bars and a frame line through the frame path), `display bl <0..128>`, `display`.
+
+### 8.3 The inputs (`i2c_config.h`, `src/i2c.cpp`, `src/input.cpp`, `quadrature.h`)
+
+- **Observed** (FINDINGS section 20): the pad LEDs are an IS31FL3731 at 0x74, one LED per pad, on one of two LPI2C buses at 400 kHz:
+  the MK66's LED driver and bus arrangement. **Assumed**: the keys are the MK66's two TCA8418 scanners (0x34, one per bus) with its
+  matrices and maps, and the encoder is two GPIO lines.
+- **Nothing fixed at build time**: the LPI2C driver serves instances 1, 3 and 4 with candidate pads each (i2c_config.h); `i2c scan <n>`
+  lists what acknowledges; `input start [pad control]` routes the MK66's Scanner and PadLeds to two instances (the pad bus found by its
+  0x74 when not given); `input` shows the raw events to check the maps; `input leds <level>` lights every pad; `input encoder <port> <a>
+  <b>` names the encoder's lines, sampled once a main-loop pass by a host-tested quadrature decoder that counts the steps it missed.
+  No INT line is known: the scanner's safety poll drains the chips.
+- **A phase-2 bug fixed**: `pins` opened the GPIO clock gates one CCGR off, so GPIO1 and GPIO2 stayed gated and reading them could
+  bus-fault; regs::gpio_gates_on() opens the right ones.
+
+### 8.4 The update (`update/ptf_validator.h`, `src/firmware.cpp`)
+
+- **The hand-over is the official firmware's** (observed, FINDINGS section 3, confirmed there on hardware with modified images): replace
+  Firmware/_fwinfo with the image's bare name, write "start" into Firmware/_turnon, reset; the bootloader installs the image; the pinhole
+  installs the .ptf in Firmware/ when an image does not boot.
+- **This OS's checks before it**: a name the bootloader lists (TrackerPlus<...>.ptf) that the MK66 path guard accepts; the whole file
+  through a streaming validator (the rules of tools/check_image.py for this chip, stricter on record order, as the MK66's) at `fw arm`
+  and again at `fw update` with the same CRC-32; a one-use token that lives 30 s; the audio path stopped; a failed write leaves neither
+  file. Writes go through the MK66's FatFirmwareStore and its path guard, which gained a fourth path (Firmware/_turnon) and a
+  write_turnon()/remove_turnon() pair the MK66 never calls.
+- `fw`, `fw check <name>`, `fw arm <name>`, `fw update <token>`, `fw clear`. Open research question 14: what the bootloader does with a
+  _turnon left after an install (the official firmware has a function that deletes it; when it runs is not known): `fw clear` deletes
+  both files by hand.
+
+### 8.5 Costs
+
+The image with phase 4: FLASH 173,172 B (phase 3: 124,912), ITCM 49,140 B (unchanged), DTCM 88,792 B (the card's buffers and FatFs,
+the display's frame staging, the scanner, the LED driver, the update store), OCRAM 2,048 B, SDRAM 0.
+
+### 8.6 What phase 4 does not do
+
+The OS app (screens, the project, the sequencer driven by the keys) is not started: the MK66's composition root is board-bound, and the
+input maps, the display panel and the pads above are unconfirmed until a unit has answered the commands of section 8.7. Phase 5 starts
+with the app on this chip. Also left: DMA for the display and the card, `fw put` (an image over USB), the power switch, the INT lines.
+
+### 8.7 Acceptance of phase 4
+
+In the tree: `tools/ci.sh host` green, the cross build and its checks, 0 warnings. On a unit, after sections 6.5 and 7.5: `sd mount`
+and `ls Firmware`; `display start` (REG_ID 0x7C) and `display test`; `i2c scan 1|3|4` (0x74 and 0x34 somewhere), `input start`, keys,
+pads and the encoder in `input`, `input leds 255`; `fw arm` / `fw update` with a gated image and the unit coming back on it, then the
+official firmware the same way. A command that finds nothing names the assumption to change (the header named in its section).
+

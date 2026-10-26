@@ -33,13 +33,15 @@ sequence with the vector table and fault handlers, the crash record, SysTick, th
 (`sdram`, `cpu`, `crash`, `mem`, `pins`, `peek`, `drill`), the audio path (PLL4 for MCLK, SAI1 with the receiver as the master, the eDMA
 rings in the DTCM, the SGTL5000 over LPI2C1 with the MK66's codec plan, the boundary and render interrupts in the ITCM, the hot-code
 check) under `audio start|unmute|mute|tone|stall|stop`, the DIN port (LPUART5 at 31,250 baud from the oscillator, the PIT emitter,
-`midi/din_io.h` unchanged) under `midi start|note|clock`, and `core::kCpuHz` taken from the build (`O3OS_CPU_HZ`; the MK66 unchanged, the
-full host run is the proof), `O3OS_PLATFORM=rt10xx` and `tools/ci.sh rt10xx`. The probe image (FLASH 124,912 B, ITCM 49,140 B, DTCM
-66,840 B) answers on the USB port. **Nothing has run on a unit**: the first hardware check is the probe through the official update path,
-with the pinhole recovery known to work on that unit (`docs/specs/OS-PORT-RT10XX.md` sections 4, 6.5 and 7.5). The board facts come from
+`midi/din_io.h` unchanged) under `midi start|note|clock`, the card over uSDHC1 (`sd`, `ls`), the display over LPSPI4 with the MK66's
+FT812 driver (`display`), the LPI2C buses and the MK66's key scanner and pad LEDs on buses chosen at run time (`i2c scan`, `input`), the
+update path with a .ptf validator and the official hand-over (`fw check|arm|update|clear`), and `core::kCpuHz` taken from the build (`O3OS_CPU_HZ`; the MK66 unchanged, the
+full host run is the proof), `O3OS_PLATFORM=rt10xx` and `tools/ci.sh rt10xx`. The probe image (FLASH 173,172 B, ITCM 49,140 B, DTCM
+88,792 B) answers on the USB port. **Nothing has run on a unit**: the first hardware check is the probe through the official update path,
+with the pinhole recovery known to work on that unit (`docs/specs/OS-PORT-RT10XX.md` sections 4, 6.5, 7.5 and 8.7). The board facts come from
 the Modular-Trackular project's observations of the unit (MIT), used as facts of the hardware only; the SDRAM part and its timings, the
-audio and MIDI pads, the SAI's clock direction and the codec's address are assumptions the console confirms or refutes (nothing drives a
-pad before `audio start` or `midi start`). Phases 4 and 5 (card, display, inputs and update, the rest) are IDEA rows.
+audio, MIDI, card, display and bus pads, the SAI's clock direction, the codec's address and the key scanners are assumptions the console
+confirms or refutes (nothing drives a pad before its command). Phase 5 (the OS app on this chip, then the rest) is an IDEA row.
 
 ## What the OS does
 
