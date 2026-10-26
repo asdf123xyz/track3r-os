@@ -37,6 +37,7 @@
 #include <o3os/platform/mk66/storage/ls_command.h>
 #include <o3os/platform/mk66/storage/sd_text.h>
 #include <o3os/platform/rt10xx/storage/card.h>
+#include <o3os/platform/rt10xx/display.h>
 #include <o3os/platform/mk66/usb/diag_text.h>
 #include <o3os/platform/mk66/usb/log_command.h>
 #include <o3os/platform/rt10xx/clock_config.h>
@@ -643,6 +644,59 @@ void cmd_sd(shell::Shell& sh, const shell::Args& a) {
 
 void cmd_ls(shell::Shell& sh, const shell::Args& a) { text::run_ls_command(sh, storage::storage(), a); }
 
+// ---- `display` (phase 4): the FT81x on the assumed LPSPI4. `display start` brings it up (polled), `display test` draws colour bars,
+// `display bl <0..128>` sets the backlight's target; `display` reports.
+const char* init_status_name(o3os::platform::mk66::display::InitStatus st) {
+  using S = o3os::platform::mk66::display::InitStatus;
+  switch (st) {
+    case S::Ok: return "ok";
+    case S::BadConfig: return "bad panel config";
+    case S::NoChip: return "no chip (REG_ID never 0x7C, or PLL2 not running)";
+    case S::ResetTimeout: return "reset timeout";
+    case S::CoprocessorStuck: return "coprocessor stuck";
+    case S::NoFrames: return "no frames";
+  }
+  return "?";
+}
+
+void cmd_display(shell::Shell& sh, const shell::Args& a) {
+  if (a.argc >= 2 && same(a.argv[1], "start")) {
+    sh.out().text("display: bringing the FT81x up...\n");
+    sh.out().flush();
+    const o3os::platform::mk66::display::InitReport r = display::start();
+    sh.out().text("display start: ").text(init_status_name(r.status)).text(r.warm_start ? " (warm: the chip was running)" : "").text(", REG_ID at entry ").hex(r.entry_id, 2)
+        .text(", id polls ").dec(r.id_polls).text(", bus error ").dec(r.bus_error ? 1u : 0u).nl();
+    log(r.status == o3os::platform::mk66::display::InitStatus::Ok ? "display start: ok" : "display start: FAILED");
+    return;
+  }
+  if (a.argc >= 2 && same(a.argv[1], "test")) {
+    sh.out().text(display::draw_test_frame() ? "display: test frame sent (eight colour bars and a frame line)\n" : "display: not started, or busy with a frame\n");
+    return;
+  }
+  if (a.argc == 3 && same(a.argv[1], "bl")) {
+    std::uint32_t v = 0;
+    if (!parse_u32(a.argv[2], v) || v > 128u || !display::started()) {
+      sh.out().text("usage: display bl <0..128> (after `display start`)\n");
+      return;
+    }
+    display::screen().set_backlight_target(static_cast<std::uint8_t>(v));
+    sh.out().text("display: backlight target ").dec(v).nl();
+    return;
+  }
+  if (a.argc != 1) {
+    sh.out().text("usage: display [start | test | bl <0..128>]\n");
+    return;
+  }
+  if (!display::started()) {
+    sh.out().text("display: not started (link errors ").dec(display::link_errors()).text(")\n");
+    return;
+  }
+  const auto& st = display::screen().stats();
+  sh.out().text("display: up, polled; frames ").dec(st.frames).text(" swaps ").dec(st.swaps_done).text(" aborted ").dec(st.frames_aborted).text(" stalls ").dec(st.swap_stalls)
+      .text(" reinits ").dec(st.reinits).text(", backlight ").dec(display::screen().backlight()).text(", failed ").dec(display::screen().failed() ? 1u : 0u)
+      .text(", link errors ").dec(display::link_errors()).nl();
+}
+
 void cmd_drill(shell::Shell& sh, const shell::Args&) {
   sh.out().text("raising a UsageFault now: the unit resets, `crash` shows the record after\n");
   sh.out().flush();
@@ -676,6 +730,7 @@ constexpr shell::Command kCommands[] = {
     shell::command("peek", "peek <hexaddr> [1..16]: read 32-bit words (clocked modules only)", &cmd_peek),
     shell::command("sd", "sd [mount]: the card (uSDHC1, assumed pads); mount it", &cmd_sd),
     shell::command("ls", "ls [path]: list a folder of the mounted card", &cmd_ls),
+    shell::command("display", "display [start | test | bl <0..128>]: the FT81x (assumed LPSPI4)", &cmd_display),
     shell::command("drill", "one deliberate UsageFault: the crash record round trip", &cmd_drill),
     shell::command("reset", "restart the unit (SYSRESETREQ)", &cmd_reset),
 };

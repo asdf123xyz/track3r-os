@@ -51,7 +51,7 @@ add_custom_command(OUTPUT ${_rt10xx_ld}
   VERBATIM)
 add_custom_target(rt10xx_ld_script DEPENDS ${_rt10xx_ld})
 
-add_executable(o3os src/startup.cpp src/boot.cpp src/sdram.cpp src/crash_store.cpp src/clock.cpp src/i2c.cpp src/audio.cpp src/midi_din.cpp src/usdhc_bus.cpp src/card.cpp src/main.cpp)
+add_executable(o3os src/startup.cpp src/boot.cpp src/sdram.cpp src/crash_store.cpp src/clock.cpp src/i2c.cpp src/audio.cpp src/midi_din.cpp src/usdhc_bus.cpp src/card.cpp src/display.cpp src/main.cpp)
 # Phase 2: the OTG1 device's image half and the `diag` console (usb/src), with the build identity `version` prints (the MK66's generator,
 # platform/mk66/tools/gen_build_info.cmake: git hash, "-dirty" if the tree differs), written only when it changed.
 set(_rt10xx_gen_dir "${CMAKE_CURRENT_BINARY_DIR}/gen")
