@@ -3,7 +3,7 @@
 # debounce, the detent accumulator, the scan with its publishing policy, the IS31FL3731 driver) are added to `platform_mk66_pure`, so
 # the host tests and the QEMU suite (tests/mk66_input_*_test.cpp) run them; the I2C master and the board's registers
 # (src/i2c_master.cpp, src/device.cpp) are added to the image by the block of platform/mk66/CMakeLists.txt.
-target_sources(platform_mk66_pure PRIVATE src/tca8418.cpp src/scanner.cpp src/pad_leds.cpp)
+target_sources(platform_mk66_pure PRIVATE src/tca8418.cpp src/scanner.cpp src/pad_leds.cpp src/pad_bus.cpp)
 target_include_directories(platform_mk66_pure PUBLIC include)
 
 # Every public header compiles on its own (the same check o3os_library() gives the layers).

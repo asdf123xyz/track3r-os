@@ -48,6 +48,7 @@ struct Layout {
   int pad_w;
   int pad_h;
   int encoder_y;
+  int bus_y;  // OS-BUG-PADS: the pad bus line's row, under the encoder line and clear of the footer
   int gap;
 };
 
@@ -69,6 +70,7 @@ Layout make_layout(const ui::Theme& t) noexcept {
   l.pads_y = l.buttons_y + buttons_h + 2 * m.gap + l.caption_h + m.gap;
   const int pads_h = kPadRows * l.pad_h + (kPadRows - 1) * m.gap;
   l.encoder_y = l.pads_y + pads_h + 2 * m.gap;
+  l.bus_y = l.encoder_y + t.geometry(Face::Data).cell_h + 2 * m.gap;
   return l;
 }
 
@@ -237,6 +239,14 @@ void InputTestScreen::render(const Model&, const ViewState& view, Renderer& r, R
   enc.append("  EVENTS ");
   append_uint(enc, s.encoder_events);
   r.text(l.margin, l.encoder_y, enc.c_str(), s.encoder_events > 0u ? Color::Text : Color::TextDim, Face::Data);
+
+  // ---- The pad bus line (OS-BUG-PADS) ---------------------------------------------------------------------------------------------
+  // Only on trouble. A row of its own, with the pin levels in it: the longest line is 69 characters, 552 px of the 776 between the margins.
+  if (s.pad_bus_trouble()) {
+    InputTestBusLine bus;
+    input_test_bus_line(s.stats.pad_bus, bus);
+    r.text(l.margin, l.bus_y, bus.c_str(), Color::Text, Face::Label);
+  }
 }
 
 }  // namespace o3os::app

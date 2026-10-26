@@ -577,6 +577,13 @@ void draw_input_test_worst(ui::Renderer& r, unsigned) {
   s.last_age_us = 4294967295u;
   s.max_age_us = 4294967295u;
   s.stats.dropped = s.stats.errors = s.stats.filtered = s.stats.resyncs = 4294967295u;
+  // OS-BUG-PADS: the pad bus line, the longest it gets (both chips refused, the counts past the display's end, a held bus, the lines read).
+  s.stats.pad_bus.scanner = {2, 2, 4294967295u};
+  s.stats.pad_bus.leds = {1, 3, 4294967295u};
+  s.stats.pad_bus.clear = hal::PadBusStats::kClearHeld;
+  s.stats.pad_bus.clears = 255;
+  s.stats.pad_bus.lines_first = hal::PadBusStats::kLineScl | hal::PadBusStats::kLineSda;
+  s.stats.pad_bus.lines_now = hal::PadBusStats::kLineScl | hal::PadBusStats::kLineSda | hal::PadBusStats::kLineInt;
   scene(r, demo_model(), v);
 }
 

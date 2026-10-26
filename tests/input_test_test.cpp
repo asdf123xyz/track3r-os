@@ -102,6 +102,110 @@ TEST_CASE("input test: health counters are taken over only when they differ") {
   CHECK(s.set_stats(h));
   CHECK_FALSE(s.set_stats(h));
   CHECK(s.stats.errors == 2u);
+  h.pad_bus.scanner.count = 1;  // a healthy bus's record is not drawn: not compared (OS-BUG-PADS)
+  CHECK_FALSE(s.set_stats(h));
+  h.pad_bus.scanner.first = 2;  // a bus in trouble is drawn: its record is part of what is compared
+  CHECK(s.set_stats(h));
+  CHECK_FALSE(s.set_stats(h));
+}
+
+TEST_CASE("input test: a healthy pad bus never makes the screen redraw, a bus in trouble only when the drawn line changes (OS-BUG-PADS)") {
+  app::InputTestState s;
+  hal::InputStats h;
+  h.online = hal::InputStats::kPadsOnline | hal::InputStats::kButtonsOnline;
+  h.pad_bus.scanner = {0, 0, 1};
+  h.pad_bus.leds = {0, 0, 1};
+  CHECK(s.set_stats(h));  // the first look
+  // The pad scanner is polled every 10 ms: its attempts, the pin levels, the clears and the unused bits move on a healthy unit, and none of it is on screen.
+  for (unsigned i = 0; i < 40; ++i) {
+    h.pad_bus.scanner.count += 1;
+    h.pad_bus.leds.count += 3;
+    h.pad_bus.scanner.last = static_cast<std::uint8_t>(i % 3);  // acked first: a later refusal is not "trouble" and not drawn
+    h.pad_bus.clear = (i % 2) != 0u ? hal::PadBusStats::kClearReleased : hal::BusProbe::kNone;
+    h.pad_bus.clears = static_cast<std::uint8_t>(i);
+    h.pad_bus.lines_first = static_cast<std::uint8_t>(i & 7u);
+    h.pad_bus.lines_now = static_cast<std::uint8_t>(7u - (i & 7u));
+    CHECK_FALSE(s.set_stats(h));
+    CHECK_FALSE(s.pad_bus_trouble());
+  }
+  // What is drawn on the strip still counts, and so do the two online flags (the other bits of `online` are not drawn).
+  h.errors = 1;
+  CHECK(s.set_stats(h));
+  h.online = static_cast<std::uint8_t>(h.online | 0x80u);
+  CHECK_FALSE(s.set_stats(h));
+  h.online = hal::InputStats::kButtonsOnline;  // the pad scanner went away: the bus line appears
+  CHECK(s.set_stats(h));
+  CHECK(s.pad_bus_trouble());
+  // In trouble the line is drawn: every part of it counts, what it does not show does not.
+  h.pad_bus.scanner.count += 1;
+  CHECK(s.set_stats(h));
+  h.pad_bus.lines_now = static_cast<std::uint8_t>(h.pad_bus.lines_now ^ hal::PadBusStats::kLineSda);
+  CHECK(s.set_stats(h));
+  h.pad_bus.lines_first = static_cast<std::uint8_t>(h.pad_bus.lines_first ^ hal::PadBusStats::kLineScl);
+  CHECK(s.set_stats(h));
+  h.pad_bus.clear = hal::PadBusStats::kClearHeld;
+  CHECK(s.set_stats(h));
+  h.pad_bus.leds.last = 1;
+  CHECK(s.set_stats(h));
+  CHECK_FALSE(s.set_stats(h));
+  h.pad_bus.clears = static_cast<std::uint8_t>(h.pad_bus.clears + 1u);  // how many clears is not on the line
+  h.pad_bus.lines_now = static_cast<std::uint8_t>(h.pad_bus.lines_now | 0xF8u);  // nor are bits above INT
+  CHECK_FALSE(s.set_stats(h));
+  h.pad_bus.scanner.count = 1000;  // past the end of what the line shows ("999+")
+  CHECK(s.set_stats(h));
+  h.pad_bus.scanner.count = 4000000000u;
+  h.pad_bus.leds.count = 5000;
+  CHECK(s.set_stats(h));
+  h.pad_bus.scanner.count += 1u;
+  h.pad_bus.leds.count += 1u;
+  CHECK_FALSE(s.set_stats(h));  // stopped counting on screen: static again
+}
+
+TEST_CASE("input test: the pad bus line, with the pin levels, fits its row on every theme in the worst case (OS-BUG-PADS)") {
+  hal::PadBusStats bus;
+  bus.scanner = {2, 2, 4294967295u};  // every name is three letters, so the choice of results does not change the width
+  bus.leds = {1, 3, 4294967295u};
+  bus.clear = hal::PadBusStats::kClearHeld;
+  bus.lines_first = hal::PadBusStats::kLineScl | hal::PadBusStats::kLineSda;
+  bus.lines_now = hal::PadBusStats::kLineScl | hal::PadBusStats::kLineSda | hal::PadBusStats::kLineInt;
+  app::InputTestBusLine line;
+  app::input_test_bus_line(bus, line);
+  CHECK(std::string(line.c_str()) == "BUS 34 NAK/NAK X999+  74 TMO/ARB X999+  CLR HELD  SCL SDA INT 110>111");
+  CHECK(line.size() == 69u);
+  CHECK(line.size() < line.capacity());  // not cut
+  // The screen draws it from the left margin (3 gaps) on a row of its own: the line plus both margins fits the screen, in every theme.
+  for (unsigned i = 0; i < ui::kThemeCount; ++i) {
+    const ui::Theme& t = ui::theme(ui::theme_id_at(i));
+    const int margin = 3 * t.metrics.gap;
+    const int width = static_cast<int>(line.size()) * t.geometry(ui::Face::Label).cell_w;
+    CHECK_MESSAGE(margin + width + margin <= ui::kScreenW, t.name << ": " << width << " px of " << ui::kScreenW - 2 * margin);
+  }
+  // The levels are on the line whatever else it holds, and read "---" when the pins were not read.
+  bus = {};
+  app::input_test_bus_line(bus, line);
+  CHECK(std::string(line.c_str()) == "BUS 34 --/-- X0  74 --/-- X0  CLR --  SCL SDA INT --->---");
+}
+
+TEST_CASE("input test: the pad bus line shows only when a pad chip was tried and refused, or the pad scanner is offline (OS-BUG-PADS)") {
+  app::InputTestState s;
+  hal::InputStats h;
+  h.online = hal::InputStats::kPadsOnline | hal::InputStats::kButtonsOnline;
+  CHECK_FALSE(s.pad_bus_trouble());  // nothing tried
+  h.pad_bus.scanner = {0, 0, 5};
+  h.pad_bus.leds = {0, 0, 40};
+  CHECK(s.set_stats(h));
+  CHECK_FALSE(s.pad_bus_trouble());  // answered from the first transaction
+  h.pad_bus.scanner.first = 2;       // NAK first, an ack since: shown, first and last both on the line
+  CHECK(s.set_stats(h));
+  CHECK(s.pad_bus_trouble());
+  h.pad_bus.scanner.first = 0;
+  h.online = hal::InputStats::kButtonsOnline;  // the pad scanner is offline although it once acked
+  CHECK(s.set_stats(h));
+  CHECK(s.pad_bus_trouble());
+  h.pad_bus.scanner = {};  // offline and not tried yet (the gate is closed): nothing to say
+  h.pad_bus.leds = {};
+  CHECK(s.set_stats(h));
+  CHECK_FALSE(s.pad_bus_trouble());
 }
 
 // ---- the pad LED palette -----------------------------------------------------------------------------------------------------
@@ -296,6 +400,55 @@ TEST_CASE("input test screen: entering it starts from a clean picture, and it ta
   app::ViewState view = rig.app->state();
   app::kInputTestScreen.enter(rig.app->model(), view);
   CHECK(view.input_test.pad_presses[9] == 0);
+}
+
+namespace {
+
+// An input source with no events and health counters the test sets (the pad scanner's, as the unit reports them every pass).
+class StatsInput final : public hal::Input {
+ public:
+  bool poll(core::InputEvent&) noexcept override { return false; }
+  hal::InputStats stats() const noexcept override { return health; }
+  hal::InputStats health;
+};
+
+}  // namespace
+
+TEST_CASE("input test screen: an idle healthy screen is static while the pad bus record moves, a bus in trouble redraws on a drawn change (OS-BUG-PADS)") {
+  StatsInput input;
+  platform::host::FakeClock clock;
+  platform::host::FakeDisplay display;
+  input.health.online = hal::InputStats::kPadsOnline | hal::InputStats::kButtonsOnline;
+  input.health.pad_bus.scanner = {0, 0, 1};
+  input.health.pad_bus.leds = {0, 0, 1};
+  const auto app = std::make_unique<app::App>(input, clock, display);
+  const auto pass = [&](unsigned ms) {
+    clock.advance(ms * core::kTicksPerMs);
+    app->run_once();
+  };
+  app->run_once();
+  app->invoke(core::action_id("nav.screen"), static_cast<core::ActionArg>(ScreenId::InputTest));
+  for (int i = 0; i < 5; ++i) {
+    pass(10);
+  }
+  CHECK_FALSE(app->dirty());
+  const std::uint32_t frames = app->frames();
+  for (unsigned i = 0; i < 60; ++i) {  // 600 ms of polls, each one more attempt and other pins: nothing drawn changes
+    input.health.pad_bus.scanner.count += 1;
+    input.health.pad_bus.leds.count += 1;
+    input.health.pad_bus.lines_now = static_cast<std::uint8_t>(i & 7u);
+    pass(10);
+    CHECK_FALSE(app->dirty());
+  }
+  CHECK(app->frames() == frames);
+  input.health.pad_bus.scanner.first = 2;  // the first transaction was refused: the bus line appears
+  pass(10);
+  CHECK(app->frames() == frames + 1u);
+  input.health.pad_bus.lines_now = static_cast<std::uint8_t>(input.health.pad_bus.lines_now ^ 1u);  // a pin level is on the line
+  pass(10);
+  CHECK(app->frames() == frames + 2u);
+  pass(10);  // and nothing changed since
+  CHECK(app->frames() == frames + 2u);
 }
 
 // ---- the scan and the app together: the order of two keys reported in one drain ------------------------------------------------

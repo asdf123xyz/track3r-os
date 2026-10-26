@@ -259,6 +259,8 @@ int main() {
     mk66::console::log_dec("boot: audio FAILED, outputs muted, result", mk66::audio_last_result());
     mk66::console::log_audio_clock_fault("boot: audio", mk66::audio_clock_fault());  // OS-HW1: which wait, MCR and MDR
   }
+  // OS-BUG-PADS: the audio start is over, worked or not: the pad bus (I2C2) may open a second after the board's rail came up, and the pads are brought up from the loop below.
+  mk66::appimg::input_audio_started();
 
   // ---- SD card (OS-007e): READ ONLY. After the audio path runs (OS-USBAUDIO: and BEFORE the USB port is started, see below). The card is initialised and its FAT volume mounted;
   // the display is serviced from the idle hook during the card's waits (every wait is bounded: a card that does not answer costs the init, under 3 s, plus up to 0.5 s for each read call that fails). Then,
@@ -335,6 +337,8 @@ int main() {
   std::uint32_t last_boundaries = 0;
   std::uint32_t last_progress_ms = static_cast<std::uint32_t>(clock.uptime_ms());
   std::uint8_t pattern = 0;  // sticky once an audio code is chosen: a fault never un-happens
+  bool pads_code_done = false;         // OS-BUG-PADS: the pad scanner's blink code 13 has been started (it plays once)
+  std::uint32_t pads_code_from = 0;    // and when
 #if O3OS_AUDIO_TEST
   bool tone_started = false;
   std::uint32_t tone_started_ms = 0;
@@ -468,7 +472,19 @@ int main() {
     // One LED, two slices: a hard audio fault (kAudioFault) is shown first, then a display or app safe-state code (fault_code), then
     // the audio verdict (kAudioOverBudget or the heartbeat). Each is sticky; the status words tell the rest.
     const std::uint8_t shown_code = pattern == mk66::blink::kAudioFault ? pattern : (fault_code != 0 ? fault_code : pattern);
-    led_from_sram_l(mk66::blink::led_on(shown_code, ms));
+    // OS-BUG-PADS: the pad scanner is brought up after the audio start (a second after the board's rail at the earliest), so its verdict comes from here, not from the boot. Once the pad
+    // scanner has refused its first configurations and never answered, code 13 is shown for ONE period, from its first flash, in place of the heartbeat only (a code already shown for
+    // a fault keeps the LED); nothing waits for it, and the retries behind it go on for ever. A pad scanner that answers later brings the pads online with no restart.
+    if (!pads_code_done && mk66::appimg::pads_gave_no_answer()) {
+      pads_code_done = true;
+      pads_code_from = ms;
+      mk66::console::log("input: pad scanner did not answer, blink code 13 once, retrying every second");
+    }
+    if (pads_code_done && shown_code == 0 && ms - pads_code_from < mk66::blink::period_ms(mk66::blink::kInputDegraded)) {
+      led_from_sram_l(mk66::blink::led_on(mk66::blink::kInputDegraded, ms - pads_code_from));
+    } else {
+      led_from_sram_l(mk66::blink::led_on(shown_code, ms));
+    }
     if (ms / 1000u != last_second) {
       last_second = ms / 1000u;
       g_heartbeat = g_heartbeat + 1u;

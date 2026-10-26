@@ -13,14 +13,19 @@
 namespace o3os::platform::mk66::input::device {
 
 struct BringUp {
-  bool pads_online;     // the pad key scanner answered its configuration
-  bool buttons_online;  // the control-button key scanner did
+  bool buttons_online;  // the control-button key scanner answered its configuration
 };
 
 // Configures the pins (the INT lines as inputs with pull-ups, the encoder pins), starts the FTM2 quadrature decoder,
-// brings up the two I2C buses (a held bus is released first) and configures the two key scanners. Bounded: a chip that does not answer
-// costs three attempts and is retried later by the scan itself. Call once, after the clock tree, the SDRAM and the early pins.
+// brings up the control bus (I2C0; a held bus is released first) and configures the control-button key scanner. Bounded: a chip that does not
+// answer costs three attempts and is retried later by the scan itself. Call once, after the clock tree, the SDRAM and the early pins.
+//
+// OS-BUG-PADS: the pad bus (I2C2) is NOT brought up here. Its gate (pad_bus.h) opens one second after the board's power rail came up
+// (boot::rail_up_ms) and after audio_started(); the first service() pass after that initialises the module and configures the pad key scanner,
+// and the pad LED driver follows on its first flush. So the pads are not online when this returns, and the boot chords (control buttons) do not wait for them.
 BringUp bring_up() noexcept;
+// OS-BUG-PADS: the audio start has finished, whether it worked or not (main.cpp, right after it): the second condition of the pad bus's gate. Main loop only.
+void audio_started() noexcept;
 
 // The scan and the pad LEDs; valid from bring_up(). The LED driver sets itself up on its first flushes.
 Scanner& scanner() noexcept;

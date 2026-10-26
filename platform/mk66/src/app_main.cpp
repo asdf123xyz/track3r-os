@@ -109,6 +109,7 @@
 #include <o3os/platform/mk66/disk_share.h>
 #include <o3os/platform/mk66/display/device.h>
 #include <o3os/platform/mk66/input/device.h>
+#include <o3os/platform/mk66/input/pad_bus_log.h>
 #include <o3os/platform/mk66/mem_map.h>
 #include <o3os/platform/mk66/midi.h>
 #include <o3os/platform/mk66/platform.h>
@@ -120,6 +121,7 @@
 #include <o3os/platform/mk66/storage/device.h>
 #include <o3os/platform/mk66/update/fw_device.h>
 #include <o3os/platform/mk66/usb/console.h>
+#include <o3os/platform/mk66/usb/diag_text.h>
 #include <o3os/platform/mk66/usb/screenshot_service.h>
 #include <o3os/platform/mk66/usb/usb0.h>
 #include <o3os/model/params.h>
@@ -1177,7 +1179,7 @@ std::uint64_t g_settle_start_ms = 0;
 
 std::uint64_t g_last_tick_ms = 0;
 bool g_start_failed = false;  // the app could not start: the safe state (pass() reports it for good)
-bool g_input_degraded = false;  // a key scanner did not answer at boot (kInputDegraded, main.cpp plays it once)
+bool g_input_degraded = false;  // the control-button key scanner did not answer at boot (kInputDegraded, main.cpp plays it once; the pads have their own verdict, pads_gave_no_answer)
 bool g_input_up = false;        // init() brought the input up: until then nothing touches its pins, its bus clocks or its chips
 BootGate g_gate;                // the boot screen: the hook's rule, the hold, the driver flag (main thread only)
 
@@ -1721,6 +1723,12 @@ bool start_app(hal::Display& display, bool first_boot) noexcept {
 }  // namespace
 
 bool input_degraded() noexcept { return g_input_degraded; }
+void input_audio_started() noexcept {
+  if (g_input_up) {  // (a headless run never started the input: nothing to open)
+    input::device::audio_started();
+  }
+}
+bool pads_gave_no_answer() noexcept { return g_input_up && input::device::scanner().pads_gave_no_answer(); }
 
 #if !O3OS_AUDIO_TEST
 bool audio_open_pending() noexcept { return g_open_pending; }
@@ -2391,7 +2399,7 @@ bool init(hal::Display& display) noexcept {
   // The input first: its chips scan while the bitmaps go up, so a key held at power-up is in their FIFOs when the app starts.
   const input::device::BringUp up = input::device::bring_up();
   g_input_up = true;
-  g_input_degraded = !up.pads_online || !up.buttons_online;
+  g_input_degraded = !up.buttons_online;  // (OS-BUG-PADS: the pads are brought up later, after the audio start; their verdict is pads_gave_no_answer())
   const bool ok = start_app(display, true);
   g_start_failed = !ok;
   if (ok) {
@@ -2825,11 +2833,43 @@ const char* disk_share_state_name() noexcept {
   return "?";
 }
 
+// OS-BUG-PADS: what the pad bus said, in `diag log`: three short lines (the headline, the chips' results, then the bus clears and the lines) at the first answer or refusal of each chip and for the
+// first changes of the pad scanner's online state, then one line per input::PadBusLogPolicy::kSummaryEvery changes (a flapping chip must not wrap the log over the boot lines). Read only. Main thread.
+// Every pass looks at the record alone (no pin is read); the levels are read, once, for a full entry.
+input::PadBusLogPolicy g_pad_bus_log;
+void log_pad_bus(const hal::PadBusStats& bus) noexcept {
+  char line[64];
+  console::format_pad_bus_chips(bus, line, sizeof line);
+  console::log(line);
+  console::format_pad_bus_lines(bus, line, sizeof line);
+  console::log(line);
+}
+void watch_pad_bus() noexcept {
+  const hal::InputStats seen = input::device::scanner().stats_without_levels();
+  const bool online = (seen.online & hal::InputStats::kPadsOnline) != 0u;
+  switch (g_pad_bus_log.update(online, seen.pad_bus.scanner.count != 0u, seen.pad_bus.leds.count != 0u)) {
+    case input::PadBusLogPolicy::Entry::None:
+      break;
+    case input::PadBusLogPolicy::Entry::Full:
+      console::log(online ? "pads: scanner answers" : "pads: scanner not answering");
+      log_pad_bus(input::device::scanner().stats().pad_bus);
+      break;
+    case input::PadBusLogPolicy::Entry::Summary: {
+      char line[64];
+      audio::diag::Text text(line, sizeof line);
+      text.str("pads: ").dec(g_pad_bus_log.flips()).str(" changes, now ").str(online ? "answering" : "not answering");
+      console::log(line);
+      break;
+    }
+  }
+}
+
 std::uint8_t pass() noexcept {
   poll_card(static_cast<std::uint32_t>(system_clock().uptime_ms()));  // before the driver's scope: the mount's waits keep the display serviced through the idle hook
   if (g_input_up) {  // a headless run (the display did not come up) never starts the input: its I2C clocks are off, a register access would fault
     input::device::scanner().service();  // before anything that can return early: the keys are scanned whatever the app does
     update_pad_leds();
+    watch_pad_bus();
   }
   power_pass(static_cast<std::uint32_t>(system_clock().uptime_ms()));
   if (g_boot_disk) {

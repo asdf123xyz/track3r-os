@@ -21,7 +21,7 @@ inline constexpr std::uint8_t kSdramFailure = 3;  // the SDRAM wiring or full-ca
 // Boot reports, played once before the heartbeat starts.
 inline constexpr std::uint8_t kDisplayFailure = 4;  // the FT812 did not come up (no chip answer, a stuck reset, no scan-out): headless
 inline constexpr std::uint8_t kDisplayPolled = 5;   // the display works but its DMA path failed the self-test: everything goes by the slow path
-inline constexpr std::uint8_t kInputDegraded = 13;  // OS-007d: a key scanner (pads or buttons) did not answer at boot: the OS runs with what did (INPUT TEST says which)
+inline constexpr std::uint8_t kInputDegraded = 13;  // OS-007d: a key scanner did not answer: the control buttons' at boot (played before the audio start), the pads' after the pad bus opened (OS-BUG-PADS: a second after the board's rail and the audio start; three refused tries, shown once from the loop); the OS runs with what did (INPUT TEST says which)
 inline constexpr std::uint8_t kCrashSeen = 6;     // a valid crash record from an earlier run (an unexpected crash)
 inline constexpr std::uint8_t kDrillRoundTrip = 7;  // the record is the deliberate fault of the drill build, fields as expected
 

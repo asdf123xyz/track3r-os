@@ -191,7 +191,9 @@ KiB" of SRAM_L is not used; SRAM_L is 48 KiB of hot code and tap data (24 + 24 K
    `ALLOWUPDATE` keeps the control
    registers writable for the later, deliberate re-enable.
 2. FPU on (`CPACR`).
-3. **Pins quiet** (the table below): port clocks on, then **audio mute key (PTD6) LOW = muted** first (the amplifier stays off until the audio path runs),
+3. **Pins quiet** (the table below): port clocks on, then **the power key PTA24 HIGH** (PCR `0x144`: high drive, slew-rate limited; OS-BUG-PADS step 3, **untested on
+   both units**) as the first pin action, so that no quiet pin is driven into a rail that is still off, then **audio mute key (PTD6) LOW = muted** at once
+   (the amplifier stays off until the audio path runs), then a 2 ms wait (`board::kRailSettleUs`) for the rail, then
    the status LED off, the analogue input switch in the receiver's position (LOW; see the pin table), the radio in reset, the FT812's chip
    select and power-down released, the MIDI output idle. The crash context is reset to stage Reset, no module.
 4. C runtime: `.data` and `.ramfunc_l` copied from flash, `.bss` cleared; `.noinit` untouched. Stage, reset cause
@@ -205,7 +207,7 @@ KiB" of SRAM_L is not used; SRAM_L is 48 KiB of hot code and tap data (24 + 24 K
 6. NVIC (`hal/irq.h`, ADR 0013 D1, mapped to MK66 lines in `irq_map.h`): grouping 0, a priority for all 100 device interrupts
    (unclaimed ones lowest, 224), MemManage/BusFault/UsageFault at 0 and **enabled**, PendSV at the render level, SysTick at 32;
    divide-by-zero traps. SysTick at 1 kHz; interrupts on.
-7. **SDRAM** (`sdramc_config.h`): power key PTA24 high, 10 ms; FlexBus and SDRAMC clocks; `SIM_SOPT2` CLKOUT = FlexBus clock,
+7. **SDRAM** (`sdramc_config.h`): power key PTA24 high (already so since step 3; driven again with the same PCR, no glitch), 10 ms; FlexBus and SDRAMC clocks; `SIM_SOPT2` CLKOUT = FlexBus clock,
    FBSL = 3; `FB_CSPMCR` byte-enable groups; the **39 pins at mux 5**; 200 us for clock and CKE; controller `CTRL`/`AC0`/`CM0`;
    precharge-all, refresh on, 200 us, mode register set at `0x70001800`; then the wiring tests and (option) the full test.
    The timings (row time 15,625 ns, six-clock refresh timing, 16-bit port, command bit 20, CAS 3, 16 MiB block, 90 MHz) are
@@ -221,18 +223,21 @@ also widens the controller's address mask so that the SDRAM answers at the ICode
 
 The facts are those of the board: which pin does what, its level and its pull, on the Teensy 3.6 pin map (the Teensy core's pin
 initialisation is commented out there: every pin is Hi-Z until a `pinMode`). "Driven" = a GPIO output set to its boot level in
-`boot::early_pins()` (`board.h` `kQuietPins`, tested in `mk66_sdramc_config_test.cpp`); the quiet pins come first, in that order.
-None of this has been seen on a unit yet (checklist MK66-10, -11).
+`boot::early_pins()` (`board.h` `kQuietPins`, tested in `mk66_sdramc_config_test.cpp`): the power key PTA24 first (HIGH, `kSdramPowerPcr` `0x144`), the codec mute PTD6 LOW at once, then a 2000 µs wait (`board::kRailSettleUs`, counted on the cycle counter at the 20.97 MHz reset clock), then the other quiet pins in the table's order. Since OS-BUG-PADS step 3 the rail comes up at the start of the reset sequence instead of in the SDRAM bring-up, after the clocks and the C
+runtime; the 10 ms wait of the bring-up is kept. The reason: on a later board revision (Control 4.0 / Grid 2.0) the pad chips never answered, and a quiet pin driven HIGH into a rail
+that is still off can back-power it. Whether the rail also feeds the pad chips is an open research question. **This order and the PCR are untested on both units** (the maintainer's
+first-batch unit and the later board revision); the first-batch unit should be checked for boot, the SDRAM tests, the display and a quiet output first (checklist MK66-10, -11).
+None of the rest of this has been seen on a unit yet either.
 
 | Function (`board.h` / `pins.h` name) | Pin (Teensy pin, port.bit) | Board fact | This image |
 |---|---|---|---|
-| audio mute key (`kAudioMute`) | (21, PTD6) | output **LOW = muted** (HIGH unmutes) | **driven LOW, first** |
+| audio mute key (`kAudioMute`) | (21, PTD6) | output **LOW = muted** (HIGH unmutes) | **driven LOW, right after the power key** (the second pin action; first before OS-BUG-PADS step 3) |
 | status LED (`kStatusLed`) | (78, PTC19) | output, active low: HIGH = off | **driven HIGH** |
 | input source select (`kInputSourceSelect`) | (24, PTE26) | output; **LOW routes the FM receiver, HIGH the line jack** (OS-011c) | **driven LOW**: the receiver's position, with the receiver held in reset, so silent |
 | radio reset (`kRadioReset`) | (67, PTE27) | output; LOW holds the Si4703 in reset, HIGH runs it; its SDIO is the shared I2C data line (Teensy pin 48), which the chip wants LOW during reset; GPIO2 is (68, PTE28), an input with a pull-up | RST **driven LOW** (radio held in reset, silent); SDIO not driven (it is the shared I2C data line: driving it would jam the bus) |
 | FT812 chip select and power-down (`kFt812ChipSelect`, `kFt812PowerDown`) | (54, PTD15), (55, PTD11) | outputs; PD# low and then high is a reset of the chip | **both driven HIGH** at boot (the first state: FT812 deselected, in standby); from OS-007c the display bring-up (see "The display") then pulses PD# and drives SPI2 on PTD12-14 |
 | MIDI DIN output (`kMidiTx`) | UART4 TX (33, PTE24); RX (34, PTE25) | TX is a UART output (idles HIGH); RX is an input with a pull-up | TX **driven HIGH** as a GPIO (idle); RX not touched by the reset sequence; OS-005c2's `midi_io::start()` hands both to UART4 (section "MIDI drivers") |
-| SDRAM power key (`kSdramPower`) | (80, PTA24) | output; HIGH powers the SDRAM | driven HIGH by the SDRAM bring-up, then 10 ms |
+| SDRAM power key (`kSdramPower`) | (80, PTA24) | output; HIGH powers the SDRAM (it may feed more than that on the later board revision: open question) | **driven HIGH, first** (`early_pins`, PCR `0x144` = GPIO + high drive + slew limit; OS-BUG-PADS step 3, untested on both units), then 2 ms (`kRailSettleUs`) before the other quiet pins; the SDRAM bring-up drives it again (same value), then waits 10 ms |
 | SDRAM bus | CLKOUT, CKE, control, address, data (39 pins) | mux 5 (FlexBus) | the SDRAM bring-up |
 | audio codec | SGTL5000 on I2C0 (**PTD8 SCL, PTD9 SDA**: Teensy pins 47/48; this table said PTA12/PTA13 until OS-005a, which are the grid-pad bus's pins 3/4, see "Audio"), MCLK/I2S pins on port E | no GPIO enable: the codec is clocked from MCLK and configured over I2C | not touched by the reset sequence (codec at its power-on defaults; the mute key holds the output off); `main` starts the audio path, "Audio" below |
 | SD card | card detect (2, PTD0); SDHC pins | card detect is an input with a pull-up | not touched |
@@ -311,7 +316,7 @@ if needed, a test on the unit. Since OS-006c `diag fw update` writes `_fwinfo` (
 | 10 flashes, pause, **repeated for good in place of the heartbeat** | **audio failure** (OS-005a): the codec did not answer or acknowledge, the MCLK divider did not update, or no I2S boundaries came; the outputs are muted. Since OS-006b the image does not stop: it goes on without sound, USB and `diag` come up, `diag stage` lists "audio" under start-up faults and `diag log` has the "boot: audio FAILED" line with the `hal::audio::Device::Result` code (`kAudioFailure`) |
 | 11 flashes, pause, repeat, from some moment on | **audio fault seen, sticky** (OS-005a): an underrun, a late render, a missed boundary, an I2S or eDMA error, or the block clock stopped (300 ms without a boundary) since boot (`kAudioFault`) |
 | 12 flashes, pause, repeat, from some moment on | **over budget, sticky** (OS-005a): no fault, but a render took more than 60 % of the block (`kAudioOverBudget`); a fault replaces it |
-| 13 flashes, pause, once, then heartbeat | a key scanner (the pads' or the buttons') did not answer its configuration at boot: the OS runs with what did, and retries the other in the background; the INPUT TEST screen says which (`kInputDegraded`, OS-007d) |
+| 13 flashes, pause, once, then heartbeat | a key scanner did not answer its configuration: the OS runs with what did, and retries the other in the background; the INPUT TEST screen says which (`kInputDegraded`, OS-007d). **When it fires** (OS-BUG-PADS): for the **control buttons** at boot, before the audio start, as before; for the **pads** not at boot but from the main loop, once the pad bus has opened (a second after the board's power key at the earliest, and after the audio start) and the pad scanner has refused its first 3 configurations since then and never answered (about 2 s after the gate opens: one try on the first pass, the others a second apart), shown in place of one heartbeat period only. The retries go on once a second for ever, and a pad scanner that answers later brings the pads online with no restart (the code is not repeated) |
 | 6 flashes, twice, then heartbeat | a valid crash record from the previous run: **an unexpected crash** (`kCrashSeen`) |
 | 7 flashes, twice, then heartbeat | the record is the drill's deliberate UsageFault, fields as expected: **round trip proven** (`kDrillRoundTrip`) |
 | dark | the image never reached `early_pins`, or the LED is not wired as assumed |
@@ -684,6 +689,16 @@ peripheral. The codec's `i2c::init()`, `write_reg()` and `read_reg()` keep their
 `i2c_config.h` holds the instances' facts (base, clock gate, pins, mux) and the table of who talks on which bus. Rules for every client: **main thread only**,
 polled (nothing enables an I2C interrupt, so nothing competes for the flags). Bringing the input up re-initialises I2C0 once more before the audio start does;
 the second initialisation is harmless (a bus clear, the same pins and divider).
+
+**The pad bus (I2C2), OS-BUG-PADS** (`input/pad_bus.h`; new Community OS behaviour, written after a report of dead pads on a plastic-back unit, **untested on that board
+revision**): (1) the bus is not touched at the input bring-up. A gate opens it once the board's power key (PTA24, which feeds the SDRAM and possibly the pad boards: an open research question) has been on for
+1 s (`PadBus::kSettleMs`, counted from `boot::rail_up_ms()`, which is 0: `early_pins` raises the key before SysTick starts, so the gate opens at an uptime of 1 s, a little more than a second after the rail) **and** the audio start is over (`input_audio_started()` in `main`); until then the pad scanner and the pad LED
+driver are not asked and nothing is recorded; the control buttons and the boot chords are not delayed (I2C0). The first access initialises the module, which includes the bus
+clear. (2) The grid bus runs with a **glitch filter** of 4 bus clocks (I2C2_FLT[FLT] = 4, about 44 ns; C2 = 0), written at the module's initialisation (`i2c_config.h`
+`InstanceFacts::filter`); I2C0 is not changed. (3) A **NAK no longer re-initialises the module**: it is the bus working, so the pad bus re-initialises (and pulses the clock)
+only after a timeout, an arbitration loss, a stuck bus, or when SCL or SDA reads low. (4) A pad scanner or LED driver that has **never answered** is asked again once a second for ever
+(`scan::kPadRetryUs`, one bounded transaction), not at the growing backoff, which a chip that has answered before keeps. `Scanner::pads_gave_no_answer()` (never answered and 3
+refused tries, `scan::kPadBootAttempts`) is what blink code 13 shows for the pads. The INPUT TEST screen therefore shows the pads offline from power-on until the gate has opened and the first configuration has gone through (the audio start included, so seconds, not milliseconds). **Warm reset:** the pad LED driver keeps its last frame lit until the gate opens, and a press on a pad before the gate is not scanned. This is expected. **Origin:** the values (FLT = 4, PCR `0x144`, the 1 s gate, the 2 ms wait) follow a bring-up reported to work on later boards. The behaviour is new Community OS behaviour, untested on the affected revision.
 
 ### Pad LEDs
 

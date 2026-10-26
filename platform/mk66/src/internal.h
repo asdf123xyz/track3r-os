@@ -22,7 +22,7 @@ class ModuleVoices;
 namespace o3os::platform::mk66::boot {
 
 // ---- boot.cpp: the reset sequence's steps, in the order startup.cpp calls them -------------------------------------
-void early_pins() noexcept;        // port clocks on; audio output muted; status LED an output, off
+void early_pins() noexcept;        // port clocks on; power key (PTA24) high; audio muted at once; ~2 ms wait (board::kRailSettleUs); then the other quiet pins (LED off, FT812 released, MIDI TX idle); starts the cycle counter
 void enable_dwt() noexcept;        // cycle counter running (hal::cycles(), the delays below)
 void init_clocks() noexcept;       // crystal -> HSRUN -> PLL: 180 MHz core, 90 MHz bus and FlexBus. Fails visibly, never hangs.
 void init_interrupts() noexcept;   // NVIC priorities from hal/irq.h, fault handlers enabled, divide-by-zero traps
@@ -57,6 +57,7 @@ std::uint32_t load_context() noexcept;                     // crash::kUnknownCon
 void reset_context() noexcept;                             // stage Reset, no module: the first thing a run does, so a crash that early does not claim the last run's stage
 [[noreturn]] void reset_chip() noexcept;                   // SYSRESETREQ
 std::uint32_t uptime_ms_low() noexcept;                    // clock.cpp: SysTick milliseconds since boot, no lock (fault path)
+std::uint32_t rail_up_ms() noexcept;                       // boot.cpp, OS-BUG-PADS: the uptime (ms) at which the power key (PTA24) went on: 0, early_pins raises it before SysTick starts
 
 }  // namespace o3os::platform::mk66::boot
 
@@ -124,8 +125,13 @@ bool init(hal::Display& display) noexcept;
 // a fault found (blink.h kDisplayStalled, kAppFailure): the display is held dark and the caller shows the code in place of the
 // heartbeat, for good.
 std::uint8_t pass() noexcept;
-// OS-007d: true when a key scanner (pads or buttons) did not answer at boot; main.cpp plays blink::kInputDegraded once.
+// OS-007d: true when the control-button key scanner did not answer at boot; main.cpp plays blink::kInputDegraded once, before the audio start.
 bool input_degraded() noexcept;
+// OS-BUG-PADS: the pad bus is brought up late (pad_bus.h), so the pads have no boot verdict. main.cpp tells the input that the audio start is over
+// (the second condition of the pad bus's gate), and shows blink::kInputDegraded once, from its loop and without waiting, when this says the pad
+// key scanner has refused its first configurations since the bus opened and has never answered (the retries go on, a late answer brings the pads online).
+void input_audio_started() noexcept;
+bool pads_gave_no_answer() noexcept;
 // OS-USBDISK U1c, the boot disk (mode (b)): true when the chord Shift + F1 + F7 was held at power-up (init() decides, once). main.cpp then mounts nothing, loads nothing and never opens the
 // outputs. boot_disk_open() is its last step, after the USB port started with the DISK set: the card's owner becomes the computer and the card is started for it. Main loop only.
 bool boot_disk() noexcept;
