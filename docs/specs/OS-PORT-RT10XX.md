@@ -441,7 +441,7 @@ start`, `i2c scan`, `input start` and `input encoder` are what first drive a pad
 
 ### 8.5 Costs
 
-The image with phase 4: FLASH 173,172 B (phase 3: 124,912), ITCM 49,140 B (unchanged), DTCM 88,792 B (the card's buffers and FatFs,
+The image with phase 4: FLASH 173,348 B (phase 3: 124,912), ITCM 49,140 B (unchanged), DTCM 88,792 B (the card's buffers and FatFs,
 the display's frame staging, the scanner, the LED driver, the update store), OCRAM 2,048 B, SDRAM 0.
 
 ### 8.6 What phase 4 does not do

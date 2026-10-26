@@ -70,7 +70,7 @@ every platform as `platform_rt10xx_pure` (headers, header-checked); their tests 
 
 ## The probe image, by the numbers (2026-10-26, phases 1 to 4)
 
-FLASH 173,172 B · ITCM 49,140 B (hot code 26,868 B, the taps' memory 22,272 B) · DTCM 88,792 B (the engine, the pipeline, the DMA rings,
+FLASH 173,348 B · ITCM 49,140 B (hot code 26,868 B, the taps' memory 22,272 B) · DTCM 88,792 B (the engine, the pipeline, the DMA rings,
 the card and FatFs, the display staging, the scanner, the log, the CDC and MIDI rings, the descriptors, the shell) · OCRAM 2,048 B (the USB controller's queue heads, descriptors and buffers) ·
 SDRAM 0. `check_image`: 10/10 on the `.hex` and on the `.ptf`; `rt10xx_ramfunc`: the hot code calls nothing in flash. Phases 1 and 2 were
 FLASH 27,076 B, DTCM 12,640 B; phase 1 alone FLASH 3,728 B, DTCM 752 B; with phase 3, FLASH 124,912 B, DTCM 66,840 B.

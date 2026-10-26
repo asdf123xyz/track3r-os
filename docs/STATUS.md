@@ -36,7 +36,7 @@ check) under `audio start|unmute|mute|tone|stall|stop`, the DIN port (LPUART5 at
 `midi/din_io.h` unchanged) under `midi start|note|clock`, the card over uSDHC1 (`sd`, `ls`), the display over LPSPI4 with the MK66's
 FT812 driver (`display`), the LPI2C buses and the MK66's key scanner and pad LEDs on buses chosen at run time (`i2c scan`, `input`), the
 update path with a .ptf validator and the official hand-over (`fw check|arm|update|clear`), and `core::kCpuHz` taken from the build (`O3OS_CPU_HZ`; the MK66 unchanged, the
-full host run is the proof), `O3OS_PLATFORM=rt10xx` and `tools/ci.sh rt10xx`. The probe image (FLASH 173,172 B, ITCM 49,140 B, DTCM
+full host run is the proof), `O3OS_PLATFORM=rt10xx` and `tools/ci.sh rt10xx`. The probe image (FLASH 173,348 B, ITCM 49,140 B, DTCM
 88,792 B) answers on the USB port. **Nothing has run on a unit**: the first hardware check is the probe through the official update path,
 with the pinhole recovery known to work on that unit (`docs/specs/OS-PORT-RT10XX.md` sections 4, 6.5, 7.5 and 8.7). The board facts come from
 the Modular-Trackular project's observations of the unit (MIT), used as facts of the hardware only; the SDRAM part and its timings, the
